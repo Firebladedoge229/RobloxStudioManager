@@ -23,6 +23,7 @@ jobs:
 
     - name: Install dependencies
       run: |
+        pip install psutil
         pip install requests
         pip install pyinstaller
     - name: Build executable
