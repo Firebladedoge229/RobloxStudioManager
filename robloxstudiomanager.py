@@ -236,7 +236,7 @@ force_high_graphics_var = tk.BooleanVar(value=True)
 visual_verified_var = tk.BooleanVar(value=False)
 old_font_var = tk.BooleanVar(value=True)
 classic_error_var = tk.BooleanVar(value=True)
-s
+
 ttk.Label(root, text="Roblox Settings Manager", font=("Segoe UI", 16)).grid(row=0, column=0, columnspan=4, pady=10)
 
 ttk.Checkbutton(root, text="Optimize Roblox", variable=optimize_roblox_var).grid(row=1, column=0, sticky=tk.W, padx=10)
