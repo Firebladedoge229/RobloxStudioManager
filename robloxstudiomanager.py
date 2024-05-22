@@ -279,7 +279,7 @@ ttk.Checkbutton(root, text="Force High Graphics", variable=force_high_graphics_v
 ttk.Checkbutton(root, text="Verified Badge", variable=visual_verified_var).grid(row=9, column=2, sticky=tk.W, padx=10, pady=3)
 ttk.Checkbutton(root, text="Classic Font", variable=old_font_var).grid(row=1, column=3, sticky=tk.W, padx=10, pady=3)
 ttk.Checkbutton(root, text="Classic Error", variable=classic_error_var).grid(row=2, column=3, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Framerate Settings", variable=framerate_cap_var).grid(row=3 column=3, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Framerate Settings", variable=framerate_cap_var).grid(row=3, column=3, sticky=tk.W, padx=10, pady=3)
 ttk.Checkbutton(root, text="Enable Internal", variable=enable_internal_var).grid(row=4, column=3, sticky=tk.W, padx=10, pady=3)
 
 ttk.Button(root, text="Apply Settings", command=update_settings).grid(row=10, column=0, columnspan=4, pady=20)
