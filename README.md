@@ -25,4 +25,4 @@ pyinstaller --onefile --noconsole --icon=icon.ico --add-data="icon.ico;." --add-
 
 ## Credits 
 
-[Roblox](https://web.archive.org/web/20190123202500if_/https://assets.contentstack.io/v3/assets/bltc2ad39afa86662c8/blt2387a75699f139aa/5c004be20df41c16214e0b69/Roblox_2.0_Brand_Guidelines_Nov_2018.pdf?disposition=inline) - Roblox Studio
+[ROBLOX Corporation](https://web.archive.org/web/20190123202500if_/https://assets.contentstack.io/v3/assets/bltc2ad39afa86662c8/blt2387a75699f139aa/5c004be20df41c16214e0b69/Roblox_2.0_Brand_Guidelines_Nov_2018.pdf?disposition=inline) - Roblox Studio Logo
