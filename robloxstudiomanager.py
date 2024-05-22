@@ -14,7 +14,6 @@ if getattr(sys, 'frozen', False):
 else:
     application_path = os.path.dirname(os.path.abspath(__file__))
 
-# Function to update settings based on user input
 def update_settings():
     studio_id = studio_running()
 
@@ -43,7 +42,6 @@ def update_settings():
     old_font = old_font_var.get()
     classic_error = classic_error_var.get()
 
-    # Define the experimental features or optimizations to enable
     flags = {
         "FFlagDebugGraphicsPreferD3D11": "true",  # directx 11 usage
         "DFIntTaskSchedulerTargetFps": int(max_fps)  # max fps
@@ -152,41 +150,31 @@ def update_settings():
     if classic_error:
         flags["FFlagErrorPromptResizesHeight"] = "false"
 
-    # Specify the path to the Roblox version directory
     versions_dir = os.path.join(os.environ['LOCALAPPDATA'], 'Roblox', 'Versions')
 
-    # Initialize variables to keep track of the version with the most files and folders
     max_files_count = 0
     selected_version = None
 
-    # Iterate through all the directories in the versions directory
     for version in os.listdir(versions_dir):
         version_dir = os.path.join(versions_dir, version)
 
-        # Check if the version directory contains RobloxStudioBeta.exe
         exe_path = os.path.join(version_dir, 'RobloxStudioBeta.exe')
         if os.path.exists(exe_path):
-            # Count the number of files and folders in the version directory
             num_files = len([name for name in os.listdir(version_dir)])
 
-            # Update if this version has more files/folders than the previous maximum
             if num_files > max_files_count:
                 max_files_count = num_files
                 selected_version = version_dir
 
-    # Check if a version with RobloxStudioBeta.exe was found
     if selected_version is not None:
-        # Construct the path to ClientAppSettings.json
         app_settings_path = os.path.join(selected_version, 'ClientSettings', 'ClientAppSettings.json')
 
-        # Create the ClientSettings directory if it doesn't exist
         if not os.path.exists(os.path.join(selected_version, 'ClientSettings')):
             os.makedirs(os.path.join(selected_version, 'ClientSettings'))
 
         open(app_settings_path, "w").close()
         open(app_settings_path, "w+").write("{}")
 
-        # Open the ClientAppSettings.json file and update the settings
         with open(app_settings_path, 'r+') as f:
             app_settings = json.load(f)
             if optimize_roblox:
@@ -201,7 +189,6 @@ def update_settings():
             json.dump(app_settings, f, indent=4)
             f.truncate()
 
-        # Open the RobloxStudioBeta.exe file and perform the hex patching
         if enable_internal:
             exe_path = os.path.join(selected_version, 'RobloxStudioBeta.exe')
             with open(exe_path, 'r+b') as f:
@@ -228,11 +215,9 @@ def studio_running():
             return proc.pid
     return False
 
-# Create the main window
 root = tk.Tk()
 root.title("Roblox Settings Manager")
 
-# Create StringVar and IntVar variables for each setting
 optimize_roblox_var = tk.BooleanVar()
 menu_type_var = tk.StringVar(value="Version 4")
 topbar_type_var = tk.StringVar(value="New")
@@ -251,8 +236,7 @@ force_high_graphics_var = tk.BooleanVar(value=True)
 visual_verified_var = tk.BooleanVar(value=False)
 old_font_var = tk.BooleanVar(value=True)
 classic_error_var = tk.BooleanVar(value=True)
-
-# Create and place widgets
+s
 ttk.Label(root, text="Roblox Settings Manager", font=("Segoe UI", 16)).grid(row=0, column=0, columnspan=4, pady=10)
 
 ttk.Checkbutton(root, text="Optimize Roblox", variable=optimize_roblox_var).grid(row=1, column=0, sticky=tk.W, padx=10)
