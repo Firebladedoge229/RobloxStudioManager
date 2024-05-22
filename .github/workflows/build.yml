@@ -23,7 +23,6 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install pytchat
         pip install requests
         pip install pyinstaller
     - name: Build executable
