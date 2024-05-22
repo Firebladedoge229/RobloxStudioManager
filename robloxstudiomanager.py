@@ -41,6 +41,7 @@ def update_settings():
     visual_verified = visual_verified_var.get()
     old_font = old_font_var.get()
     classic_error = classic_error_var.get()
+    framerate_cap = framerate_cap_var.get()
 
     flags = {
         "FFlagDebugGraphicsPreferD3D11": "true",  # directx 11 usage
@@ -150,6 +151,9 @@ def update_settings():
     if classic_error:
         flags["FFlagErrorPromptResizesHeight"] = "false"
 
+    if framerate_cap:
+        flags["FFlagGameBasicSettingsFramerateCap5"] = "true"
+
     versions_dir = os.path.join(os.environ['LOCALAPPDATA'], 'Roblox', 'Versions')
 
     max_files_count = 0
@@ -236,6 +240,7 @@ force_high_graphics_var = tk.BooleanVar(value=True)
 visual_verified_var = tk.BooleanVar(value=False)
 old_font_var = tk.BooleanVar(value=True)
 classic_error_var = tk.BooleanVar(value=True)
+framerate_cap_var = tk.BooleanVar()
 
 ttk.Label(root, text="Roblox Settings Manager", font=("Segoe UI", 16)).grid(row=0, column=0, columnspan=4, pady=10)
 
@@ -274,7 +279,8 @@ ttk.Checkbutton(root, text="Force High Graphics", variable=force_high_graphics_v
 ttk.Checkbutton(root, text="Verified Badge", variable=visual_verified_var).grid(row=9, column=2, sticky=tk.W, padx=10, pady=3)
 ttk.Checkbutton(root, text="Classic Font", variable=old_font_var).grid(row=1, column=3, sticky=tk.W, padx=10, pady=3)
 ttk.Checkbutton(root, text="Classic Error", variable=classic_error_var).grid(row=2, column=3, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Enable Internal", variable=enable_internal_var).grid(row=3, column=3, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Framerate Settings", variable=framerate_cap_var).grid(row=3 column=3, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Enable Internal", variable=enable_internal_var).grid(row=4, column=3, sticky=tk.W, padx=10, pady=3)
 
 ttk.Button(root, text="Apply Settings", command=update_settings).grid(row=10, column=0, columnspan=4, pady=20)
 
