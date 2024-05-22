@@ -279,6 +279,7 @@ ttk.Checkbutton(root, text="Enable Internal", variable=enable_internal_var).grid
 ttk.Button(root, text="Apply Settings", command=update_settings).grid(row=10, column=0, columnspan=4, pady=20)
 
 sv_ttk.set_theme("dark")
+root.resizable(False, False)
 root.iconbitmap(application_path + "\\icon.ico")
 
 root.mainloop()
