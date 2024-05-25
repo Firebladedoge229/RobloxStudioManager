@@ -6,6 +6,7 @@ on:
       - main
     paths-ignore:
       - '**.md'
+      - '**.yml'
 
 jobs:
   build:
@@ -18,13 +19,13 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.x'
+        python-version: '3.10.11'
 
     - name: Install dependencies
       run: |
-        pip install psutil
-        pip install requests
-        pip install pyinstaller
+        pip install psutil==5.9.5
+        pip install requests==2.31.0
+        pip install pyinstaller==6.4.0
     - name: Build executable
       run: pyinstaller --onefile --noconsole --icon=icon.ico --add-data="icon.ico;." --add-data="sv_ttk;sv_ttk" robloxstudiomanager.py
 
