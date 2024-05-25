@@ -7,6 +7,7 @@ import psutil
 import sv_ttk
 import requests
 import threading
+import subprocess
 import tkinter as tk
 import xml.etree.ElementTree as ET
 from tkinter import ttk, messagebox
@@ -66,13 +67,13 @@ def reset_fflags():
             open(app_settings_path, "w+").write("{}")
             
 def installation_folder():
-    os.system(f'explorer "{selected_version}')
+    subprocess.Popen(f'explorer "{selected_version}', shell = True)
 
 def launch_studio_async():
-    os.system(f"{selected_version}\RobloxStudioBeta.exe")
+    subprocess.Popen(f"{selected_version}\RobloxStudioBeta.exe", shell = True)
 
 def update_studio_async():
-    os.system(f"{selected_version}\RobloxStudioInstaller.exe")
+    subprocess.Popen(f"{selected_version}\RobloxStudioInstaller.exe", shell = True)
 
 def update_settings():
     t = threading.Thread(target=update_settings_async)
