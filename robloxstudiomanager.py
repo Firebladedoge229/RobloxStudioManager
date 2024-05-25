@@ -471,6 +471,7 @@ plugin_check_states = {}
 def plugin_editor():
     new_window = tk.Toplevel(root)
     new_window.title("Roblox Studio Manager: Plugin Editor")
+    new_window.iconbitmap(application_path + "\\icon.ico")
     
     main_frame = ttk.Frame(new_window)
     main_frame.pack(padx=20, pady=20)
