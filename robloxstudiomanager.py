@@ -8,8 +8,9 @@ import sv_ttk
 import requests
 import threading
 import tkinter as tk
+import xml.etree.ElementTree as ET
 from tkinter import ttk, messagebox
-from tkinter import messagebox
+import configparser as ConfigParser
 
 if getattr(sys, 'frozen', False):
     application_path = sys._MEIPASS
@@ -20,9 +21,7 @@ global selected_version
 selected_version = None
 
 optimizer = "https://raw.githubusercontent.com/rbxflags/Flags/main/ClientAppSettings.json"
-
 versions_dir = os.path.join(os.environ['LOCALAPPDATA'], 'Roblox', 'Versions')
-
 max_files_count = 0
 
 for version in os.listdir(versions_dir):
@@ -41,6 +40,9 @@ def is_modded():
         return "Yes"
     else:
         return "No"
+
+def get_channel():
+    return requests.get("https://clientsettings.roblox.com/v2/user-channel?binaryType=WindowsStudio64").json()["channelName"]
 
 def check_internet():
     try:
@@ -84,6 +86,8 @@ def update_studio():
     t = threading.Thread(target=update_studio_async)
     t.start()
   
+Config = ConfigParser.ConfigParser()
+
 def update_settings_async():
     studio_id = studio_running()
 
@@ -102,6 +106,7 @@ def update_settings_async():
     graphics_type = graphics_type_var.get()
     max_fps = max_fps_var.get()
     font_size = font_size_var.get()
+    coregui_transparency = coregui_transparency_var.get()
     log_requests = log_requests_var.get()
     enable_proxy = enable_proxy_var.get()
     enable_internal = enable_internal_var.get()
@@ -116,6 +121,38 @@ def update_settings_async():
     classic_error = classic_error_var.get()
     disable_updating = disable_updating_var.get()
     extra_plugins = extra_plugins_var.get()
+    framerate_settings = framerate_settings_var.get()
+    Config["Configuration"] = {}
+    Config["Plugins"] = {}
+    Config["Configuration"]["optimize_roblox"] = str(optimize_roblox_var.get())
+    Config["Configuration"]["menu_type"] = str(menu_type_var.get())
+    Config["Configuration"]["topbar_type"] = str(topbar_type_var.get())
+    Config["Configuration"]["msaa_level"] = str(msaa_level_var.get())
+    Config["Configuration"]["graphics_type"] = str(graphics_type_var.get())
+    Config["Configuration"]["max_fps"] = str(max_fps_var.get())
+    Config["Configuration"]["font_size"] = str(font_size_var.get())
+    Config["Configuration"]["coregui_transparency"] = str(coregui_transparency_var.get())
+    Config["Configuration"]["log_requests"] = str(log_requests_var.get())
+    Config["Configuration"]["enable_proxy"] = str(enable_proxy_var.get())
+    Config["Configuration"]["enable_internal"] = str(enable_internal_var.get())
+    Config["Configuration"]["show_flags"] = str(show_flags_var.get())
+    Config["Configuration"]["log_all"] = str(log_all_var.get())
+    Config["Configuration"]["code_assist"] = str(code_assist_var.get())
+    Config["Configuration"]["disable_telemetry"] = str(disable_telemetry_var.get())
+    Config["Configuration"]["rainbow_ui"] = str(rainbow_ui_var.get())
+    Config["Configuration"]["force_high_graphics"] = str(force_high_graphics_var.get())
+    Config["Configuration"]["visual_verified"] = str(visual_verified_var.get())
+    Config["Configuration"]["old_font"] = str(old_font_var.get())
+    Config["Configuration"]["classic_error"] = str(classic_error_var.get())
+    Config["Configuration"]["disable_updating"] = str(disable_updating_var.get())
+    Config["Configuration"]["extra_plugins"] = str(extra_plugins_var.get())
+    Config["Configuration"]["framerate_settings"] = str(framerate_settings_var.get())
+    for plugin, state in plugin_check_states.items():
+        if not state.get():
+            Config["Plugins"][plugin] = str(state.get())
+
+    with open("robloxstudiomanagerconfig.ini", "w") as configfile:
+        Config.write(configfile)
 
     flags = {
         "FFlagDebugGraphicsPreferD3D11": "true",  # directx 11 usage
@@ -234,9 +271,12 @@ def update_settings_async():
         flags["DebugEnableBootcampPlugin"] = "true"
         flags["RetireAudioDiscoveryPlugin"] = "false"
 
+    if framerate_settings:
+        flags["FFlagGameBasicSettingsFramerateCap5"] = "true"
+
     if selected_version is not None:
         app_settings_path = os.path.join(selected_version, 'ClientSettings', 'ClientAppSettings.json')
-
+        
         if not os.path.exists(os.path.join(selected_version, 'ClientSettings')):
             os.makedirs(os.path.join(selected_version, 'ClientSettings'))
 
@@ -282,7 +322,6 @@ def update_settings_async():
         patch = bytes.fromhex("".join(format(ord(char), '02X') for char in patch))
 
         if disable_updating:
-            print(str(result), str(patch))
             exe_path = os.path.join(selected_version, 'RobloxStudioBeta.exe')
             with open(exe_path, 'r+b') as f:
                 content = f.read()
@@ -299,6 +338,20 @@ def update_settings_async():
                     f.seek(index)
                     f.write(result)
 
+        tree = ET.parse(os.path.join(os.path.join(os.environ['LOCALAPPDATA'], 'Roblox'), "GlobalBasicSettings_13_Studio.xml"))
+        root = tree.getroot()
+
+        for item in root.findall(".//Item[@class='UserGameSettings']"):
+            for prop in item.find('Properties'):
+                if prop.tag == 'float' and prop.attrib.get('name') == 'PreferredTransparency':
+                    prop.text = str((4 / 99) * float(coregui_transparency) + (95 / 99))
+                    break
+
+        tree.write(os.path.join(os.path.join(os.environ['LOCALAPPDATA'], 'Roblox'), "GlobalBasicSettings_13_Studio.xml"), encoding='utf-8', xml_declaration=True)
+
+        for plugin in pluginList:
+            update_plugin_state(plugin)
+
         end_time = time.time()
 
         result = messagebox.showinfo("Roblox Studio Manager", f"Successfully patched in {str(round(end_time - start_time, 2))}ms.")
@@ -309,92 +362,261 @@ def studio_running():
             return proc.pid
     return False
 
+def get_config_value(section, option, default):
+    try:
+        return Config.get(section, option)
+    except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+        return default
+
 root = tk.Tk()
 root.title("Roblox Studio Manager")
 
-optimize_roblox_var = tk.BooleanVar()
-menu_type_var = tk.StringVar(value="Version 4")
-topbar_type_var = tk.StringVar(value="New")
-msaa_level_var = tk.StringVar(value="4x")
-graphics_type_var = tk.StringVar(value="21")
-max_fps_var = tk.StringVar(value="9999")
-font_size_var = tk.StringVar(value="1")
-log_requests_var = tk.BooleanVar()
-enable_proxy_var = tk.BooleanVar()
-show_flags_var = tk.BooleanVar()
-log_all_var = tk.BooleanVar()
-code_assist_var = tk.BooleanVar()
-disable_telemetry_var = tk.BooleanVar(value=True)
-rainbow_ui_var = tk.BooleanVar()
-force_high_graphics_var = tk.BooleanVar(value=True)
-visual_verified_var = tk.BooleanVar(value=False)
-old_font_var = tk.BooleanVar(value=True)
-classic_error_var = tk.BooleanVar(value=True)
-disable_updating_var = tk.BooleanVar()
-enable_internal_var = tk.BooleanVar()
-extra_plugins_var = tk.BooleanVar()
+Config.read("robloxstudiomanagerconfig.ini")
 
-ttk.Label(root, text="Roblox Studio Manager", font=("Segoe UI", 16)).grid(row=0, column=0, columnspan=4, pady=10)
+optimize_roblox_var = tk.BooleanVar(value=get_config_value("Configuration", "optimize_roblox", False))
+menu_type_var = tk.StringVar(value=get_config_value("Configuration", "menu_type", "Version 4"))
+topbar_type_var = tk.StringVar(value=get_config_value("Configuration", "topbar_type", "New"))
+msaa_level_var = tk.StringVar(value=get_config_value("Configuration", "msaa_level", "4x"))
+graphics_type_var = tk.StringVar(value=get_config_value("Configuration", "graphics_type", "21"))
+max_fps_var = tk.StringVar(value=get_config_value("Configuration", "max_fps", "9999"))
+font_size_var = tk.StringVar(value=get_config_value("Configuration", "font_size", "1"))
+coregui_transparency_var = tk.StringVar(value=get_config_value("Configuration", "coregui_transparency", "1"))
+log_requests_var = tk.BooleanVar(value=get_config_value("Configuration", "log_requests", False))
+enable_proxy_var = tk.BooleanVar(value=get_config_value("Configuration", "enable_proxy", False))
+show_flags_var = tk.BooleanVar(value=get_config_value("Configuration", "show_flags", False))
+log_all_var = tk.BooleanVar(value=get_config_value("Configuration", "log_all", False))
+code_assist_var = tk.BooleanVar(value=get_config_value("Configuration", "code_assist", False))
+disable_telemetry_var = tk.BooleanVar(value=get_config_value("Configuration", "disable_telemetry", True))
+rainbow_ui_var = tk.BooleanVar(value=get_config_value("Configuration", "rainbow_ui", False))
+force_high_graphics_var = tk.BooleanVar(value=get_config_value("Configuration", "force_high_graphics", True))
+visual_verified_var = tk.BooleanVar(value=get_config_value("Configuration", "visual_verified", False))
+old_font_var = tk.BooleanVar(value=get_config_value("Configuration", "old_font", True))
+classic_error_var = tk.BooleanVar(value=get_config_value("Configuration", "classic_error", True))
+extra_plugins_var = tk.BooleanVar(value=get_config_value("Configuration", "extra_plugins", False))
+framerate_settings_var = tk.BooleanVar(value=get_config_value("Configuration", "framerate_settings", False))
+disable_updating_var = tk.BooleanVar(value=get_config_value("Configuration", "disable_updating", False))
+enable_internal_var = tk.BooleanVar(value=get_config_value("Configuration", "enable_internal", False))
+
+type_settings_one_column = 0
+type_settings_one_input_column = 1
+type_settings_two_column = 2
+type_settings_two_input_column = 3
+checkbox_column_one = 4
+checkbox_column_two = 5
+
+ttk.Label(root, text="Roblox Studio Manager", font=("Segoe UI", 16)).grid(row=0, column=0, columnspan=6, pady=10)
 
 ttk.Checkbutton(root, text="Optimize Roblox", variable=optimize_roblox_var).grid(row=1, column=0, sticky=tk.W, padx=10)
 ttk.Label(root, text="Menu Type:").grid(row=2, column=0, sticky=tk.W, padx=10)
 optimize_roblox_cb = ttk.Checkbutton(root, text="Optimize Roblox", variable=optimize_roblox_var)
 optimize_roblox_cb.grid(row=1, column=0, sticky=tk.W, padx=10)
 
-ttk.Label(root, text="Menu Type:").grid(row=2, column=0, sticky=tk.W, padx=10)
+ttk.Label(root, text="Menu Type:").grid(row=2, column=type_settings_one_column, sticky=tk.W, padx=10)
 combo_menu_type = ttk.Combobox(root, textvariable=menu_type_var, values=["Version 4", "Default", "Version 1", "Version 2", "Version 4"], style="TCombobox", state="readonly")
-combo_menu_type.grid(row=2, column=1, sticky="ew")
+combo_menu_type.grid(row=2, column=type_settings_one_input_column, sticky="ew")
 
-ttk.Label(root, text="Topbar Type:").grid(row=3, column=0, sticky=tk.W, padx=10)
+ttk.Label(root, text="Topbar Type:").grid(row=3, column=type_settings_one_column, sticky=tk.W, padx=10)
 combo_topbar_type = ttk.Combobox(root, textvariable=topbar_type_var, values=["New", "Old", "New"], style="TCombobox", state="readonly")
-combo_topbar_type.grid(row=3, column=1, sticky="ew")
+combo_topbar_type.grid(row=3, column=type_settings_one_input_column, sticky="ew")
 
-ttk.Label(root, text="MSAA Level:").grid(row=4, column=0, sticky=tk.W, padx=10)
+ttk.Label(root, text="MSAA Level:").grid(row=4, column=type_settings_one_column, sticky=tk.W, padx=10)
 combo_msaa_level = ttk.Combobox(root, textvariable=msaa_level_var, values=["4x", "Default", "1x", "2x", "4x", "8x"], style="TCombobox", state="readonly")
-combo_msaa_level.grid(row=4, column=1, sticky="ew")
+combo_msaa_level.grid(row=4, column=type_settings_one_input_column, sticky="ew")
 
-ttk.Label(root, text="Graphics Type:").grid(row=5, column=0, sticky=tk.W, padx=10)
+ttk.Label(root, text="Graphics Type:").grid(row=5, column=type_settings_one_column, sticky=tk.W, padx=10)
 combo_graphics_type = ttk.Combobox(root, textvariable=graphics_type_var, values=["21", "Default", "10", "21"], style="TCombobox", state="readonly")
-combo_graphics_type.grid(row=5, column=1, sticky="ew")
+combo_graphics_type.grid(row=5, column=type_settings_one_input_column, sticky="ew")
 
-ttk.Label(root, text="Max FPS:").grid(row=6, column=0, sticky=tk.W, padx=10)
-ttk.Entry(root, textvariable=max_fps_var).grid(row=6, column=1, sticky="ew")
+ttk.Label(root, text="Max FPS:").grid(row=6, column=type_settings_one_column, sticky=tk.W, padx=10)
+ttk.Entry(root, textvariable=max_fps_var).grid(row=6, column=type_settings_one_input_column, sticky="ew")
 
-ttk.Label(root, text="Font Size:").grid(row=7, column=0, sticky=tk.W, padx=10)
-ttk.Entry(root, textvariable=font_size_var).grid(row=7, column=1, sticky="ew")
+ttk.Label(root, text="Font Size:").grid(row=7, column=type_settings_one_column, sticky=tk.W, padx=10)
+ttk.Entry(root, textvariable=font_size_var).grid(row=7, column=type_settings_one_input_column, sticky="ew")
 
-ttk.Label(root, text="Version:").grid(row=8, column=0, sticky=tk.W, padx=10)
-ttk.Label(root, text=os.path.basename(selected_version)).grid(row=8, column=1, sticky=tk.W, padx=10)
+ttk.Label(root, text="CoreGUI Transparency:").grid(row=8, column=type_settings_one_column, sticky=tk.W, padx=10)
+ttk.Entry(root, textvariable=coregui_transparency_var).grid(row=8, column=type_settings_one_input_column, sticky="ew")
 
-ttk.Label(root, text="Modded:").grid(row=9, column=0, sticky=tk.W, padx=10)
-ttk.Label(root, text=is_modded()).grid(row=9, column=1, sticky=tk.W, padx=10)
+ttk.Label(root, text="Version:").grid(row=2, column=type_settings_two_column, sticky=tk.W, padx=10)
+ttk.Label(root, text=os.path.basename(selected_version)).grid(row=2, column=type_settings_two_input_column, sticky=tk.W, padx=10)
 
-ttk.Checkbutton(root, text="Log Requests", variable=log_requests_var).grid(row=1, column=2, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Enable Proxy", variable=enable_proxy_var).grid(row=2, column=2, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Show Flags", variable=show_flags_var).grid(row=3, column=2, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Log All", variable=log_all_var).grid(row=4, column=2, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Code Assist", variable=code_assist_var).grid(row=5, column=2, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Disable Telemetry", variable=disable_telemetry_var).grid(row=6, column=2, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Rainbow UI", variable=rainbow_ui_var).grid(row=7, column=2, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Force High Graphics", variable=force_high_graphics_var).grid(row=8, column=2, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Verified Badge", variable=visual_verified_var).grid(row=9, column=2, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Classic Font", variable=old_font_var).grid(row=1, column=3, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Classic Error", variable=classic_error_var).grid(row=2, column=3, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Extra Plugins", variable=extra_plugins_var).grid(row=3, column=3, sticky=tk.W, padx=10, pady=3)
+ttk.Label(root, text="Modded:").grid(row=3, column=type_settings_two_column, sticky=tk.W, padx=10)
+ttk.Label(root, text=is_modded()).grid(row=3, column=type_settings_two_input_column, sticky=tk.W, padx=10)
+
+ttk.Label(root, text="Channel:").grid(row=4, column=type_settings_two_column, sticky=tk.W, padx=10)
+ttk.Label(root, text=get_channel()).grid(row=4, column=type_settings_two_input_column, sticky=tk.W, padx=10)
+
+ttk.Checkbutton(root, text="Log Requests", variable=log_requests_var).grid(row=1, column=checkbox_column_one, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Enable Proxy", variable=enable_proxy_var).grid(row=2, column=checkbox_column_one, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Show Flags", variable=show_flags_var).grid(row=3, column=checkbox_column_one, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Log All", variable=log_all_var).grid(row=4, column=checkbox_column_one, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Code Assist", variable=code_assist_var).grid(row=5, column=checkbox_column_one, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Disable Telemetry", variable=disable_telemetry_var).grid(row=6, column=checkbox_column_one, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Rainbow UI", variable=rainbow_ui_var).grid(row=7, column=checkbox_column_one, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Force High Graphics", variable=force_high_graphics_var).grid(row=8, column=checkbox_column_one, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Verified Badge", variable=visual_verified_var).grid(row=9, column=checkbox_column_one, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Classic Font", variable=old_font_var).grid(row=1, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Classic Error", variable=classic_error_var).grid(row=2, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Extra Plugins", variable=extra_plugins_var).grid(row=3, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Framerate Settings", variable=framerate_settings_var).grid(row=4, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
 disable_updates_cb = ttk.Checkbutton(root, text="Disable Updates", variable=disable_updating_var, state = "disabled")
-disable_updates_cb.grid(row=4, column=3, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Enable Internal", variable=enable_internal_var).grid(row=5, column=3, sticky=tk.W, padx=10, pady=3)
+disable_updates_cb.grid(row=5, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Enable Internal", variable=enable_internal_var).grid(row=6, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
 
+global pluginList
+pluginList = []
+
+global plugin_check_states
+plugin_check_states = {}
+
+def plugin_editor():
+    new_window = tk.Toplevel(root)
+    new_window.title("Roblox Studio Manager: Plugin Editor")
+    
+    main_frame = ttk.Frame(new_window)
+    main_frame.pack(padx=20, pady=20)
+    
+    frame = ttk.Frame(main_frame)
+    frame.grid(row=0, column=0, padx=20, pady=20)
+
+    plugin_dirs = [
+        os.path.join(selected_version, r"BuiltInPlugins\Optimized_Embedded_Signature"),
+        os.path.join(selected_version, r"BuiltInStandalonePlugins\Optimized_Embedded_Signature")
+    ]
+    
+    plugins = set()
+    
+    for dir_path in plugin_dirs:
+        if os.path.exists(dir_path):
+            for plugin in os.listdir(dir_path):
+                plugins.add(plugin)
+    
+    sorted_plugins = sorted(plugins)
+    
+    row = 0
+    column = 0
+    
+    global pluginList
+    pluginList.clear()
+    for i, plugin in enumerate(sorted_plugins):
+        if plugin not in plugin_check_states:
+            plugin_check_states[plugin] = tk.BooleanVar(value=get_config_value("Plugins", plugin, True))
+        var = plugin_check_states[plugin]
+        pluginList.append(plugin)
+        chk = ttk.Checkbutton(frame, text=plugin.replace(".rbxm", ""), variable=var, onvalue=True, offvalue=False)
+        chk.grid(row=row, column=column, sticky='w', padx=5, pady=5)
+
+        row += 1 
+        if (i + 1) % 20 == 0:
+            row = 0
+            column += 1
+    
+    button_frame = ttk.Frame(main_frame)
+    button_frame.grid(row=1, column=0, pady=(0, 20), sticky="n")
+    
+    ttk.Button(button_frame, text="Enable All", command=enable_all).grid(row=0, column=0, pady=(20, 0))
+    ttk.Button(button_frame, text="Disable All", command=disable_all).grid(row=0, column=1, pady=(20, 0), padx=(6, 0))
+    ttk.Button(button_frame, text="Reset to Settings", command=reset_checkboxes).grid(row=0, column=2, pady=(20, 0), padx=(6, 0))
+
+def enable_all():
+    for plugin in plugin_check_states:
+        plugin_check_states[plugin].set(value = True)
+
+def disable_all():
+    for plugin in plugin_check_states:
+        plugin_check_states[plugin].set(value = False)
+
+def reset_checkboxes():
+    enable_all()
+    for plugin in plugin_check_states:
+        try:
+            plugin_check_states[plugin].set(value = Config["Plugins"][str(plugin).lower()])
+        except:
+            pass
+
+def update_plugin_state(plugin):
+    state = plugin_check_states[plugin].get()
+    if state:
+        enable_plugin(plugin)
+    else:
+        disable_plugin(plugin)
+
+def enable_plugin(plugin):
+    plugin_dirs = [
+        os.path.join(selected_version, "BuiltInPlugins", "Optimized_Embedded_Signature"),
+        os.path.join(selected_version, "BuiltInStandalonePlugins", "Optimized_Embedded_Signature")
+    ]
+
+    for plugin_dir in plugin_dirs:
+        plugin_path = os.path.join(plugin_dir, plugin)
+        if os.path.exists(plugin_path):
+            with open(plugin_path, 'r+b') as f:
+                content = f.read()
+                if content[-8:] == b"DISABLED":
+                    f.seek(-8, os.SEEK_END)
+                    f.truncate()
+            break
+
+def disable_plugin(plugin):
+    plugin_dirs = [
+        os.path.join(selected_version, "BuiltInPlugins", "Optimized_Embedded_Signature"),
+        os.path.join(selected_version, "BuiltInStandalonePlugins", "Optimized_Embedded_Signature")
+    ]
+
+    for plugin_dir in plugin_dirs:
+        plugin_path = os.path.join(plugin_dir, plugin)
+        if os.path.exists(plugin_path):
+            with open(plugin_path, 'r+b') as f:
+                content = f.read()
+                if b"DISABLED" not in content:
+                    f.seek(0)
+                    f.write(content + b"DISABLED")
+            break
+
+def reset_states():
+    plugin_dirs = [
+        os.path.join(selected_version, "BuiltInPlugins", "Optimized_Embedded_Signature"),
+        os.path.join(selected_version, "BuiltInStandalonePlugins", "Optimized_Embedded_Signature")
+    ]
+
+    for plugin_dir in plugin_dirs:
+        for plugin in os.listdir(plugin_dir):
+            plugin_path = os.path.join(plugin_dir, plugin)
+            with open(plugin_path, 'r+b') as f:
+                content = f.read()
+                if b"DISABLED" in content:
+                    content = content.replace(b"DISABLED", b"")
+                    f.seek(0)
+                    f.write(content)
+
+def check_disabled_state(plugin):
+    plugin_dirs = [
+        os.path.join(selected_version, "BuiltInPlugins", "Optimized_Embedded_Signature"),
+        os.path.join(selected_version, "BuiltInStandalonePlugins", "Optimized_Embedded_Signature")
+    ]
+
+    for plugin_dir in plugin_dirs:
+        plugin_path = os.path.join(plugin_dir, plugin)
+        if os.path.exists(plugin_path):
+            with open(plugin_path, 'rb') as f:
+                content = f.read()
+                if b"DISABLED" in content:
+                    return True
+            break
+
+    return False
+
+            
 button_frame_top = ttk.Frame(root)
-button_frame_top.grid(row=10, column=1, columnspan=2, pady=(0, 1), sticky="n")
+button_frame_top.grid(row=10, column=0, columnspan=6, pady=(0, 1), sticky="n")
 button_frame_bottom = ttk.Frame(root)
-button_frame_bottom.grid(row=11, column=1, columnspan=2, sticky="n")
+button_frame_bottom.grid(row=11, column=0, columnspan=6, sticky="n")
 
 ttk.Button(button_frame_top, text="Apply Settings", command=update_settings).grid(row=10, column=0, pady=(20, 0))
 ttk.Button(button_frame_top, text="Reset Configuration", command=reset_fflags).grid(row=10, column=1, pady=(20, 0), padx=(6, 0))
 ttk.Button(button_frame_top, text="Installation Folder", command=installation_folder).grid(row=10, column=2, pady=(20, 0), padx=(6, 0))
 ttk.Button(button_frame_bottom, text="Launch Studio", command=launch_studio).grid(row=11, column=0, pady=(6, 20))
 ttk.Button(button_frame_bottom, text="Update Studio", command=update_studio).grid(row=11, column=1, pady=(6, 20), padx=(6, 0))
+ttk.Button(button_frame_bottom, text="Plugin Editor", command=plugin_editor).grid(row=11, column=2, pady=(6, 20), padx=(6, 0))
 
 label = tk.Label(root, font=("Segoe UI", 12), text="Fireblade", padx=2, pady = 2)
 
