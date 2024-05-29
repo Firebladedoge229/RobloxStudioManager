@@ -22,7 +22,9 @@ global selected_version
 selected_version = None
 
 optimizer = "https://raw.githubusercontent.com/rbxflags/Flags/main/ClientAppSettings.json"
+
 versions_dir = os.path.join(os.environ['LOCALAPPDATA'], 'Roblox', 'Versions')
+
 max_files_count = 0
 
 for version in os.listdir(versions_dir):
@@ -30,6 +32,7 @@ for version in os.listdir(versions_dir):
 
     exe_path = os.path.join(version_dir, 'RobloxStudioBeta.exe')
     if os.path.exists(exe_path):
+
         num_files = len([name for name in os.listdir(version_dir)])
 
         if num_files > max_files_count:
@@ -65,7 +68,7 @@ def reset_fflags():
         if os.path.exists(os.path.join(selected_version, 'ClientSettings')):
             open(app_settings_path, "w").close()
             open(app_settings_path, "w+").write("{}")
-            
+
 def installation_folder():
     subprocess.Popen(f'explorer "{selected_version}', shell = True)
 
@@ -86,7 +89,7 @@ def launch_studio():
 def update_studio():
     t = threading.Thread(target=update_studio_async)
     t.start()
-  
+
 Config = ConfigParser.ConfigParser()
 
 def update_settings_async():
@@ -123,6 +126,8 @@ def update_settings_async():
     disable_updating = disable_updating_var.get()
     extra_plugins = extra_plugins_var.get()
     framerate_settings = framerate_settings_var.get()
+    faster_menu = faster_menu_var.get()
+    cleaner_ui = cleaner_ui_var.get()
     Config["Configuration"] = {}
     Config["Plugins"] = {}
     Config["Configuration"]["optimize_roblox"] = str(optimize_roblox_var.get())
@@ -148,6 +153,8 @@ def update_settings_async():
     Config["Configuration"]["disable_updating"] = str(disable_updating_var.get())
     Config["Configuration"]["extra_plugins"] = str(extra_plugins_var.get())
     Config["Configuration"]["framerate_settings"] = str(framerate_settings_var.get())
+    Config["Configuration"]["faster_menu"] = str(faster_menu_var.get())
+    Config["Configuration"]["cleaner_ui"] = str(cleaner_ui_var.get())
     for plugin, state in plugin_check_states.items():
         if not state.get():
             Config["Plugins"][plugin] = str(state.get())
@@ -156,41 +163,41 @@ def update_settings_async():
         Config.write(configfile)
 
     flags = {
-        "FFlagDebugGraphicsPreferD3D11": "true",  # directx 11 usage
-        "DFIntTaskSchedulerTargetFps": int(max_fps),  # max fps
-        "FIntFontSizePadding": int(font_size) # font size
+        "FFlagDebugGraphicsPreferD3D11": "true",  
+        "DFIntTaskSchedulerTargetFps": int(max_fps),  
+        "FIntFontSizePadding": int(font_size) 
     }
 
     internal_signature = b"\x80\xBF\x78\x01\x00\x00\x00\x74\x05\xE8"
     internal_patch = b"\x80\xBF\x78\x01\x00\x00\x00\x90\x90\xE8"
 
     if menu_type == "Version 1":
-        flags["FFlagDisableNewIGMinDUA"] = "true"  # disable version 2 menu
-        flags["FFlagEnableInGameMenuControls"] = "false"  # version 4 menu
-        flags["FFlagEnableMenuControlsABTest"] = "false"  # ab test
-        flags["FFlagEnableMenuModernizationABTest"] = "false"  # ab test
-        flags["FFlagEnableMenuModernizationABTest2"] = "false"  # ab test
-        flags["FFlagEnableV3MenuABTest3"] = "false"  # ab test
+        flags["FFlagDisableNewIGMinDUA"] = "true"  
+        flags["FFlagEnableInGameMenuControls"] = "false"  
+        flags["FFlagEnableMenuControlsABTest"] = "false"  
+        flags["FFlagEnableMenuModernizationABTest"] = "false"  
+        flags["FFlagEnableMenuModernizationABTest2"] = "false"  
+        flags["FFlagEnableV3MenuABTest3"] = "false"  
     elif menu_type == "Version 2":
-        flags["FFlagDisableNewIGMinDUA"] = "false"  # disable version 2 menu
-        flags["FFlagEnableInGameMenuControls"] = "false"  # version 4 menu
-        flags["FFlagEnableMenuControlsABTest"] = "false"  # ab test
-        flags["FFlagEnableMenuModernizationABTest"] = "false"  # ab test
-        flags["FFlagEnableMenuModernizationABTest2"] = "false"  # ab test
-        flags["FFlagEnableV3MenuABTest3"] = "false"  # ab test
+        flags["FFlagDisableNewIGMinDUA"] = "false"  
+        flags["FFlagEnableInGameMenuControls"] = "false"  
+        flags["FFlagEnableMenuControlsABTest"] = "false"  
+        flags["FFlagEnableMenuModernizationABTest"] = "false"  
+        flags["FFlagEnableMenuModernizationABTest2"] = "false"  
+        flags["FFlagEnableV3MenuABTest3"] = "false"  
     elif menu_type == "Version 4":
-        flags["FFlagDisableNewIGMinDUA"] = "true"  # disable version 2 menu
-        flags["FFlagEnableInGameMenuControls"] = "true"  # version 4 menu
-        flags["FFlagEnableMenuControlsABTest"] = "false"  # ab test
-        flags["FFlagEnableMenuModernizationABTest"] = "false"  # ab test
-        flags["FFlagEnableMenuModernizationABTest2"] = "false"  # ab test
-        flags["FFlagEnableV3MenuABTest3"] = "false"  # ab test
+        flags["FFlagDisableNewIGMinDUA"] = "true"  
+        flags["FFlagEnableInGameMenuControls"] = "true"  
+        flags["FFlagEnableMenuControlsABTest"] = "false"  
+        flags["FFlagEnableMenuModernizationABTest"] = "false"  
+        flags["FFlagEnableMenuModernizationABTest2"] = "false"  
+        flags["FFlagEnableV3MenuABTest3"] = "false"  
 
     if topbar_type == "Old":
-        flags["FFlagEnableInGameMenuChrome"] = "false"  # version 4 menu
+        flags["FFlagEnableInGameMenuChrome"] = "false"  
     elif topbar_type == "New":
-        flags["FFlagEnableInGameMenuChrome"] = "true"  # version 4 menu
-        flags["FFlagEnableChromePinnedChat"] = "false" # disable chat
+        flags["FFlagEnableInGameMenuChrome"] = "true"  
+        flags["FFlagEnableChromePinnedChat"] = "false" 
 
     if log_requests:
         flags["DFLogHttpTraceLight"] = 12
@@ -198,27 +205,27 @@ def update_settings_async():
         flags["DFLogHttpTraceLight"] = 6
 
     if enable_proxy:
-        flags["FFlagStudioReEnableNetworkProxy_Dev"] = "true"  # proxy settings
-        flags["DFFlagHideProxySettings"] = "false"  # proxy settings
-        flags["DFFlagDebugEnableHttpProxy"] = "true"  # proxy settings"
+        flags["FFlagStudioReEnableNetworkProxy_Dev"] = "true"  
+        flags["DFFlagHideProxySettings"] = "false"  
+        flags["DFFlagDebugEnableHttpProxy"] = "true"  
     else:
-        flags["FFlagStudioReEnableNetworkProxy_Dev"] = "false"  # proxy settings
-        flags["DFFlagHideProxySettings"] = "true"  # proxy settings
-        flags["DFFlagDebugEnableHttpProxy"] = "false"  # proxy settings"
+        flags["FFlagStudioReEnableNetworkProxy_Dev"] = "false"  
+        flags["DFFlagHideProxySettings"] = "true"  
+        flags["DFFlagDebugEnableHttpProxy"] = "false"  
 
     if msaa_level == "1x":
-        flags["DebugForceMSAASamples"] = 1  # msaa level
+        flags["DebugForceMSAASamples"] = 1  
     elif msaa_level == "2x":
-        flags["DebugForceMSAASamples"] = 2  # msaa level
+        flags["DebugForceMSAASamples"] = 2  
     elif msaa_level == "4x":
-        flags["DebugForceMSAASamples"] = 4  # msaa level
+        flags["DebugForceMSAASamples"] = 4  
     elif msaa_level == "8x":
-        flags["DebugForceMSAASamples"] = 8  # msaa level
+        flags["DebugForceMSAASamples"] = 8  
 
     if graphics_type == "10":
-        flags["FFlagFixGraphicsQuality"] = "false"  # 21 levels
+        flags["FFlagFixGraphicsQuality"] = "false"  
     elif graphics_type == "21":
-        flags["FFlagFixGraphicsQuality"] = "true"  # 21 levels
+        flags["FFlagFixGraphicsQuality"] = "true"  
 
     if show_flags:
         flag_list = ""
@@ -261,6 +268,8 @@ def update_settings_async():
     if old_font:
         flags["FFlagUIBloxDevUseNewFontNameMapping"] = "false"
         flags["FFlagEnableNewFontNameMappingABTest2"] = "false"
+        flags["FFlagSwitchGothamFontToBuilderSans"] = "false"
+        flags["FFlagAddGothamToLegacyContent"] = "false"
 
     if classic_error:
         flags["FFlagErrorPromptResizesHeight"] = "false"
@@ -275,9 +284,22 @@ def update_settings_async():
     if framerate_settings:
         flags["FFlagGameBasicSettingsFramerateCap5"] = "true"
 
+    if faster_menu:
+        flags["FFlagInGameMenuV1FadeBackgroundAnimation"]  = "true"
+
+    if cleaner_ui:
+        flags["FFlagChatTranslationLaunchEnabled"] = "false"
+        flags["FIntV1MenuLanguageSelectionFeaturePerMillageRollout"] = "0"
+        flags["FFlagDisablePlayerListDisplayCloseBtn"] = "true"
+        flags["FFlagEnableAccessibilitySettingsAPIV2"] = "false"
+        flags["FFlagEnableAccessibilitySettingsEffectsInCoreScripts2"] = "false"
+        flags["FFlagEnableAccessibilitySettingsEffectsInExperienceChat"] = "false"
+        flags["FFlagEnableAccessibilitySettingsInExperienceMenu2"] = "false"
+
     if selected_version is not None:
+
         app_settings_path = os.path.join(selected_version, 'ClientSettings', 'ClientAppSettings.json')
-        
+
         if not os.path.exists(os.path.join(selected_version, 'ClientSettings')):
             os.makedirs(os.path.join(selected_version, 'ClientSettings'))
 
@@ -395,6 +417,8 @@ old_font_var = tk.BooleanVar(value=get_config_value("Configuration", "old_font",
 classic_error_var = tk.BooleanVar(value=get_config_value("Configuration", "classic_error", True))
 extra_plugins_var = tk.BooleanVar(value=get_config_value("Configuration", "extra_plugins", False))
 framerate_settings_var = tk.BooleanVar(value=get_config_value("Configuration", "framerate_settings", False))
+faster_menu_var = tk.BooleanVar(value=get_config_value("Configuration", "faster_menu", False))
+cleaner_ui_var = tk.BooleanVar(value=get_config_value("Configuration", "cleaner_ui", True))
 disable_updating_var = tk.BooleanVar(value=get_config_value("Configuration", "disable_updating", False))
 enable_internal_var = tk.BooleanVar(value=get_config_value("Configuration", "enable_internal", False))
 
@@ -459,9 +483,11 @@ ttk.Checkbutton(root, text="Classic Font", variable=old_font_var).grid(row=1, co
 ttk.Checkbutton(root, text="Classic Error", variable=classic_error_var).grid(row=2, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
 ttk.Checkbutton(root, text="Extra Plugins", variable=extra_plugins_var).grid(row=3, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
 ttk.Checkbutton(root, text="Framerate Settings", variable=framerate_settings_var).grid(row=4, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Faster Menu", variable=faster_menu_var).grid(row=5, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Cleaner UI", variable=cleaner_ui_var).grid(row=6, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
 disable_updates_cb = ttk.Checkbutton(root, text="Disable Updates", variable=disable_updating_var, state = "disabled")
-disable_updates_cb.grid(row=5, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Enable Internal", variable=enable_internal_var).grid(row=6, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
+disable_updates_cb.grid(row=7, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Enable Internal", variable=enable_internal_var).grid(row=8, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
 
 global pluginList
 pluginList = []
@@ -472,11 +498,10 @@ plugin_check_states = {}
 def plugin_editor():
     new_window = tk.Toplevel(root)
     new_window.title("Roblox Studio Manager: Plugin Editor")
-    new_window.iconbitmap(application_path + "\\icon.ico")
-    
+
     main_frame = ttk.Frame(new_window)
     main_frame.pack(padx=20, pady=20)
-    
+
     frame = ttk.Frame(main_frame)
     frame.grid(row=0, column=0, padx=20, pady=20)
 
@@ -484,25 +509,25 @@ def plugin_editor():
         os.path.join(selected_version, r"BuiltInPlugins\Optimized_Embedded_Signature"),
         os.path.join(selected_version, r"BuiltInStandalonePlugins\Optimized_Embedded_Signature")
     ]
-    
+
     plugins = set()
-    
+
     for dir_path in plugin_dirs:
         if os.path.exists(dir_path):
             for plugin in os.listdir(dir_path):
                 plugins.add(plugin)
-    
+
     sorted_plugins = sorted(plugins)
-    
+
     row = 0
     column = 0
-    
+
     global pluginList
-    pluginList.clear()
+    pluginList.clear()  
     for i, plugin in enumerate(sorted_plugins):
         if plugin not in plugin_check_states:
             plugin_check_states[plugin] = tk.BooleanVar(value=get_config_value("Plugins", plugin, True))
-        var = plugin_check_states[plugin]
+        var = plugin_check_states[plugin]  
         pluginList.append(plugin)
         chk = ttk.Checkbutton(frame, text=plugin.replace(".rbxm", ""), variable=var, onvalue=True, offvalue=False)
         chk.grid(row=row, column=column, sticky='w', padx=5, pady=5)
@@ -511,10 +536,10 @@ def plugin_editor():
         if (i + 1) % 20 == 0:
             row = 0
             column += 1
-    
+
     button_frame = ttk.Frame(main_frame)
     button_frame.grid(row=1, column=0, pady=(0, 20), sticky="n")
-    
+
     ttk.Button(button_frame, text="Enable All", command=enable_all).grid(row=0, column=0, pady=(20, 0))
     ttk.Button(button_frame, text="Disable All", command=disable_all).grid(row=0, column=1, pady=(20, 0), padx=(6, 0))
     ttk.Button(button_frame, text="Reset to Settings", command=reset_checkboxes).grid(row=0, column=2, pady=(20, 0), padx=(6, 0))
@@ -536,13 +561,15 @@ def reset_checkboxes():
             pass
 
 def update_plugin_state(plugin):
+
     state = plugin_check_states[plugin].get()
-    if state:
+    if state:  
         enable_plugin(plugin)
-    else:
+    else:  
         disable_plugin(plugin)
 
 def enable_plugin(plugin):
+
     plugin_dirs = [
         os.path.join(selected_version, "BuiltInPlugins", "Optimized_Embedded_Signature"),
         os.path.join(selected_version, "BuiltInStandalonePlugins", "Optimized_Embedded_Signature")
@@ -553,12 +580,14 @@ def enable_plugin(plugin):
         if os.path.exists(plugin_path):
             with open(plugin_path, 'r+b') as f:
                 content = f.read()
+
                 if content[-8:] == b"DISABLED":
                     f.seek(-8, os.SEEK_END)
                     f.truncate()
             break
 
 def disable_plugin(plugin):
+
     plugin_dirs = [
         os.path.join(selected_version, "BuiltInPlugins", "Optimized_Embedded_Signature"),
         os.path.join(selected_version, "BuiltInStandalonePlugins", "Optimized_Embedded_Signature")
@@ -569,12 +598,14 @@ def disable_plugin(plugin):
         if os.path.exists(plugin_path):
             with open(plugin_path, 'r+b') as f:
                 content = f.read()
+
                 if b"DISABLED" not in content:
                     f.seek(0)
                     f.write(content + b"DISABLED")
             break
 
 def reset_states():
+
     plugin_dirs = [
         os.path.join(selected_version, "BuiltInPlugins", "Optimized_Embedded_Signature"),
         os.path.join(selected_version, "BuiltInStandalonePlugins", "Optimized_Embedded_Signature")
@@ -591,6 +622,7 @@ def reset_states():
                     f.write(content)
 
 def check_disabled_state(plugin):
+
     plugin_dirs = [
         os.path.join(selected_version, "BuiltInPlugins", "Optimized_Embedded_Signature"),
         os.path.join(selected_version, "BuiltInStandalonePlugins", "Optimized_Embedded_Signature")
@@ -607,7 +639,6 @@ def check_disabled_state(plugin):
 
     return False
 
-            
 button_frame_top = ttk.Frame(root)
 button_frame_top.grid(row=10, column=0, columnspan=6, pady=(0, 1), sticky="n")
 button_frame_bottom = ttk.Frame(root)
