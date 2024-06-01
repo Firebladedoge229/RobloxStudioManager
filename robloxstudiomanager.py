@@ -18,6 +18,21 @@ if getattr(sys, 'frozen', False):
 else:
     application_path = os.path.dirname(os.path.abspath(__file__))
 
+totalFlags = {}
+
+try:
+
+    fvariables_text = requests.get("https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/roblox/FVariables.txt").text
+    fvariables_flags = {line.split(" ")[-1]: False for line in fvariables_text.splitlines() if line}
+    client_app_settings = requests.get("https://clientsettings.roblox.com/v2/settings/application/PCDesktopClient").json()["applicationSettings"]
+    for key, value in client_app_settings.items():
+            totalFlags[key] = value
+    for key, value in fvariables_flags.items():
+        if key not in totalFlags:
+            totalFlags[key] = value
+except Exception:
+    pass
+
 global selected_version
 selected_version = None
 
@@ -46,7 +61,12 @@ def is_modded():
         return "No"
 
 def get_channel():
-    return requests.get("https://clientsettings.roblox.com/v2/user-channel?binaryType=WindowsStudio64").json()["channelName"]
+    status = "Offline"
+    try: 
+        status = requests.get("https://clientsettings.roblox.com/v2/user-channel?binaryType=WindowsStudio64").json()["channelName"]
+    except Exception:
+        pass
+    return status
 
 def check_internet():
     try:
@@ -60,6 +80,13 @@ def find_version_line(version, lines):
         if version in line:
             return line
     return None
+
+def find_latest_studio_version(lines):
+    latestStudio = ""
+    for line in lines.splitlines():
+        if "Studio64" in line:
+            latestStudio = line
+    return latestStudio
 
 def reset_fflags():
     result = messagebox.askyesno("Roblox Studio Manager", "Are you sure you want to reset your FFlags?")
@@ -116,6 +143,7 @@ def update_settings_async():
     enable_internal = enable_internal_var.get()
     show_flags = show_flags_var.get()
     log_all = log_all_var.get()
+    minimize_logging = minimize_logging_var.get()
     code_assist = code_assist_var.get()
     disable_telemetry = disable_telemetry_var.get()
     rainbow_ui = rainbow_ui_var.get()
@@ -125,7 +153,6 @@ def update_settings_async():
     classic_error = classic_error_var.get()
     disable_updating = disable_updating_var.get()
     extra_plugins = extra_plugins_var.get()
-    framerate_settings = framerate_settings_var.get()
     faster_menu = faster_menu_var.get()
     cleaner_ui = cleaner_ui_var.get()
     Config["Configuration"] = {}
@@ -143,6 +170,7 @@ def update_settings_async():
     Config["Configuration"]["enable_internal"] = str(enable_internal_var.get())
     Config["Configuration"]["show_flags"] = str(show_flags_var.get())
     Config["Configuration"]["log_all"] = str(log_all_var.get())
+    Config["Configuration"]["minimize_logging"] = str(minimize_logging_var.get())
     Config["Configuration"]["code_assist"] = str(code_assist_var.get())
     Config["Configuration"]["disable_telemetry"] = str(disable_telemetry_var.get())
     Config["Configuration"]["rainbow_ui"] = str(rainbow_ui_var.get())
@@ -152,7 +180,6 @@ def update_settings_async():
     Config["Configuration"]["classic_error"] = str(classic_error_var.get())
     Config["Configuration"]["disable_updating"] = str(disable_updating_var.get())
     Config["Configuration"]["extra_plugins"] = str(extra_plugins_var.get())
-    Config["Configuration"]["framerate_settings"] = str(framerate_settings_var.get())
     Config["Configuration"]["faster_menu"] = str(faster_menu_var.get())
     Config["Configuration"]["cleaner_ui"] = str(cleaner_ui_var.get())
     for plugin, state in plugin_check_states.items():
@@ -165,11 +192,14 @@ def update_settings_async():
     flags = {
         "FFlagDebugGraphicsPreferD3D11": "true",  
         "DFIntTaskSchedulerTargetFps": int(max_fps),  
+        "FFlagTaskSchedulerLimitTargetFpsTo2402": "false", 
         "FIntFontSizePadding": int(font_size) 
     }
 
-    internal_signature = b"\x80\xBF\x78\x01\x00\x00\x00\x74\x05\xE8"
-    internal_patch = b"\x80\xBF\x78\x01\x00\x00\x00\x90\x90\xE8"
+    internal_signature = b"\x41\x38\x9E\x78\x01\x00\x00\x74\x05\xE8"
+    internal_patch = b"\x41\x38\x9E\x78\x01\x00\x00\x90\x90\xE8"
+    watermark_signature = b"\x53\x74\x75\x64\x69\x6F\x2E\x41\x70\x70\x2E\x41\x62\x6F\x75\x74\x53\x74\x75\x64\x69\x6F\x44\x69\x61\x6C\x6F\x67\x2E\x43\x6F\x6E\x74\x61\x63\x74\x55\x73\x2C\x2C\x2C\x43\x6F\x6E\x74\x61\x63\x74\x20\x55\x73\x2C\x43\x6F\x6E\x74\x61\x63\x74\x20\x55\x73"
+    watermark_patch = b"\x53\x74\x75\x64\x69\x6F\x2E\x41\x70\x70\x2E\x41\x62\x6F\x75\x74\x53\x74\x75\x64\x69\x6F\x44\x69\x61\x6C\x6F\x67\x2E\x43\x6F\x6E\x74\x61\x63\x74\x55\x73\x2C\x2C\x2C\x4D\x6F\x64\x64\x65\x64\x20\x52\x53\x4D\x2C\x4D\x6F\x64\x64\x65\x64\x20\x52\x53\x4D"
 
     if menu_type == "Version 1":
         flags["FFlagDisableNewIGMinDUA"] = "true"  
@@ -234,11 +264,14 @@ def update_settings_async():
         flags["FStringDebugShowFlagState"] = flag_list[:-1]
 
     if log_all:
-        jsonData = requests.get(
-            "https://raw.githubusercontent.com/MaximumADHD/Roblox-FFlag-Tracker/main/PCStudioApp.json").json()
-        for flag, value in jsonData.items():
-            if flag.startswith("FLog") or flag.startswith("DFLog"):
+        for flag, value in totalFlags.items():
+            if flag.startswith("FLog") or flag.startswith("DFLog") or flag.startswith("SFLog"):
                 flags[flag] = 12
+
+    if minimize_logging:
+        for flag, value in totalFlags.items():
+            if flag.startswith("FLog") or flag.startswith("DFLog") or flag.startswith("SFLog"):
+                flags[flag] = 0
 
     if code_assist:
         flags["FFlagRelatedScriptsCodeAssist"] = "true"
@@ -246,13 +279,16 @@ def update_settings_async():
         flags["FFlagAICOChatBot"] = "true"
 
     if disable_telemetry:
-        response = requests.get(
-            "https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/roblox/FVariables.txt")
-        if response.status_code == 200:
-            telemetryFlags = re.findall(r'\[.*\]\s*(\w+Telemetry\w*)', response.text)
-            for flag in telemetryFlags:
-                flag_name = re.sub(r'\[.*\]\s*', '', flag)
-                flags[flag_name] = "false"
+        for flag, value in totalFlags.items():
+            if "analytics" in flag.lower() or "telemetry" in flag.lower():
+                if flag.startswith("FFlag") or flag.startswith("DFFlag") or flag.startswith("SFlag"):
+                    flags[flag] = "false"
+                elif flag.startswith("FString") or flag.startswith("DFString") or flag.startswith("SFString"):
+                    flags[flag] = "https://0.0.0.0"
+                else:
+                    flags[flag] = "0"
+                    if "interval" in flag.lower():
+                        flags[flag] = "2147483647"
 
     if rainbow_ui:
         flags["FFlagDebugDisplayUnthemedInstances"] = "true"
@@ -281,9 +317,6 @@ def update_settings_async():
         flags["DebugEnableBootcampPlugin"] = "true"
         flags["RetireAudioDiscoveryPlugin"] = "false"
 
-    if framerate_settings:
-        flags["FFlagGameBasicSettingsFramerateCap5"] = "true"
-
     if faster_menu:
         flags["FFlagInGameMenuV1FadeBackgroundAnimation"]  = "true"
 
@@ -295,6 +328,10 @@ def update_settings_async():
         flags["FFlagEnableAccessibilitySettingsEffectsInCoreScripts2"] = "false"
         flags["FFlagEnableAccessibilitySettingsEffectsInExperienceChat"] = "false"
         flags["FFlagEnableAccessibilitySettingsInExperienceMenu2"] = "false"
+        flags["FFlagGameBasicSettingsFramerateCap5"] = "false"
+
+    if enable_internal:
+        flags["FFlagInternalDebugWidgetSleepButton"] = "true"
 
     if selected_version is not None:
 
@@ -338,28 +375,33 @@ def update_settings_async():
                     f.seek(index)
                     f.write(internal_signature)
 
-        result = find_version_line(os.path.basename(selected_version), requests.get("https://setup.rbxcdn.com/DeployHistory.txt").text)
-        result = re.search(r'git hash:\s*(\d+\.\d+\.\d+\.\d+)', result).group().replace("git hash: ", "")
-        patch = re.sub(r'\d', '9', result)
-        result = bytes.fromhex("".join(format(ord(char), '02X') for char in result))
-        patch = bytes.fromhex("".join(format(ord(char), '02X') for char in patch))
-
         if disable_updating:
+            deployHistory = requests.get("https://setup.rbxcdn.com/DeployHistory.txt").text
+            result = find_version_line(os.path.basename(selected_version), deployHistory)
+            latest_version = find_latest_studio_version(deployHistory)
+            result = re.search(r'git hash:\s*(\d+\.\d+\.\d+\.\d+)', result).group().replace("git hash: ", "")
+            latest_result = re.search(r'git hash:\s*(\d+\.\d+\.\d+\.\d+)', latest_version).group().replace("git hash: ", "")
+            if len(result) != len(latest_result):
+                messagebox.showinfo("Roblox Studio Manager", "The current version and latest version are not the same size. Due to hex limitations, you cannot disable updating on this version.")
+            else:
+                result = bytes.fromhex("".join(format(ord(char), '02X') for char in result))
+                patch = bytes.fromhex("".join(format(ord(char), '02X') for char in latest_result))
+
+                exe_path = os.path.join(selected_version, 'RobloxStudioBeta.exe')
+                with open(exe_path, 'r+b') as f:
+                    content = f.read()
+                    index = content.find(result)
+                    if index != -1:
+                        f.seek(index)
+                        f.write(patch)
+
             exe_path = os.path.join(selected_version, 'RobloxStudioBeta.exe')
             with open(exe_path, 'r+b') as f:
                 content = f.read()
-                index = content.find(result)
+                index = content.find(watermark_signature)
                 if index != -1:
                     f.seek(index)
-                    f.write(patch)
-        elif disable_updating == False:
-            exe_path = os.path.join(selected_version, 'RobloxStudioBeta.exe')
-            with open(exe_path, 'r+b') as f:
-                content = f.read()
-                index = content.find(patch)
-                if index != -1:
-                    f.seek(index)
-                    f.write(result)
+                    f.write(watermark_patch)
 
         tree = ET.parse(os.path.join(os.path.join(os.environ['LOCALAPPDATA'], 'Roblox'), "GlobalBasicSettings_13_Studio.xml"))
         root = tree.getroot()
@@ -408,6 +450,7 @@ log_requests_var = tk.BooleanVar(value=get_config_value("Configuration", "log_re
 enable_proxy_var = tk.BooleanVar(value=get_config_value("Configuration", "enable_proxy", False))
 show_flags_var = tk.BooleanVar(value=get_config_value("Configuration", "show_flags", False))
 log_all_var = tk.BooleanVar(value=get_config_value("Configuration", "log_all", False))
+minimize_logging_var = tk.BooleanVar(value=get_config_value("Configuration", "minimize_logging", False))
 code_assist_var = tk.BooleanVar(value=get_config_value("Configuration", "code_assist", False))
 disable_telemetry_var = tk.BooleanVar(value=get_config_value("Configuration", "disable_telemetry", True))
 rainbow_ui_var = tk.BooleanVar(value=get_config_value("Configuration", "rainbow_ui", False))
@@ -416,7 +459,6 @@ visual_verified_var = tk.BooleanVar(value=get_config_value("Configuration", "vis
 old_font_var = tk.BooleanVar(value=get_config_value("Configuration", "old_font", True))
 classic_error_var = tk.BooleanVar(value=get_config_value("Configuration", "classic_error", True))
 extra_plugins_var = tk.BooleanVar(value=get_config_value("Configuration", "extra_plugins", False))
-framerate_settings_var = tk.BooleanVar(value=get_config_value("Configuration", "framerate_settings", False))
 faster_menu_var = tk.BooleanVar(value=get_config_value("Configuration", "faster_menu", False))
 cleaner_ui_var = tk.BooleanVar(value=get_config_value("Configuration", "cleaner_ui", True))
 disable_updating_var = tk.BooleanVar(value=get_config_value("Configuration", "disable_updating", False))
@@ -437,7 +479,7 @@ optimize_roblox_cb = ttk.Checkbutton(root, text="Optimize Roblox", variable=opti
 optimize_roblox_cb.grid(row=1, column=0, sticky=tk.W, padx=10)
 
 ttk.Label(root, text="Menu Type:").grid(row=2, column=type_settings_one_column, sticky=tk.W, padx=10)
-combo_menu_type = ttk.Combobox(root, textvariable=menu_type_var, values=["Version 4", "Default", "Version 1", "Version 2", "Version 4"], style="TCombobox", state="readonly")
+combo_menu_type = ttk.Combobox(root, textvariable=menu_type_var, values=["Version 4", "Version 1", "Version 2", "Version 4"], style="TCombobox", state="readonly")
 combo_menu_type.grid(row=2, column=type_settings_one_input_column, sticky="ew")
 
 ttk.Label(root, text="Topbar Type:").grid(row=3, column=type_settings_one_column, sticky=tk.W, padx=10)
@@ -445,11 +487,11 @@ combo_topbar_type = ttk.Combobox(root, textvariable=topbar_type_var, values=["Ne
 combo_topbar_type.grid(row=3, column=type_settings_one_input_column, sticky="ew")
 
 ttk.Label(root, text="MSAA Level:").grid(row=4, column=type_settings_one_column, sticky=tk.W, padx=10)
-combo_msaa_level = ttk.Combobox(root, textvariable=msaa_level_var, values=["4x", "Default", "1x", "2x", "4x", "8x"], style="TCombobox", state="readonly")
+combo_msaa_level = ttk.Combobox(root, textvariable=msaa_level_var, values=["4x", "1x", "2x", "4x", "8x"], style="TCombobox", state="readonly")
 combo_msaa_level.grid(row=4, column=type_settings_one_input_column, sticky="ew")
 
 ttk.Label(root, text="Graphics Type:").grid(row=5, column=type_settings_one_column, sticky=tk.W, padx=10)
-combo_graphics_type = ttk.Combobox(root, textvariable=graphics_type_var, values=["21", "Default", "10", "21"], style="TCombobox", state="readonly")
+combo_graphics_type = ttk.Combobox(root, textvariable=graphics_type_var, values=["21", "10", "21"], style="TCombobox", state="readonly")
 combo_graphics_type.grid(row=5, column=type_settings_one_input_column, sticky="ew")
 
 ttk.Label(root, text="Max FPS:").grid(row=6, column=type_settings_one_column, sticky=tk.W, padx=10)
@@ -473,19 +515,22 @@ ttk.Label(root, text=get_channel()).grid(row=4, column=type_settings_two_input_c
 ttk.Checkbutton(root, text="Log Requests", variable=log_requests_var).grid(row=1, column=checkbox_column_one, sticky=tk.W, padx=10, pady=3)
 ttk.Checkbutton(root, text="Enable Proxy", variable=enable_proxy_var).grid(row=2, column=checkbox_column_one, sticky=tk.W, padx=10, pady=3)
 ttk.Checkbutton(root, text="Show Flags", variable=show_flags_var).grid(row=3, column=checkbox_column_one, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Log All", variable=log_all_var).grid(row=4, column=checkbox_column_one, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Code Assist", variable=code_assist_var).grid(row=5, column=checkbox_column_one, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Disable Telemetry", variable=disable_telemetry_var).grid(row=6, column=checkbox_column_one, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Rainbow UI", variable=rainbow_ui_var).grid(row=7, column=checkbox_column_one, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Force High Graphics", variable=force_high_graphics_var).grid(row=8, column=checkbox_column_one, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Verified Badge", variable=visual_verified_var).grid(row=9, column=checkbox_column_one, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Classic Font", variable=old_font_var).grid(row=1, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Classic Error", variable=classic_error_var).grid(row=2, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Extra Plugins", variable=extra_plugins_var).grid(row=3, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Framerate Settings", variable=framerate_settings_var).grid(row=4, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
+log_all_cb = ttk.Checkbutton(root, text="Log All", variable=log_all_var)
+log_all_cb.grid(row=4, column=checkbox_column_one, sticky=tk.W, padx=10, pady=3)
+minimize_logging_cb = ttk.Checkbutton(root, text="Minimize Logging", variable=minimize_logging_var)
+minimize_logging_cb.grid(row=5, column=checkbox_column_one, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Code Assist", variable=code_assist_var).grid(row=6, column=checkbox_column_one, sticky=tk.W, padx=10, pady=3)
+disable_telemetry_cb = ttk.Checkbutton(root, text="Disable Telemetry", variable=disable_telemetry_var)
+disable_telemetry_cb.grid(row=7, column=checkbox_column_one, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Rainbow UI", variable=rainbow_ui_var).grid(row=8, column=checkbox_column_one, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Force High Graphics", variable=force_high_graphics_var).grid(row=9, column=checkbox_column_one, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Verified Badge", variable=visual_verified_var).grid(row=1, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Classic Font", variable=old_font_var).grid(row=2, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Classic Error", variable=classic_error_var).grid(row=3, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Extra Plugins", variable=extra_plugins_var).grid(row=4, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
 ttk.Checkbutton(root, text="Faster Menu", variable=faster_menu_var).grid(row=5, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
 ttk.Checkbutton(root, text="Cleaner UI", variable=cleaner_ui_var).grid(row=6, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
-disable_updates_cb = ttk.Checkbutton(root, text="Disable Updates", variable=disable_updating_var, state = "disabled")
+disable_updates_cb = ttk.Checkbutton(root, text="Disable Updates", variable=disable_updating_var)
 disable_updates_cb.grid(row=7, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
 ttk.Checkbutton(root, text="Enable Internal", variable=enable_internal_var).grid(row=8, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
 
@@ -648,7 +693,8 @@ ttk.Button(button_frame_top, text="Apply Settings", command=update_settings).gri
 ttk.Button(button_frame_top, text="Reset Configuration", command=reset_fflags).grid(row=10, column=1, pady=(20, 0), padx=(6, 0))
 ttk.Button(button_frame_top, text="Installation Folder", command=installation_folder).grid(row=10, column=2, pady=(20, 0), padx=(6, 0))
 ttk.Button(button_frame_bottom, text="Launch Studio", command=launch_studio).grid(row=11, column=0, pady=(6, 20))
-ttk.Button(button_frame_bottom, text="Update Studio", command=update_studio).grid(row=11, column=1, pady=(6, 20), padx=(6, 0))
+update_studio_b = ttk.Button(button_frame_bottom, text="Update Studio", command=update_studio)
+update_studio_b.grid(row=11, column=1, pady=(6, 20), padx=(6, 0))
 ttk.Button(button_frame_bottom, text="Plugin Editor", command=plugin_editor).grid(row=11, column=2, pady=(6, 20), padx=(6, 0))
 
 label = tk.Label(root, font=("Segoe UI", 12), text="Fireblade", padx=2, pady = 2)
@@ -656,9 +702,15 @@ label = tk.Label(root, font=("Segoe UI", 12), text="Fireblade", padx=2, pady = 2
 label.place(relx=1.0, rely=1.0, anchor='se')
 
 if not check_internet():
+    optimize_roblox_var.set(value = False)
+    disable_updating_var.set(value = False)
+    log_all_var.set(value = False)
+    disable_telemetry_var.set(value = False)
     optimize_roblox_cb.configure(state = "disabled")
-    disable_updates_cb.configure(state = "disabled")
-
+    disable_updates_cb.configure(state = "disabled")  
+    log_all_cb.configure(state = "disabled")  
+    disable_telemetry_cb.configure(state = "disabled")
+    update_studio_b.configure(state = "disabled")  
 sv_ttk.set_theme("dark")
 root.resizable(False, False)
 root.iconbitmap(application_path + "\\icon.ico")
