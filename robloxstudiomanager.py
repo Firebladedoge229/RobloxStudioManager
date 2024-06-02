@@ -543,6 +543,7 @@ plugin_check_states = {}
 def plugin_editor():
     new_window = tk.Toplevel(root)
     new_window.title("Roblox Studio Manager: Plugin Editor")
+    new_window.iconbitmap(application_path + "\\icon.ico")
 
     main_frame = ttk.Frame(new_window)
     main_frame.pack(padx=20, pady=20)
@@ -711,6 +712,7 @@ if not check_internet():
     log_all_cb.configure(state = "disabled")  
     disable_telemetry_cb.configure(state = "disabled")
     update_studio_b.configure(state = "disabled")  
+
 sv_ttk.set_theme("dark")
 root.resizable(False, False)
 root.iconbitmap(application_path + "\\icon.ico")
