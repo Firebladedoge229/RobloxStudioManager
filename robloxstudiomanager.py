@@ -622,15 +622,17 @@ def enable_plugin(plugin):
     ]
 
     for plugin_dir in plugin_dirs:
-        plugin_path = os.path.join(plugin_dir, plugin)
-        if os.path.exists(plugin_path):
+        for plugin in os.listdir(plugin_dir):
+            plugin_path = os.path.join(plugin_dir, plugin)
             with open(plugin_path, 'r+b') as f:
                 content = f.read()
 
-                if content[-8:] == b"DISABLED":
-                    f.seek(-8, os.SEEK_END)
+                index = content[24:].find(b"DISABLED")
+                if index == 0:  
+                    content = content[:24] + content[32:]  
+                    f.seek(0)
+                    f.write(content)
                     f.truncate()
-            break
 
 def disable_plugin(plugin):
 
@@ -645,9 +647,10 @@ def disable_plugin(plugin):
             with open(plugin_path, 'r+b') as f:
                 content = f.read()
 
-                if b"DISABLED" not in content:
+                if b"DISABLED" not in content[24:]:
                     f.seek(0)
-                    f.write(content + b"DISABLED")
+                    new_content = content[:24] + b"DISABLED" + content[24:]
+                    f.write(new_content)
             break
 
 def reset_states():
@@ -662,9 +665,13 @@ def reset_states():
             plugin_path = os.path.join(plugin_dir, plugin)
             with open(plugin_path, 'r+b') as f:
                 content = f.read()
-                if b"DISABLED" in content:
-                    content = content.replace(b"DISABLED", b"")
+
+                index = content[24:].find(b"DISABLED")
+                if index != -1:
+                    index += 24  
+                    content = content[:index] + content[index+8:]  
                     f.seek(0)
+                    f.truncate()  
                     f.write(content)
 
 def check_disabled_state(plugin):
