@@ -265,12 +265,12 @@ def update_settings_async():
 
     if log_all:
         for flag, value in totalFlags.items():
-            if flag.startswith("FLog") or flag.startswith("DFLog") or flag.startswith("SFLog"):
+            if (flag.startswith("FLog") or flag.startswith("DFLog") or flag.startswith("SFLog")) and "FLogStudioQtCategoryLog_default" != flag and "DFLogMaxJoinDataSizeKB" != flag:
                 flags[flag] = 12
 
     if minimize_logging:
         for flag, value in totalFlags.items():
-            if (flag.startswith("FLog") or flag.startswith("DFLog") or flag.startswith("SFLog")) and "FLogStudioQtCategoryLog_default" != flag:
+            if (flag.startswith("FLog") or flag.startswith("DFLog") or flag.startswith("SFLog")) and "FLogStudioQtCategoryLog_default" != flag and "DFLogMaxJoinDataSizeKB" != flag:
                 flags[flag] = 0
 
     if code_assist:
