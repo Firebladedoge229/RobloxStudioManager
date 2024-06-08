@@ -270,7 +270,7 @@ def update_settings_async():
 
     if minimize_logging:
         for flag, value in totalFlags.items():
-            if flag.startswith("FLog") or flag.startswith("DFLog") or flag.startswith("SFLog"):
+            if (flag.startswith("FLog") or flag.startswith("DFLog") or flag.startswith("SFLog")) and "FLogStudioQtCategoryLog_default" != flag:
                 flags[flag] = 0
 
     if code_assist:
