@@ -207,13 +207,15 @@ def update_settings_async():
         flags["FFlagEnableMenuControlsABTest"] = "false"  
         flags["FFlagEnableMenuModernizationABTest"] = "false"  
         flags["FFlagEnableMenuModernizationABTest2"] = "false"  
+        flags["FFlagEnableInGameMenuChromeABTest3"] = "false"
         flags["FFlagEnableV3MenuABTest3"] = "false"  
     elif menu_type == "Version 2":
         flags["FFlagDisableNewIGMinDUA"] = "false"  
         flags["FFlagEnableInGameMenuControls"] = "false"  
         flags["FFlagEnableMenuControlsABTest"] = "false"  
         flags["FFlagEnableMenuModernizationABTest"] = "false"  
-        flags["FFlagEnableMenuModernizationABTest2"] = "false"  
+        flags["FFlagEnableMenuModernizationABTest2"] = "false" 
+        flags["FFlagEnableInGameMenuChromeABTest3"] = "false"
         flags["FFlagEnableV3MenuABTest3"] = "false"  
     elif menu_type == "Version 4":
         flags["FFlagDisableNewIGMinDUA"] = "true"  
@@ -221,10 +223,15 @@ def update_settings_async():
         flags["FFlagEnableMenuControlsABTest"] = "false"  
         flags["FFlagEnableMenuModernizationABTest"] = "false"  
         flags["FFlagEnableMenuModernizationABTest2"] = "false"  
+        flags["FFlagEnableInGameMenuChromeABTest3"] = "false"
         flags["FFlagEnableV3MenuABTest3"] = "false"  
 
     if topbar_type == "Old":
         flags["FFlagEnableInGameMenuChrome"] = "false"  
+        flags["FFlagEnableMenuControlsABTest"] = "false"
+        flags["FFlagEnableMenuModernizationABTest"] = "false"  
+        flags["FFlagEnableMenuModernizationABTest2"] = "false" 
+        flags["FFlagEnableInGameMenuChromeABTest3"] = "false"
     elif topbar_type == "New":
         flags["FFlagEnableInGameMenuChrome"] = "true"  
         flags["FFlagEnableChromePinnedChat"] = "false" 
