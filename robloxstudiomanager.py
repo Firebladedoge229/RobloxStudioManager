@@ -558,7 +558,7 @@ ttk.Label(root, text="CoreGUI Transparency:").grid(row=8, column=type_settings_o
 ttk.Entry(root, textvariable=coregui_transparency_var).grid(row=8, column=type_settings_one_input_column, sticky="ew")
 
 ttk.Label(root, text="Graphics Renderer:").grid(row=9, column=type_settings_one_column, sticky=tk.W, padx=10)
-combo_graphics_type = ttk.Combobox(root, textvariable=graphics_type_var, values=["DirectX 11", "DirectX 10", "Vulkan", "Metal", "OpenGL"], style="TCombobox", state="readonly")
+combo_graphics_type = ttk.Combobox(root, textvariable=rendering_engine_var, values=["DirectX 11", "DirectX 10", "Vulkan", "Metal", "OpenGL"], style="TCombobox", state="readonly")
 combo_graphics_type.grid(row=9, column=type_settings_one_input_column, sticky="ew")
 
 ttk.Label(root, text="Version:").grid(row=2, column=type_settings_two_column, sticky=tk.W, padx=10)
