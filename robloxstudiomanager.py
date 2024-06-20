@@ -138,6 +138,7 @@ def update_settings_async():
     max_fps = max_fps_var.get()
     font_size = font_size_var.get()
     coregui_transparency = coregui_transparency_var.get()
+    rendering_engine = rendering_engine_var.get()
     log_requests = log_requests_var.get()
     enable_proxy = enable_proxy_var.get()
     enable_internal = enable_internal_var.get()
@@ -165,6 +166,7 @@ def update_settings_async():
     Config["Configuration"]["max_fps"] = str(max_fps_var.get())
     Config["Configuration"]["font_size"] = str(font_size_var.get())
     Config["Configuration"]["coregui_transparency"] = str(coregui_transparency_var.get())
+    Config["Configuration"]["rendering_engine"] = str(rendering_engine_var.get())
     Config["Configuration"]["log_requests"] = str(log_requests_var.get())
     Config["Configuration"]["enable_proxy"] = str(enable_proxy_var.get())
     Config["Configuration"]["enable_internal"] = str(enable_internal_var.get())
@@ -263,6 +265,50 @@ def update_settings_async():
         flags["FFlagFixGraphicsQuality"] = "false"  
     elif graphics_type == "21":
         flags["FFlagFixGraphicsQuality"] = "true"  
+
+    if rendering_engine == "DirectX 11":
+        flags["FFlagDebugGraphicsDisableOpenGL"] = "true"
+        flags["FFlagDebugGraphicsDisableVulkan"] = "true"
+        flags["FFlagDebugGraphicsDisableVulkan11"] = "true"
+        flags["FFlagDebugGraphicsPreferD3D11"] = "true"
+        flags["FFlagDebugGraphicsPreferVulkan"] = "false"
+        flags["FFlagDebugGraphicsPreferD3D11FL10"] = "false"
+    elif rendering_engine == "DirectX 10":
+        flags["FFlagDebugGraphicsDisableOpenGL"] = "true"
+        flags["FFlagDebugGraphicsDisableVulkan"] = "true"
+        flags["FFlagDebugGraphicsDisableVulkan11"] = "true"
+        flags["FFlagDebugGraphicsPreferD3D11FL10"] = "true"
+        flags["FFlagDebugGraphicsDisableDirect3D11"] = "false"
+        flags["FFlagDebugGraphicsPreferVulkan"] = "false"
+        flags["FFlagDebugGraphicsPreferD3D11"] = "false"
+    elif rendering_engine == "Vulkan":
+        flags["FFlagDebugGraphicsDisableDirect3D11"] = "true"
+        flags["FFlagDebugGraphicsDisableOpenGL"] = "true"
+        flags["FFlagDebugGraphicsPreferVulkan"] = "true"
+        flags["FFlagDebugGraphicsDisableVulkan"] = "false"
+        flags["FFlagDebugGraphicsDisableVulkan11"] = "false"
+        flags["FFlagDebugGraphicsPreferD3D11"] = "false"
+        flags["FFlagDebugGraphicsPreferD3D11FL10"] = "false"
+    elif rendering_engine == "Metal":
+        flags["FFlagDebugGraphicsDisableDirect3D11"] = "true"
+        flags["FFlagDebugGraphicsDisableOpenGL"] = "true"
+        flags["FFlagDebugGraphicsDisableVulkan"] = "true"
+        flags["FFlagDebugGraphicsDisableVulkan11"] = "true"
+        flags["FFlagDebugGraphicsPreferMetal"] = "true"
+        flags["FFlagDebugGraphicsPreferVulkan"] = "false"
+        flags["FFlagDebugGraphicsPreferD3D11"] = "false"
+        flags["FFlagDebugGraphicsPreferOpenGL"] = "false"
+        flags["FFlagDebugGraphicsPreferD3D11FL10"] = "false"
+    elif rendering_engine == "OpenGL":
+        flags["FFlagDebugGraphicsDisableDirect3D11"] = "true"
+        flags["FFlagDebugGraphicsDisableVulkan"] = "true"
+        flags["FFlagDebugGraphicsDisableVulkan11"] = "true"
+        flags["FFlagDebugGraphicsPreferOpenGL"] = "true"
+        flags["FFlagDebugGraphicsForceGL2"] = "true"
+        flags["FFlagDebugGraphicsDisableOpenGL"] = "false"
+        flags["FFlagDebugGraphicsPreferVulkan"] = "false"
+        flags["FFlagDebugGraphicsPreferD3D11"] = "false"
+        flags["FFlagDebugGraphicsPreferD3D11FL10"] = "false"
 
     if show_flags:
         flag_list = ""
@@ -453,6 +499,7 @@ graphics_type_var = tk.StringVar(value=get_config_value("Configuration", "graphi
 max_fps_var = tk.StringVar(value=get_config_value("Configuration", "max_fps", "9999"))
 font_size_var = tk.StringVar(value=get_config_value("Configuration", "font_size", "1"))
 coregui_transparency_var = tk.StringVar(value=get_config_value("Configuration", "coregui_transparency", "1"))
+rendering_engine_var = tk.StringVar(value=get_config_value("Configuration", "rendering_engine", "DirectX 11"))
 log_requests_var = tk.BooleanVar(value=get_config_value("Configuration", "log_requests", False))
 enable_proxy_var = tk.BooleanVar(value=get_config_value("Configuration", "enable_proxy", False))
 show_flags_var = tk.BooleanVar(value=get_config_value("Configuration", "show_flags", False))
@@ -486,19 +533,19 @@ optimize_roblox_cb = ttk.Checkbutton(root, text="Optimize Roblox", variable=opti
 optimize_roblox_cb.grid(row=1, column=0, sticky=tk.W, padx=10)
 
 ttk.Label(root, text="Menu Type:").grid(row=2, column=type_settings_one_column, sticky=tk.W, padx=10)
-combo_menu_type = ttk.Combobox(root, textvariable=menu_type_var, values=["Version 4", "Version 1", "Version 2", "Version 4"], style="TCombobox", state="readonly")
+combo_menu_type = ttk.Combobox(root, textvariable=menu_type_var, values=["Version 1", "Version 2", "Version 4"], style="TCombobox", state="readonly")
 combo_menu_type.grid(row=2, column=type_settings_one_input_column, sticky="ew")
 
 ttk.Label(root, text="Topbar Type:").grid(row=3, column=type_settings_one_column, sticky=tk.W, padx=10)
-combo_topbar_type = ttk.Combobox(root, textvariable=topbar_type_var, values=["New", "Old", "New"], style="TCombobox", state="readonly")
+combo_topbar_type = ttk.Combobox(root, textvariable=topbar_type_var, values=["Old", "New"], style="TCombobox", state="readonly")
 combo_topbar_type.grid(row=3, column=type_settings_one_input_column, sticky="ew")
 
 ttk.Label(root, text="MSAA Level:").grid(row=4, column=type_settings_one_column, sticky=tk.W, padx=10)
-combo_msaa_level = ttk.Combobox(root, textvariable=msaa_level_var, values=["4x", "1x", "2x", "4x", "8x"], style="TCombobox", state="readonly")
+combo_msaa_level = ttk.Combobox(root, textvariable=msaa_level_var, values=["1x", "2x", "4x", "8x"], style="TCombobox", state="readonly")
 combo_msaa_level.grid(row=4, column=type_settings_one_input_column, sticky="ew")
 
 ttk.Label(root, text="Graphics Type:").grid(row=5, column=type_settings_one_column, sticky=tk.W, padx=10)
-combo_graphics_type = ttk.Combobox(root, textvariable=graphics_type_var, values=["21", "10", "21"], style="TCombobox", state="readonly")
+combo_graphics_type = ttk.Combobox(root, textvariable=graphics_type_var, values=["10", "21"], style="TCombobox", state="readonly")
 combo_graphics_type.grid(row=5, column=type_settings_one_input_column, sticky="ew")
 
 ttk.Label(root, text="Max FPS:").grid(row=6, column=type_settings_one_column, sticky=tk.W, padx=10)
@@ -509,6 +556,10 @@ ttk.Entry(root, textvariable=font_size_var).grid(row=7, column=type_settings_one
 
 ttk.Label(root, text="CoreGUI Transparency:").grid(row=8, column=type_settings_one_column, sticky=tk.W, padx=10)
 ttk.Entry(root, textvariable=coregui_transparency_var).grid(row=8, column=type_settings_one_input_column, sticky="ew")
+
+ttk.Label(root, text="Graphics Renderer:").grid(row=9, column=type_settings_one_column, sticky=tk.W, padx=10)
+combo_graphics_type = ttk.Combobox(root, textvariable=graphics_type_var, values=["DirectX 11", "DirectX 10", "Vulkan", "Metal", "OpenGL"], style="TCombobox", state="readonly")
+combo_graphics_type.grid(row=9, column=type_settings_one_input_column, sticky="ew")
 
 ttk.Label(root, text="Version:").grid(row=2, column=type_settings_two_column, sticky=tk.W, padx=10)
 ttk.Label(root, text=os.path.basename(selected_version)).grid(row=2, column=type_settings_two_input_column, sticky=tk.W, padx=10)
