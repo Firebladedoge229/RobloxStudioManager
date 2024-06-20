@@ -310,12 +310,6 @@ def update_settings_async():
         flags["FFlagDebugGraphicsPreferD3D11"] = "false"
         flags["FFlagDebugGraphicsPreferD3D11FL10"] = "false"
 
-    if show_flags:
-        flag_list = ""
-        for flag in flags:
-            flag_list += flag + ","
-        flags["FStringDebugShowFlagState"] = flag_list[:-1]
-
     if log_all:
         for flag, value in totalFlags.items():
             if (flag.startswith("FLog") or flag.startswith("DFLog") or flag.startswith("SFLog")) and "FLogStudioQtCategoryLog_default" != flag and "DFLogMaxJoinDataSizeKB" != flag:
@@ -386,6 +380,12 @@ def update_settings_async():
     if enable_internal:
         flags["FFlagInternalDebugWidgetSleepButton"] = "true"
 
+    if show_flags:
+        flag_list = ""
+        for flag in flags:
+            flag_list += flag + ","
+        flags["FStringDebugShowFlagState"] = flag_list[:-1]
+    
     if selected_version is not None:
 
         app_settings_path = os.path.join(selected_version, 'ClientSettings', 'ClientAppSettings.json')
@@ -600,6 +600,7 @@ plugin_check_states = {}
 
 def plugin_editor():
     new_window = tk.Toplevel(root)
+    new_window.resizable(False, False)
     new_window.title("Roblox Studio Manager: Plugin Editor")
     new_window.iconbitmap(application_path + "\\icon.ico")
 
