@@ -5,6 +5,7 @@ import json
 import time
 import psutil
 import sv_ttk
+import zipfile
 import requests
 import threading
 import subprocess
@@ -13,7 +14,7 @@ import xml.etree.ElementTree as ET
 from tkinter import ttk, messagebox
 import configparser as ConfigParser
 
-if getattr(sys, 'frozen', False):
+if getattr(sys, "frozen", False):
     application_path = sys._MEIPASS
 else:
     application_path = os.path.dirname(os.path.abspath(__file__))
@@ -38,14 +39,14 @@ selected_version = None
 
 optimizer = "https://raw.githubusercontent.com/rbxflags/Flags/main/ClientAppSettings.json"
 
-versions_dir = os.path.join(os.environ['LOCALAPPDATA'], 'Roblox', 'Versions')
+versions_dir = os.path.join(os.environ["LOCALAPPDATA"], "Roblox", "Versions")
 
 max_files_count = 0
 
 for version in os.listdir(versions_dir):
     version_dir = os.path.join(versions_dir, version)
 
-    exe_path = os.path.join(version_dir, 'RobloxStudioBeta.exe')
+    exe_path = os.path.join(version_dir, "RobloxStudioBeta.exe")
     if os.path.exists(exe_path):
 
         num_files = len([name for name in os.listdir(version_dir)])
@@ -55,7 +56,7 @@ for version in os.listdir(versions_dir):
             selected_version = version_dir
 
 def is_modded():
-    if os.path.exists(os.path.join(selected_version, 'ClientSettings')):
+    if os.path.exists(os.path.join(selected_version, "ClientSettings")):
         return "Yes"
     else:
         return "No"
@@ -91,13 +92,13 @@ def find_latest_studio_version(lines):
 def reset_fflags():
     result = messagebox.askyesno("Roblox Studio Manager", "Are you sure you want to reset your FFlags?")
     if result:
-        app_settings_path = os.path.join(selected_version, 'ClientSettings', 'ClientAppSettings.json')
-        if os.path.exists(os.path.join(selected_version, 'ClientSettings')):
+        app_settings_path = os.path.join(selected_version, "ClientSettings", "ClientAppSettings.json")
+        if os.path.exists(os.path.join(selected_version, "ClientSettings")):
             open(app_settings_path, "w").close()
             open(app_settings_path, "w+").write("{}")
 
 def installation_folder():
-    subprocess.Popen(f'explorer "{selected_version}', shell = True)
+    subprocess.Popen(f"explorer \"{selected_version}", shell = True)
 
 def launch_studio_async():
     subprocess.Popen(f"{selected_version}\RobloxStudioBeta.exe", shell = True)
@@ -127,6 +128,17 @@ def update_settings_async():
         if result:
             psutil.Process(studio_id).kill()
             psutil.Process(studio_id).wait()
+
+    checkboxes = [
+        optimize_roblox_var, log_requests_var, enable_proxy_var, show_flags_var,
+        log_all_var, minimize_logging_var, code_assist_var, disable_telemetry_var,
+        rainbow_ui_var, force_high_graphics_var, visual_verified_var, old_font_var,
+        classic_error_var, extra_plugins_var, faster_menu_var, cleaner_ui_var,
+        disable_updating_var, enable_internal_var
+    ]
+
+    total_checked = sum(var.get() for var in checkboxes if var.get())
+    progressbar.configure(maximum = total_checked + 0.0000001)
 
     start_time = time.time()
 
@@ -240,6 +252,7 @@ def update_settings_async():
 
     if log_requests:
         flags["DFLogHttpTraceLight"] = 12
+        progressbar.step(1)
     else:
         flags["DFLogHttpTraceLight"] = 6
 
@@ -247,6 +260,7 @@ def update_settings_async():
         flags["FFlagStudioReEnableNetworkProxy_Dev"] = "true"  
         flags["DFFlagHideProxySettings"] = "false"  
         flags["DFFlagDebugEnableHttpProxy"] = "true"  
+        progressbar.step(1)
     else:
         flags["FFlagStudioReEnableNetworkProxy_Dev"] = "false"  
         flags["DFFlagHideProxySettings"] = "true"  
@@ -312,18 +326,21 @@ def update_settings_async():
 
     if log_all:
         for flag, value in totalFlags.items():
-            if (flag.startswith("FLog") or flag.startswith("DFLog") or flag.startswith("SFLog")) and "FLogStudioQtCategoryLog_default" != flag and "DFLogMaxJoinDataSizeKB" != flag:
+            if (flag.startswith("FLog") or flag.startswith("DFLog") or flag.startswith("SFLog")) and ("FLogStudioQtCategoryLog_default" != flag and "DFLogMaxJoinDataSizeKB" != flag and "DFLogHttpCurlProxyHostAndPort" not in flag and "FLogDataModelPatcherRevokedSignatureTypes" != flag and "DFLogHttpUniverseBlacklist" != flag and "FLogAppConfigurationOverrideAppPolicy" != flag and "FLogDebugShowFlagState" != flag):
                 flags[flag] = 12
+        progressbar.step(1)
 
     if minimize_logging:
         for flag, value in totalFlags.items():
-            if (flag.startswith("FLog") or flag.startswith("DFLog") or flag.startswith("SFLog")) and "FLogStudioQtCategoryLog_default" != flag and "DFLogMaxJoinDataSizeKB" != flag:
+            if (flag.startswith("FLog") or flag.startswith("DFLog") or flag.startswith("SFLog")) and ("FLogStudioQtCategoryLog_default" != flag and "DFLogMaxJoinDataSizeKB" != flag and "DFLogHttpCurlProxyHostAndPort" not in flag and "FLogDataModelPatcherRevokedSignatureTypes" != flag and "DFLogHttpUniverseBlacklist" != flag and "FLogAppConfigurationOverrideAppPolicy" != flag and "FLogDebugShowFlagState" != flag):
                 flags[flag] = 0
+        progressbar.step(1)
 
     if code_assist:
         flags["FFlagRelatedScriptsCodeAssist"] = "true"
         flags["FFlagCodeAssistFeature"] = "true"
         flags["FFlagAICOChatBot"] = "true"
+        progressbar.step(1)
 
     if disable_telemetry:
         for flag, value in totalFlags.items():
@@ -336,26 +353,60 @@ def update_settings_async():
                     flags[flag] = "0"
                     if "interval" in flag.lower():
                         flags[flag] = "2147483647"
+        progressbar.step(1)
 
     if rainbow_ui:
         flags["FFlagDebugDisplayUnthemedInstances"] = "true"
+        progressbar.step(1)
 
     if force_high_graphics:
         flags["DFFlagDisableDPIScale"] = "true"
         flags["FIntTextureCompositorLowResFactor"] = 4
         flags["DFFlagEnableRequestAsyncCompression"] = "false"
+        progressbar.step(1)
 
     if visual_verified:
         flags["FFlagOverridePlayerVerifiedBadge"] = "true"
+        progressbar.step(1)
 
     if old_font:
         flags["FFlagUIBloxDevUseNewFontNameMapping"] = "false"
         flags["FFlagEnableNewFontNameMappingABTest2"] = "false"
         flags["FFlagSwitchGothamFontToBuilderSans"] = "false"
         flags["FFlagAddGothamToLegacyContent"] = "false"
+        fonts = os.path.join(selected_version, "content", "fonts", "GothamFont-main")
+        zip_path = os.path.join(selected_version, "content", "fonts", "GothamFont.zip")
+        try:
+            response = requests.get("https://github.com/Firebladedoge229/GothamFont/archive/refs/heads/main.zip", stream=True)
+            with open(zip_path, "wb") as output:
+                output.write(response.content)
+
+            with zipfile.ZipFile(zip_path, "r") as zip_ref:
+
+                target_dir = None
+                for file_info in zip_ref.infolist():
+                    if file_info.is_dir():
+                        target_dir = file_info.filename
+                        break
+
+                if target_dir:
+                    for file_info in zip_ref.infolist():
+                        if file_info.filename.startswith(target_dir) and (file_info.filename.endswith(".ttf") or file_info.filename.endswith(".otf")):
+
+                            filename = os.path.basename(file_info.filename)
+                            dest_path = os.path.join(selected_version, "content", "fonts", filename)
+                            with zip_ref.open(file_info) as source, open(dest_path, "wb") as target:
+                                target.write(source.read())
+                                
+            os.remove(zip_path)
+        except Exception as exception:
+            pass
+
+        progressbar.step(1)
 
     if classic_error:
         flags["FFlagErrorPromptResizesHeight"] = "false"
+        progressbar.step(1)
 
     if extra_plugins:
         flags["FFlagEnableRibbonPlugin"] = "true"
@@ -363,9 +414,11 @@ def update_settings_async():
         flags["NestedPackagePublisherPlugin"] = "true"
         flags["DebugEnableBootcampPlugin"] = "true"
         flags["RetireAudioDiscoveryPlugin"] = "false"
+        progressbar.step(1)
 
     if faster_menu:
         flags["FFlagInGameMenuV1FadeBackgroundAnimation"]  = "true"
+        progressbar.step(1)
 
     if cleaner_ui:
         flags["FFlagChatTranslationLaunchEnabled"] = "false"
@@ -376,27 +429,30 @@ def update_settings_async():
         flags["FFlagEnableAccessibilitySettingsEffectsInExperienceChat"] = "false"
         flags["FFlagEnableAccessibilitySettingsInExperienceMenu2"] = "false"
         flags["FFlagGameBasicSettingsFramerateCap5"] = "false"
+        progressbar.step(1)
 
     if enable_internal:
         flags["FFlagInternalDebugWidgetSleepButton"] = "true"
+        progressbar.step(1)
 
     if show_flags:
         flag_list = ""
         for flag in flags:
             flag_list += flag + ","
         flags["FStringDebugShowFlagState"] = flag_list[:-1]
-    
+        progressbar.step(1)
+
     if selected_version is not None:
 
-        app_settings_path = os.path.join(selected_version, 'ClientSettings', 'ClientAppSettings.json')
+        app_settings_path = os.path.join(selected_version, "ClientSettings", "ClientAppSettings.json")
 
-        if not os.path.exists(os.path.join(selected_version, 'ClientSettings')):
-            os.makedirs(os.path.join(selected_version, 'ClientSettings'))
+        if not os.path.exists(os.path.join(selected_version, "ClientSettings")):
+            os.makedirs(os.path.join(selected_version, "ClientSettings"))
 
         open(app_settings_path, "w").close()
         open(app_settings_path, "w+").write("{}")
 
-        with open(app_settings_path, 'r+') as f:
+        with open(app_settings_path, "r+") as f:
             app_settings = json.load(f)
             if optimize_roblox:
                 request = requests.get(
@@ -412,16 +468,16 @@ def update_settings_async():
             f.truncate()
 
         if enable_internal:
-            exe_path = os.path.join(selected_version, 'RobloxStudioBeta.exe')
-            with open(exe_path, 'r+b') as f:
+            exe_path = os.path.join(selected_version, "RobloxStudioBeta.exe")
+            with open(exe_path, "r+b") as f:
                 content = f.read()
                 index = content.find(internal_signature)
                 if index != -1:
                     f.seek(index)
                     f.write(internal_patch)
         elif enable_internal == False:
-            exe_path = os.path.join(selected_version, 'RobloxStudioBeta.exe')
-            with open(exe_path, 'r+b') as f:
+            exe_path = os.path.join(selected_version, "RobloxStudioBeta.exe")
+            with open(exe_path, "r+b") as f:
                 content = f.read()
                 index = content.find(internal_patch)
                 if index != -1:
@@ -432,40 +488,41 @@ def update_settings_async():
             deployHistory = requests.get("https://setup.rbxcdn.com/DeployHistory.txt").text
             result = find_version_line(os.path.basename(selected_version), deployHistory)
             latest_version = find_latest_studio_version(deployHistory)
-            result = re.search(r'git hash:\s*(\d+\.\d+\.\d+\.\d+)', result).group().replace("git hash: ", "")
-            latest_result = re.search(r'git hash:\s*(\d+\.\d+\.\d+\.\d+)', latest_version).group().replace("git hash: ", "")
+            result = re.search(r"git hash:\s*(\d+\.\d+\.\d+\.\d+)", result).group().replace("git hash: ", "")
+            latest_result = re.search(r"git hash:\s*(\d+\.\d+\.\d+\.\d+)", latest_version).group().replace("git hash: ", "")
             if len(result) != len(latest_result):
                 messagebox.showinfo("Roblox Studio Manager", "The current version and latest version are not the same size. Due to hex limitations, you cannot disable updating on this version.")
             else:
-                result = bytes.fromhex("".join(format(ord(char), '02X') for char in result))
-                patch = bytes.fromhex("".join(format(ord(char), '02X') for char in latest_result))
+                result = bytes.fromhex("".join(format(ord(char), "02X") for char in result))
+                patch = bytes.fromhex("".join(format(ord(char), "02X") for char in latest_result))
 
-                exe_path = os.path.join(selected_version, 'RobloxStudioBeta.exe')
-                with open(exe_path, 'r+b') as f:
+                exe_path = os.path.join(selected_version, "RobloxStudioBeta.exe")
+                with open(exe_path, "r+b") as f:
                     content = f.read()
                     index = content.find(result)
                     if index != -1:
                         f.seek(index)
                         f.write(patch)
+            progressbar.step(1)
 
-            exe_path = os.path.join(selected_version, 'RobloxStudioBeta.exe')
-            with open(exe_path, 'r+b') as f:
+            exe_path = os.path.join(selected_version, "RobloxStudioBeta.exe")
+            with open(exe_path, "r+b") as f:
                 content = f.read()
                 index = content.find(watermark_signature)
                 if index != -1:
                     f.seek(index)
                     f.write(watermark_patch)
 
-        tree = ET.parse(os.path.join(os.path.join(os.environ['LOCALAPPDATA'], 'Roblox'), "GlobalBasicSettings_13_Studio.xml"))
+        tree = ET.parse(os.path.join(os.path.join(os.environ["LOCALAPPDATA"], "Roblox"), "GlobalBasicSettings_13_Studio.xml"))
         root = tree.getroot()
 
-        for item in root.findall(".//Item[@class='UserGameSettings']"):
-            for prop in item.find('Properties'):
-                if prop.tag == 'float' and prop.attrib.get('name') == 'PreferredTransparency':
+        for item in root.findall(".//Item[@class=\"UserGameSettings\"]"):
+            for prop in item.find("Properties"):
+                if prop.tag == "float" and prop.attrib.get("name") == "PreferredTransparency":
                     prop.text = str((4 / 99) * float(coregui_transparency) + (95 / 99))
                     break
 
-        tree.write(os.path.join(os.path.join(os.environ['LOCALAPPDATA'], 'Roblox'), "GlobalBasicSettings_13_Studio.xml"), encoding='utf-8', xml_declaration=True)
+        tree.write(os.path.join(os.path.join(os.environ["LOCALAPPDATA"], "Roblox"), "GlobalBasicSettings_13_Studio.xml"), encoding="utf-8", xml_declaration=True)
 
         for plugin in pluginList:
             update_plugin_state(plugin)
@@ -473,6 +530,7 @@ def update_settings_async():
         end_time = time.time()
 
         result = messagebox.showinfo("Roblox Studio Manager", f"Successfully patched in {str(round(end_time - start_time, 2))}ms.")
+        progressbar["value"] = 0
 
 def studio_running():
     for proc in psutil.process_iter():
@@ -635,7 +693,7 @@ def plugin_editor():
         var = plugin_check_states[plugin]  
         pluginList.append(plugin)
         chk = ttk.Checkbutton(frame, text=plugin.replace(".rbxm", ""), variable=var, onvalue=True, offvalue=False)
-        chk.grid(row=row, column=column, sticky='w', padx=5, pady=5)
+        chk.grid(row=row, column=column, sticky="w", padx=5, pady=5)
 
         row += 1 
         if (i + 1) % 20 == 0:
@@ -683,7 +741,7 @@ def enable_plugin(plugin):
     for plugin_dir in plugin_dirs:
         for plugin in os.listdir(plugin_dir):
             plugin_path = os.path.join(plugin_dir, plugin)
-            with open(plugin_path, 'r+b') as f:
+            with open(plugin_path, "r+b") as f:
                 content = f.read()
 
                 index = content[24:].find(b"DISABLED")
@@ -703,7 +761,7 @@ def disable_plugin(plugin):
     for plugin_dir in plugin_dirs:
         plugin_path = os.path.join(plugin_dir, plugin)
         if os.path.exists(plugin_path):
-            with open(plugin_path, 'r+b') as f:
+            with open(plugin_path, "r+b") as f:
                 content = f.read()
 
                 if b"DISABLED" not in content[24:]:
@@ -722,7 +780,7 @@ def reset_states():
     for plugin_dir in plugin_dirs:
         for plugin in os.listdir(plugin_dir):
             plugin_path = os.path.join(plugin_dir, plugin)
-            with open(plugin_path, 'r+b') as f:
+            with open(plugin_path, "r+b") as f:
                 content = f.read()
 
                 index = content[24:].find(b"DISABLED")
@@ -743,7 +801,7 @@ def check_disabled_state(plugin):
     for plugin_dir in plugin_dirs:
         plugin_path = os.path.join(plugin_dir, plugin)
         if os.path.exists(plugin_path):
-            with open(plugin_path, 'rb') as f:
+            with open(plugin_path, "rb") as f:
                 content = f.read()
                 if b"DISABLED" in content:
                     return True
@@ -755,6 +813,9 @@ button_frame_top = ttk.Frame(root)
 button_frame_top.grid(row=10, column=0, columnspan=6, pady=(0, 1), sticky="n")
 button_frame_bottom = ttk.Frame(root)
 button_frame_bottom.grid(row=11, column=0, columnspan=6, sticky="n")
+progress_frame = ttk.Frame(root)
+progress_frame.grid(row=12, column=1, pady=(6, 20), padx=(6, 6), sticky="ew", columnspan=4)
+progress_frame.rowconfigure(0, weight=44, minsize=4100)
 
 ttk.Button(button_frame_top, text="Apply Settings", command=update_settings).grid(row=10, column=0, pady=(20, 0))
 ttk.Button(button_frame_top, text="Reset Configuration", command=reset_fflags).grid(row=10, column=1, pady=(20, 0), padx=(6, 0))
@@ -764,9 +825,11 @@ update_studio_b = ttk.Button(button_frame_bottom, text="Update Studio", command=
 update_studio_b.grid(row=11, column=1, pady=(6, 20), padx=(6, 0))
 ttk.Button(button_frame_bottom, text="Plugin Editor", command=plugin_editor).grid(row=11, column=2, pady=(6, 20), padx=(6, 0))
 
-label = tk.Label(root, font=("Segoe UI", 12), text="Fireblade", padx=2, pady = 2)
+progressbar = ttk.Progressbar(progress_frame, mode="determinate", length = 20)
+progressbar.pack(expand=True, fill="both")
 
-label.place(relx=1.0, rely=1.0, anchor='se')
+label = tk.Label(root, font=("Segoe UI", 12), text="Fireblade", padx=2, pady = 2)
+label.place(relx=1.0, rely=1.0, anchor="se")
 
 if not check_internet():
     optimize_roblox_var.set(value = False)
