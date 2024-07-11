@@ -3,6 +3,7 @@ import re
 import sys
 import json
 import time
+import ctypes
 import psutil
 import sv_ttk
 import zipfile
@@ -10,6 +11,7 @@ import requests
 import threading
 import subprocess
 import tkinter as tk
+from io import BytesIO
 import xml.etree.ElementTree as ET
 from tkinter import ttk, messagebox
 import configparser as ConfigParser
@@ -118,6 +120,20 @@ def update_studio():
     t = threading.Thread(target=update_studio_async)
     t.start()
 
+def fluent_background():
+    hwnd = ctypes.windll.user32.GetParent(root.winfo_id())
+    if fluent_ui_var.get() == True:
+        sv_ttk.set_theme("dark")
+        root.wm_attributes("-transparentcolor", "#1c1c1c")
+        root.update_idletasks()
+        apply_blur_effect(hwnd)
+    elif fluent_ui_var.get() == False:
+        sv_ttk.set_theme("dark")
+        root.wm_attributes("-transparentcolor", "#000001")
+        remove_blur_effect(hwnd)
+        root.configure(background="#1c1c1c")
+        root.attributes("-alpha", 1.0)
+
 Config = ConfigParser.ConfigParser()
 
 def update_settings_async():
@@ -168,6 +184,7 @@ def update_settings_async():
     extra_plugins = extra_plugins_var.get()
     faster_menu = faster_menu_var.get()
     cleaner_ui = cleaner_ui_var.get()
+    fluent_ui = fluent_ui_var.get()
     Config["Configuration"] = {}
     Config["Plugins"] = {}
     Config["Configuration"]["optimize_roblox"] = str(optimize_roblox_var.get())
@@ -196,6 +213,7 @@ def update_settings_async():
     Config["Configuration"]["extra_plugins"] = str(extra_plugins_var.get())
     Config["Configuration"]["faster_menu"] = str(faster_menu_var.get())
     Config["Configuration"]["cleaner_ui"] = str(cleaner_ui_var.get())
+    Config["Configuration"]["fluent_ui"] = str(fluent_ui_var.get())
     for plugin, state in plugin_check_states.items():
         if not state.get():
             Config["Plugins"][plugin] = str(state.get())
@@ -374,7 +392,6 @@ def update_settings_async():
         flags["FFlagEnableNewFontNameMappingABTest2"] = "false"
         flags["FFlagSwitchGothamFontToBuilderSans"] = "false"
         flags["FFlagAddGothamToLegacyContent"] = "false"
-        fonts = os.path.join(selected_version, "content", "fonts", "GothamFont-main")
         zip_path = os.path.join(selected_version, "content", "fonts", "GothamFont.zip")
         try:
             response = requests.get("https://github.com/Firebladedoge229/GothamFont/archive/refs/heads/main.zip", stream=True)
@@ -382,7 +399,6 @@ def update_settings_async():
                 output.write(response.content)
 
             with zipfile.ZipFile(zip_path, "r") as zip_ref:
-
                 target_dir = None
                 for file_info in zip_ref.infolist():
                     if file_info.is_dir():
@@ -392,16 +408,15 @@ def update_settings_async():
                 if target_dir:
                     for file_info in zip_ref.infolist():
                         if file_info.filename.startswith(target_dir) and (file_info.filename.endswith(".ttf") or file_info.filename.endswith(".otf")):
-
                             filename = os.path.basename(file_info.filename)
                             dest_path = os.path.join(selected_version, "content", "fonts", filename)
                             with zip_ref.open(file_info) as source, open(dest_path, "wb") as target:
                                 target.write(source.read())
-                                
-            os.remove(zip_path)
-        except Exception as exception:
-            pass
 
+            os.remove(zip_path)
+        except Exception:
+            pass
+            
         progressbar.step(1)
 
     if classic_error:
@@ -441,7 +456,7 @@ def update_settings_async():
             flag_list += flag + ","
         flags["FStringDebugShowFlagState"] = flag_list[:-1]
         progressbar.step(1)
-
+    
     if selected_version is not None:
 
         app_settings_path = os.path.join(selected_version, "ClientSettings", "ClientAppSettings.json")
@@ -544,6 +559,43 @@ def get_config_value(section, option, default):
     except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
         return default
 
+class ACCENT_POLICY(ctypes.Structure):
+    _fields_ = [
+        ("AccentState", ctypes.c_int),
+        ("AccentFlags", ctypes.c_int),
+        ("GradientColor", ctypes.c_int),
+        ("AnimationId", ctypes.c_int)
+    ]
+
+class WINCOMPATTRDATA(ctypes.Structure):
+    _fields_ = [
+        ("Attribute", ctypes.c_int),
+        ("Data", ctypes.POINTER(ACCENT_POLICY)),
+        ("SizeOfData", ctypes.c_size_t)
+    ]
+
+def apply_blur_effect(hwnd):
+    accent = ACCENT_POLICY()
+    accent.AccentState = 3
+
+    data = WINCOMPATTRDATA()
+    data.Attribute = 19
+    data.Data = ctypes.pointer(accent)
+    data.SizeOfData = ctypes.sizeof(accent)
+
+    ctypes.windll.user32.SetWindowCompositionAttribute(hwnd, ctypes.pointer(data))
+
+def remove_blur_effect(hwnd):
+    accent = ACCENT_POLICY()
+    accent.AccentState = 0
+
+    data = WINCOMPATTRDATA()
+    data.Attribute = 13
+    data.Data = ctypes.pointer(accent)
+    data.SizeOfData = ctypes.sizeof(accent)
+
+    ctypes.windll.user32.SetWindowCompositionAttribute(hwnd, ctypes.pointer(data))
+
 root = tk.Tk()
 root.title("Roblox Studio Manager")
 
@@ -575,6 +627,7 @@ faster_menu_var = tk.BooleanVar(value=get_config_value("Configuration", "faster_
 cleaner_ui_var = tk.BooleanVar(value=get_config_value("Configuration", "cleaner_ui", True))
 disable_updating_var = tk.BooleanVar(value=get_config_value("Configuration", "disable_updating", False))
 enable_internal_var = tk.BooleanVar(value=get_config_value("Configuration", "enable_internal", False))
+fluent_ui_var = tk.BooleanVar(value=get_config_value("Configuration", "fluent_ui", False))
 
 type_settings_one_column = 0
 type_settings_one_input_column = 1
@@ -646,9 +699,10 @@ ttk.Checkbutton(root, text="Classic Error", variable=classic_error_var).grid(row
 ttk.Checkbutton(root, text="Extra Plugins", variable=extra_plugins_var).grid(row=4, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
 ttk.Checkbutton(root, text="Faster Menu", variable=faster_menu_var).grid(row=5, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
 ttk.Checkbutton(root, text="Cleaner UI", variable=cleaner_ui_var).grid(row=6, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Fluent UI [BETA]", variable=fluent_ui_var, command=fluent_background).grid(row=7, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
 disable_updates_cb = ttk.Checkbutton(root, text="Disable Updates", variable=disable_updating_var)
-disable_updates_cb.grid(row=7, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Enable Internal", variable=enable_internal_var).grid(row=8, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
+disable_updates_cb.grid(row=8, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Enable Internal", variable=enable_internal_var).grid(row=9, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
 
 global pluginList
 pluginList = []
@@ -706,6 +760,125 @@ def plugin_editor():
     ttk.Button(button_frame, text="Enable All", command=enable_all).grid(row=0, column=0, pady=(20, 0))
     ttk.Button(button_frame, text="Disable All", command=disable_all).grid(row=0, column=1, pady=(20, 0), padx=(6, 0))
     ttk.Button(button_frame, text="Reset to Settings", command=reset_checkboxes).grid(row=0, column=2, pady=(20, 0), padx=(6, 0))
+
+def check_zip_file(zip_file):
+    with zipfile.ZipFile(zip_file) as z:
+        root = ""
+        names = z.namelist()
+
+        top_level_dirs = set(os.path.dirname(name).split("/")[0] for name in names if os.path.dirname(name))
+        if len(top_level_dirs) == 1:
+            root = top_level_dirs.pop() + "/"
+        
+        required_dirs = {"content", "ExtraContent", "PlatformContent", "shaders", "ssl"}
+        for name in names:
+            base_name = os.path.basename(name.rstrip("/"))
+            if base_name in required_dirs:
+                return True
+
+        for name in names:
+            if name.startswith(root):
+                base_name = os.path.basename(name.rstrip("/"))
+                if base_name in required_dirs:
+                    return True
+
+    return False
+
+def check_zip_file(zip_file):
+    with zipfile.ZipFile(zip_file) as z:
+        root = ""
+        names = z.namelist()
+
+        top_level_dirs = set(os.path.dirname(name).split("/")[0] for name in names if os.path.dirname(name))
+        if len(top_level_dirs) == 1:
+            root = top_level_dirs.pop() + "/"
+        
+        required_dirs = {"content", "ExtraContent", "PlatformContent", "shaders", "ssl"}
+        for name in names:
+            base_name = os.path.basename(name.rstrip("/"))
+            if base_name in required_dirs:
+                return True
+
+        for name in names:
+            if name.startswith(root):
+                base_name = os.path.basename(name.rstrip("/"))
+                if base_name in required_dirs:
+                    return True
+
+    return False
+
+def extract_and_move(zip_file):
+    try:
+        with zipfile.ZipFile(zip_file) as z:
+            root = ""
+            names = z.namelist()
+
+            top_level_dirs = set(os.path.dirname(name).split("/")[0] for name in names if os.path.dirname(name))
+            if len(top_level_dirs) == 1:
+                root = top_level_dirs.pop() + "/"
+
+            for name in names:
+                if name.startswith(root):
+                    base_name = os.path.basename(name.rstrip("/"))
+                    if base_name:
+                        relative_path = os.path.relpath(name, root)
+                        target_path = os.path.join(selected_version, relative_path)
+
+                        if name.endswith("/"):
+                            os.makedirs(target_path, exist_ok=True)
+                        else:
+                            try:
+                                os.makedirs(os.path.dirname(target_path), exist_ok=True)
+                                with z.open(name) as source, open(target_path, "wb") as target:
+                                    target.write(source.read())
+                            except Exception:
+                                pass
+
+    except zipfile.BadZipFile:
+        pass
+    except Exception:
+        pass
+                    
+def theme_selector():
+    theme_selector_window = tk.Toplevel(root)
+    theme_selector_window.resizable(False, False)
+    theme_selector_window.title("Roblox Studio Manager: Theme Selector")
+    theme_selector_window.iconbitmap(application_path + "\\icon.ico")
+
+    main_frame = ttk.Frame(theme_selector_window, padding=20)
+    main_frame.pack()
+
+    url_label = ttk.Label(main_frame, text="Download Link:", padding=10)
+    url_label.pack()
+
+    url_entry = ttk.Entry(main_frame, width=40)
+    url_entry.pack()
+
+    status_label = ttk.Label(main_frame, text="Enter URL", font=("Segoe UI", 12), foreground="#00FFC4")
+    status_label.pack(pady=10)
+
+    def check_theme():
+        url = url_entry.get()
+        status_label.config(text="Checking...", foreground="#00FFC4")
+
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+        except requests.RequestException:
+            status_label.config(text="❌Invalid URL", foreground="#FF003B")
+            return
+
+        zip_file = BytesIO(response.content)
+
+        if check_zip_file(zip_file):
+            status_label.config(text="Valid Theme", foreground="#00FFC4")
+            extract_and_move(zip_file)
+            status_label.config(text="Theme Applied", foreground="#00FFC4")
+        else:
+            status_label.config(text="❌Invalid Theme", foreground="#FF003B")
+
+    check_button = ttk.Button(main_frame, text="Check Theme", command=check_theme)
+    check_button.pack(pady=10)
 
 def enable_all():
     for plugin in plugin_check_states:
@@ -824,6 +997,7 @@ ttk.Button(button_frame_bottom, text="Launch Studio", command=launch_studio).gri
 update_studio_b = ttk.Button(button_frame_bottom, text="Update Studio", command=update_studio)
 update_studio_b.grid(row=11, column=1, pady=(6, 20), padx=(6, 0))
 ttk.Button(button_frame_bottom, text="Plugin Editor", command=plugin_editor).grid(row=11, column=2, pady=(6, 20), padx=(6, 0))
+ttk.Button(button_frame_bottom, text="Themes", command=theme_selector).grid(row=11, column=3, pady=(6, 20), padx=(6, 0))
 
 progressbar = ttk.Progressbar(progress_frame, mode="determinate", length = 20)
 progressbar.pack(expand=True, fill="both")
