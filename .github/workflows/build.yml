@@ -31,7 +31,15 @@ jobs:
     - name: Build release executable
       run: pyinstaller --onefile --noconsole --icon=icon.ico --add-data="icon.ico;." --add-data="sv_ttk;sv_ttk" robloxstudiomanager.py
 
-    - name: Create Release
+    - name: Store Release Artifact
+      if: github.event_name == 'workflow_dispatch'
+      uses: actions/upload-artifact@v2
+      with:
+        name: RobloxStudioManager_Release
+        path: ./dist/robloxstudiomanager.exe
+
+    - name: Create Release and Upload Asset
+      if: github.event_name == 'push'
       id: create_release
       uses: actions/create-release@v1
       env:
@@ -45,6 +53,7 @@ jobs:
         prerelease: false
 
     - name: Upload Release Asset
+      if: github.event_name == 'push'
       id: upload_release_asset
       uses: actions/upload-release-asset@v1
       env:
@@ -76,13 +85,10 @@ jobs:
     - name: Build debug executable
       run: pyinstaller --onefile --icon=icon.ico --add-data="icon.ico;." --add-data="sv_ttk;sv_ttk" robloxstudiomanager.py
 
-    - name: Upload Debug Asset
-      id: upload_debug_asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Store Debug Artifact
+      if: github.event_name == 'workflow_dispatch'
+      uses: actions/upload-artifact@v2
       with:
-        upload_url: ${{ needs.build_release.outputs.create_release.upload_url }}
-        asset_path: ./dist/robloxstudiomanager.exe
-        asset_name: RobloxStudioManagerDebug.exe
-        asset_content_type: application/octet-stream
+        name: RobloxStudioManagerDebug
+        path: ./dist/robloxstudiomanager.exe
+
