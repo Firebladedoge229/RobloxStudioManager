@@ -35,7 +35,7 @@ jobs:
       if: github.event_name == 'workflow_dispatch'
       uses: actions/upload-artifact@v2
       with:
-        name: RobloxStudioManager_Release
+        name: RobloxStudioManagerRelease
         path: ./dist/robloxstudiomanager.exe
 
     - name: Create Release and Upload Asset
