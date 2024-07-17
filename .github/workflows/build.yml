@@ -7,9 +7,10 @@ on:
     paths-ignore:
       - '**.md'
       - '**.yml'
+  workflow_dispatch:
 
 jobs:
-  build:
+  build_release:
     runs-on: windows-latest
 
     steps:
@@ -26,7 +27,8 @@ jobs:
         pip install psutil==5.9.5
         pip install requests==2.31.0
         pip install pyinstaller==6.4.0
-    - name: Build executable
+
+    - name: Build release executable
       run: pyinstaller --onefile --noconsole --icon=icon.ico --add-data="icon.ico;." --add-data="sv_ttk;sv_ttk" robloxstudiomanager.py
 
     - name: Create Release
@@ -43,7 +45,7 @@ jobs:
         prerelease: false
 
     - name: Upload Release Asset
-      id: upload-release-asset
+      id: upload_release_asset
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -51,4 +53,36 @@ jobs:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./dist/robloxstudiomanager.exe
         asset_name: RobloxStudioManager.exe
+        asset_content_type: application/octet-stream
+
+  build_debug:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.10.11'
+
+    - name: Install dependencies
+      run: |
+        pip install psutil==5.9.5
+        pip install requests==2.31.0
+        pip install pyinstaller==6.4.0
+
+    - name: Build debug executable
+      run: pyinstaller --onefile --icon=icon.ico --add-data="icon.ico;." --add-data="sv_ttk;sv_ttk" robloxstudiomanager.py
+
+    - name: Upload Debug Asset
+      id: upload_debug_asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.build_release.outputs.create_release.upload_url }}
+        asset_path: ./dist/robloxstudiomanager.exe
+        asset_name: RobloxStudioManagerDebug.exe
         asset_content_type: application/octet-stream
