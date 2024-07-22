@@ -24,7 +24,6 @@ else:
 totalFlags = {}
 
 try:
-
     fvariables_text = requests.get("https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/roblox/FVariables.txt").text
     fvariables_flags = {line.split(" ")[-1]: False for line in fvariables_text.splitlines() if line}
     client_app_settings = requests.get("https://clientsettings.roblox.com/v2/settings/application/PCDesktopClient").json()["applicationSettings"]
@@ -149,8 +148,8 @@ def update_settings_async():
         optimize_roblox_var, log_requests_var, enable_proxy_var, show_flags_var,
         log_all_var, minimize_logging_var, code_assist_var, disable_telemetry_var,
         rainbow_ui_var, force_high_graphics_var, visual_verified_var, old_font_var,
-        classic_error_var, extra_plugins_var, faster_menu_var, cleaner_ui_var,
-        disable_updating_var, enable_internal_var
+        classic_error_var, extra_plugins_var, faster_menu_var, cleaner_ui_var, 
+        performance_mode_var, disable_updating_var, enable_internal_var
     ]
 
     total_checked = sum(var.get() for var in checkboxes if var.get())
@@ -167,6 +166,7 @@ def update_settings_async():
     font_size = font_size_var.get()
     coregui_transparency = coregui_transparency_var.get()
     rendering_engine = rendering_engine_var.get()
+    scroll_delta = scroll_delta_var.get()
     log_requests = log_requests_var.get()
     enable_proxy = enable_proxy_var.get()
     enable_internal = enable_internal_var.get()
@@ -182,9 +182,10 @@ def update_settings_async():
     classic_error = classic_error_var.get()
     disable_updating = disable_updating_var.get()
     extra_plugins = extra_plugins_var.get()
+    fluent_ui = fluent_ui_var.get()
+    performance_mode = performance_mode_var.get()
     faster_menu = faster_menu_var.get()
     cleaner_ui = cleaner_ui_var.get()
-    fluent_ui = fluent_ui_var.get()
     Config["Configuration"] = {}
     Config["Plugins"] = {}
     Config["Configuration"]["optimize_roblox"] = str(optimize_roblox_var.get())
@@ -196,6 +197,7 @@ def update_settings_async():
     Config["Configuration"]["font_size"] = str(font_size_var.get())
     Config["Configuration"]["coregui_transparency"] = str(coregui_transparency_var.get())
     Config["Configuration"]["rendering_engine"] = str(rendering_engine_var.get())
+    Config["Configuration"]["scroll_delta"] = str(scroll_delta_var.get())
     Config["Configuration"]["log_requests"] = str(log_requests_var.get())
     Config["Configuration"]["enable_proxy"] = str(enable_proxy_var.get())
     Config["Configuration"]["enable_internal"] = str(enable_internal_var.get())
@@ -211,9 +213,10 @@ def update_settings_async():
     Config["Configuration"]["classic_error"] = str(classic_error_var.get())
     Config["Configuration"]["disable_updating"] = str(disable_updating_var.get())
     Config["Configuration"]["extra_plugins"] = str(extra_plugins_var.get())
+    Config["Configuration"]["fluent_ui"] = str(fluent_ui_var.get())
+    Config["Configuration"]["performance_mode"] = str(performance_mode_var.get())
     Config["Configuration"]["faster_menu"] = str(faster_menu_var.get())
     Config["Configuration"]["cleaner_ui"] = str(cleaner_ui_var.get())
-    Config["Configuration"]["fluent_ui"] = str(fluent_ui_var.get())
     for plugin, state in plugin_check_states.items():
         if not state.get():
             Config["Plugins"][plugin] = str(state.get())
@@ -225,7 +228,8 @@ def update_settings_async():
         "FFlagDebugGraphicsPreferD3D11": "true",  
         "DFIntTaskSchedulerTargetFps": int(max_fps),  
         "FFlagTaskSchedulerLimitTargetFpsTo2402": "false", 
-        "FIntFontSizePadding": int(font_size) 
+        "FIntFontSizePadding": int(font_size),
+        "FIntScrollWheelDeltaAmount": int(scroll_delta)
     }
 
     internal_signature = b"\x41\x38\x9E\x78\x01\x00\x00\x74\x05\xE8"
@@ -344,13 +348,13 @@ def update_settings_async():
 
     if log_all:
         for flag, value in totalFlags.items():
-            if (flag.startswith("FLog") or flag.startswith("DFLog") or flag.startswith("SFLog")) and ("FLogStudioQtCategoryLog_default" != flag and "DFLogMaxJoinDataSizeKB" != flag and "DFLogHttpCurlProxyHostAndPort" not in flag and "FLogDataModelPatcherRevokedSignatureTypes" != flag and "DFLogHttpUniverseBlacklist" != flag and "FLogAppConfigurationOverrideAppPolicy" != flag and "FLogDebugShowFlagState" != flag):
+            if (flag.startswith("FLog") or flag.startswith("DFLog") or flag.startswith("SFLog")) and ("FLogStudioQtCategoryLog_default" != flag and "DFLogMaxJoinDataSizeKB" != flag and "DFLogHttpCurlProxyHostAndPort" not in flag and "FLogDataModelPatcherRevokedSignatureTypes" != flag and "DFLogHttpUniverseBlacklist" != flag and "FLogAppConfigurationOverrideAppPolicy" != flag and "FLogDebugShowFlagState" != flag and "FLogDebugCommaSepBuiltInPluginsToDebug" != flag):
                 flags[flag] = 12
         progressbar.step(1)
 
     if minimize_logging:
         for flag, value in totalFlags.items():
-            if (flag.startswith("FLog") or flag.startswith("DFLog") or flag.startswith("SFLog")) and ("FLogStudioQtCategoryLog_default" != flag and "DFLogMaxJoinDataSizeKB" != flag and "DFLogHttpCurlProxyHostAndPort" not in flag and "FLogDataModelPatcherRevokedSignatureTypes" != flag and "DFLogHttpUniverseBlacklist" != flag and "FLogAppConfigurationOverrideAppPolicy" != flag and "FLogDebugShowFlagState" != flag):
+            if (flag.startswith("FLog") or flag.startswith("DFLog") or flag.startswith("SFLog")) and ("FLogStudioQtCategoryLog_default" != flag and "DFLogMaxJoinDataSizeKB" != flag and "DFLogHttpCurlProxyHostAndPort" not in flag and "FLogDataModelPatcherRevokedSignatureTypes" != flag and "DFLogHttpUniverseBlacklist" != flag and "FLogAppConfigurationOverrideAppPolicy" != flag and "FLogDebugShowFlagState" != flag and "FLogDebugCommaSepBuiltInPluginsToDebug" != flag):
                 flags[flag] = 0
         progressbar.step(1)
 
@@ -445,6 +449,27 @@ def update_settings_async():
         flags["FFlagEnableAccessibilitySettingsInExperienceMenu2"] = "false"
         flags["FFlagGameBasicSettingsFramerateCap5"] = "false"
         progressbar.step(1)
+
+    if performance_mode:
+       performance_flags = requests.get("https://gist.github.com/Firebladedoge229/917827fdd94bbec986b503fafb7fb8ba").text
+       start_pos = performance_flags.find("Compiled List")
+       if start_pos != -1:
+            after = performance_flags[start_pos:]
+
+            match = re.search(r'<pre>(.*?)</pre>', after, re.DOTALL)
+            if match:
+                string = match.group(1)
+                cleaned_string = re.sub(r'<.*?>', '', string)
+                cleaned_string = re.sub(r'^[ \t]+', '', cleaned_string, flags=re.MULTILINE)
+                position = cleaned_string.rfind(",")
+                if position != -1:
+                    cleaned_string = cleaned_string[:position] + cleaned_string[position+1:]
+                data = json.loads(cleaned_string)
+                for k, v in data.items():
+                    if k != "DFIntTaskSchedulerTargetFPS":
+                        flags[k] = v
+                progressbar.step(1)
+
 
     if enable_internal:
         flags["FFlagInternalDebugWidgetSleepButton"] = "true"
@@ -610,6 +635,7 @@ max_fps_var = tk.StringVar(value=get_config_value("Configuration", "max_fps", "9
 font_size_var = tk.StringVar(value=get_config_value("Configuration", "font_size", "1"))
 coregui_transparency_var = tk.StringVar(value=get_config_value("Configuration", "coregui_transparency", "1"))
 rendering_engine_var = tk.StringVar(value=get_config_value("Configuration", "rendering_engine", "DirectX 11"))
+scroll_delta_var = tk.StringVar(value=get_config_value("Configuration", "scroll_delta", "150"))
 log_requests_var = tk.BooleanVar(value=get_config_value("Configuration", "log_requests", False))
 enable_proxy_var = tk.BooleanVar(value=get_config_value("Configuration", "enable_proxy", False))
 show_flags_var = tk.BooleanVar(value=get_config_value("Configuration", "show_flags", False))
@@ -625,9 +651,13 @@ classic_error_var = tk.BooleanVar(value=get_config_value("Configuration", "class
 extra_plugins_var = tk.BooleanVar(value=get_config_value("Configuration", "extra_plugins", False))
 faster_menu_var = tk.BooleanVar(value=get_config_value("Configuration", "faster_menu", False))
 cleaner_ui_var = tk.BooleanVar(value=get_config_value("Configuration", "cleaner_ui", True))
+fluent_ui_var = tk.BooleanVar(value=get_config_value("Configuration", "fluent_ui", False))
+performance_mode_var = tk.BooleanVar(value=get_config_value("Configuration", "performance_mode", False))
 disable_updating_var = tk.BooleanVar(value=get_config_value("Configuration", "disable_updating", False))
 enable_internal_var = tk.BooleanVar(value=get_config_value("Configuration", "enable_internal", False))
-fluent_ui_var = tk.BooleanVar(value=get_config_value("Configuration", "fluent_ui", False))
+
+if fluent_ui_var.get() == True:
+    fluent_background()
 
 type_settings_one_column = 0
 type_settings_one_input_column = 1
@@ -672,6 +702,9 @@ ttk.Label(root, text="Graphics Renderer:").grid(row=9, column=type_settings_one_
 combo_graphics_type = ttk.Combobox(root, textvariable=rendering_engine_var, values=["DirectX 11", "DirectX 10", "Vulkan", "Metal", "OpenGL"], style="TCombobox", state="readonly")
 combo_graphics_type.grid(row=9, column=type_settings_one_input_column, sticky="ew")
 
+ttk.Label(root, text="Scroll Delta:").grid(row=10, column=type_settings_one_column, sticky=tk.W, padx=10)
+ttk.Entry(root, textvariable=scroll_delta_var).grid(row=10, column=type_settings_one_input_column, sticky="ew")
+
 ttk.Label(root, text="Version:").grid(row=2, column=type_settings_two_column, sticky=tk.W, padx=10)
 ttk.Label(root, text=os.path.basename(selected_version)).grid(row=2, column=type_settings_two_input_column, sticky=tk.W, padx=10)
 
@@ -693,13 +726,14 @@ disable_telemetry_cb = ttk.Checkbutton(root, text="Disable Telemetry", variable=
 disable_telemetry_cb.grid(row=7, column=checkbox_column_one, sticky=tk.W, padx=10, pady=3)
 ttk.Checkbutton(root, text="Rainbow UI", variable=rainbow_ui_var).grid(row=8, column=checkbox_column_one, sticky=tk.W, padx=10, pady=3)
 ttk.Checkbutton(root, text="Force High Graphics", variable=force_high_graphics_var).grid(row=9, column=checkbox_column_one, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Verified Badge", variable=visual_verified_var).grid(row=1, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Classic Font", variable=old_font_var).grid(row=2, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Classic Error", variable=classic_error_var).grid(row=3, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Extra Plugins", variable=extra_plugins_var).grid(row=4, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Faster Menu", variable=faster_menu_var).grid(row=5, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Cleaner UI", variable=cleaner_ui_var).grid(row=6, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Fluent UI [BETA]", variable=fluent_ui_var, command=fluent_background).grid(row=7, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Verified Badge", variable=visual_verified_var).grid(row=10, column=checkbox_column_one, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Classic Font", variable=old_font_var).grid(row=1, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Classic Error", variable=classic_error_var).grid(row=2, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Extra Plugins", variable=extra_plugins_var).grid(row=3, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Faster Menu", variable=faster_menu_var).grid(row=4, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Cleaner UI", variable=cleaner_ui_var).grid(row=5, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Fluent UI [BETA]", variable=fluent_ui_var, command=fluent_background).grid(row=6, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Performance Mode", variable=performance_mode_var).grid(row=7, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
 disable_updates_cb = ttk.Checkbutton(root, text="Disable Updates", variable=disable_updating_var)
 disable_updates_cb.grid(row=8, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
 ttk.Checkbutton(root, text="Enable Internal", variable=enable_internal_var).grid(row=9, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
@@ -983,21 +1017,21 @@ def check_disabled_state(plugin):
     return False
 
 button_frame_top = ttk.Frame(root)
-button_frame_top.grid(row=10, column=0, columnspan=6, pady=(0, 1), sticky="n")
+button_frame_top.grid(row=11, column=0, columnspan=6, pady=(0, 1), sticky="n")
 button_frame_bottom = ttk.Frame(root)
-button_frame_bottom.grid(row=11, column=0, columnspan=6, sticky="n")
+button_frame_bottom.grid(row=12, column=0, columnspan=6, sticky="n")
 progress_frame = ttk.Frame(root)
-progress_frame.grid(row=12, column=1, pady=(6, 20), padx=(6, 6), sticky="ew", columnspan=4)
+progress_frame.grid(row=13, column=1, pady=(6, 20), padx=(6, 6), sticky="ew", columnspan=4)
 progress_frame.rowconfigure(0, weight=44, minsize=4100)
 
-ttk.Button(button_frame_top, text="Apply Settings", command=update_settings).grid(row=10, column=0, pady=(20, 0))
-ttk.Button(button_frame_top, text="Reset Configuration", command=reset_fflags).grid(row=10, column=1, pady=(20, 0), padx=(6, 0))
-ttk.Button(button_frame_top, text="Installation Folder", command=installation_folder).grid(row=10, column=2, pady=(20, 0), padx=(6, 0))
-ttk.Button(button_frame_bottom, text="Launch Studio", command=launch_studio).grid(row=11, column=0, pady=(6, 20))
+ttk.Button(button_frame_top, text="Apply Settings", command=update_settings).grid(row=11, column=0, pady=(20, 0))
+ttk.Button(button_frame_top, text="Reset Configuration", command=reset_fflags).grid(row=11, column=1, pady=(20, 0), padx=(6, 0))
+ttk.Button(button_frame_top, text="Installation Folder", command=installation_folder).grid(row=11, column=2, pady=(20, 0), padx=(6, 0))
+ttk.Button(button_frame_bottom, text="Launch Studio", command=launch_studio).grid(row=12, column=0, pady=(6, 20))
 update_studio_b = ttk.Button(button_frame_bottom, text="Update Studio", command=update_studio)
-update_studio_b.grid(row=11, column=1, pady=(6, 20), padx=(6, 0))
-ttk.Button(button_frame_bottom, text="Plugin Editor", command=plugin_editor).grid(row=11, column=2, pady=(6, 20), padx=(6, 0))
-ttk.Button(button_frame_bottom, text="Themes", command=theme_selector).grid(row=11, column=3, pady=(6, 20), padx=(6, 0))
+update_studio_b.grid(row=12, column=1, pady=(6, 20), padx=(6, 0))
+ttk.Button(button_frame_bottom, text="Plugin Editor", command=plugin_editor).grid(row=12, column=2, pady=(6, 20), padx=(6, 0))
+ttk.Button(button_frame_bottom, text="Theme Manager", command=theme_selector).grid(row=12, column=3, pady=(6, 20), padx=(6, 0))
 
 progressbar = ttk.Progressbar(progress_frame, mode="determinate", length = 20)
 progressbar.pack(expand=True, fill="both")
@@ -1019,5 +1053,8 @@ if not check_internet():
 sv_ttk.set_theme("dark")
 root.resizable(False, False)
 root.iconbitmap(application_path + "\\icon.ico")
+
+if fluent_ui_var.get() == True:
+    fluent_background()
 
 root.mainloop()
