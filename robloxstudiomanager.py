@@ -56,6 +56,23 @@ for version in os.listdir(versions_dir):
             max_files_count = num_files
             selected_version = version_dir
 
+if not selected_version:
+    versions_dir = os.path.join(os.environ["PROGRAMFILES(X86)"], "Roblox", "Versions")
+
+    max_files_count = 0
+
+    for version in os.listdir(versions_dir):
+        version_dir = os.path.join(versions_dir, version)
+
+        exe_path = os.path.join(version_dir, "RobloxStudioBeta.exe")
+        if os.path.exists(exe_path):
+
+            num_files = len([name for name in os.listdir(version_dir)])
+
+            if num_files > max_files_count:
+                max_files_count = num_files
+                selected_version = version_dir
+
 def is_modded():
     if os.path.exists(os.path.join(selected_version, "ClientSettings")):
         return "Yes"
