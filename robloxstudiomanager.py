@@ -166,7 +166,7 @@ def update_settings_async():
         log_all_var, minimize_logging_var, code_assist_var, disable_telemetry_var,
         rainbow_ui_var, force_high_graphics_var, visual_verified_var, old_font_var,
         classic_error_var, extra_plugins_var, faster_menu_var, cleaner_ui_var, 
-        performance_mode_var, disable_updating_var, enable_internal_var
+        performance_mode_var, foundation_colors_var, disable_updating_var, enable_internal_var
     ]
 
     total_checked = sum(var.get() for var in checkboxes if var.get())
@@ -203,6 +203,7 @@ def update_settings_async():
     performance_mode = performance_mode_var.get()
     faster_menu = faster_menu_var.get()
     cleaner_ui = cleaner_ui_var.get()
+    foundation_colors = foundation_colors_var.get()
     Config["Configuration"] = {}
     Config["Plugins"] = {}
     Config["Configuration"]["optimize_roblox"] = str(optimize_roblox_var.get())
@@ -234,6 +235,7 @@ def update_settings_async():
     Config["Configuration"]["performance_mode"] = str(performance_mode_var.get())
     Config["Configuration"]["faster_menu"] = str(faster_menu_var.get())
     Config["Configuration"]["cleaner_ui"] = str(cleaner_ui_var.get())
+    Config["Configuration"]["foundation_colors"] = str(foundation_colors_var.get())
     for plugin, state in plugin_check_states.items():
         if not state.get():
             Config["Plugins"][plugin] = str(state.get())
@@ -465,6 +467,8 @@ def update_settings_async():
         flags["FFlagEnableAccessibilitySettingsEffectsInExperienceChat"] = "false"
         flags["FFlagEnableAccessibilitySettingsInExperienceMenu2"] = "false"
         flags["FFlagGameBasicSettingsFramerateCap5"] = "false"
+        flags["FFlagEnablePreferredTextSizeScale"] = "false"
+        flags["FFlagEnablePreferredTextSizeSettingInMenus2"] = "false"
         progressbar.step(1)
 
     if performance_mode:
@@ -487,7 +491,10 @@ def update_settings_async():
                         flags[k] = v
                 progressbar.step(1)
 
-
+    if foundation_colors:
+        flags["FFlagLuaAppEnableFoundationColors"] = "true"
+        progressbar.step(1)
+    
     if enable_internal:
         flags["FFlagInternalDebugWidgetSleepButton"] = "true"
         progressbar.step(1)
@@ -500,7 +507,6 @@ def update_settings_async():
         progressbar.step(1)
     
     if selected_version is not None:
-
         app_settings_path = os.path.join(selected_version, "ClientSettings", "ClientAppSettings.json")
 
         if not os.path.exists(os.path.join(selected_version, "ClientSettings")):
@@ -670,6 +676,7 @@ faster_menu_var = tk.BooleanVar(value=get_config_value("Configuration", "faster_
 cleaner_ui_var = tk.BooleanVar(value=get_config_value("Configuration", "cleaner_ui", True))
 fluent_ui_var = tk.BooleanVar(value=get_config_value("Configuration", "fluent_ui", False))
 performance_mode_var = tk.BooleanVar(value=get_config_value("Configuration", "performance_mode", False))
+foundation_colors_var = tk.BooleanVar(value=get_config_value("Configuration", "foundation_colors", False))
 disable_updating_var = tk.BooleanVar(value=get_config_value("Configuration", "disable_updating", False))
 enable_internal_var = tk.BooleanVar(value=get_config_value("Configuration", "enable_internal", False))
 
@@ -751,9 +758,10 @@ ttk.Checkbutton(root, text="Faster Menu", variable=faster_menu_var).grid(row=4, 
 ttk.Checkbutton(root, text="Cleaner UI", variable=cleaner_ui_var).grid(row=5, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
 ttk.Checkbutton(root, text="Fluent UI [BETA]", variable=fluent_ui_var, command=fluent_background).grid(row=6, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
 ttk.Checkbutton(root, text="Performance Mode", variable=performance_mode_var).grid(row=7, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Foundation Colors", variable=foundation_colors_var).grid(row=8, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
 disable_updates_cb = ttk.Checkbutton(root, text="Disable Updates", variable=disable_updating_var)
-disable_updates_cb.grid(row=8, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Enable Internal", variable=enable_internal_var).grid(row=9, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
+disable_updates_cb.grid(row=9, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Enable Internal", variable=enable_internal_var).grid(row=10, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
 
 global pluginList
 pluginList = []
