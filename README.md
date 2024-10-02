@@ -8,7 +8,7 @@ A fork of [Roblox Studio Patcher](https://github.com/Firebladedoge229/RobloxStud
 
 ## Installation
 
-Simply run the executable found at the [Releases](https://github.com/Firebladedoge229/RobloxStudioManager/releases/latest) page.
+Simply run the executable found at the [Releases](https://github.com/Firebladedoge229/RobloxStudioManager/releases/latest/download/RobloxStudioManager.exe) page.
 
 A [Windows Defender SmartScreen](https://learn.microsoft.com/en-us/windows/security/operating-system-security/virus-and-threat-protection/microsoft-defender-smartscreen/) window may display, or your anti-virus might trigger, this is due to the application signing system by [PyInstaller](https://github.com/pyinstaller/pyinstaller).
 
