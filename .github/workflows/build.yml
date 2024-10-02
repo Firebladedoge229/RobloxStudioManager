@@ -6,7 +6,6 @@ on:
       - main
     paths-ignore:
       - '**.md'
-      - '**.yml'
   workflow_dispatch:
 
 jobs:
@@ -15,10 +14,10 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: '3.10.11'
 
@@ -33,7 +32,7 @@ jobs:
 
     - name: Store Release Artifact
       if: github.event_name == 'workflow_dispatch'
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: RobloxStudioManagerRelease
         path: ./dist/robloxstudiomanager.exe
@@ -69,10 +68,10 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: '3.10.11'
 
@@ -87,8 +86,7 @@ jobs:
 
     - name: Store Debug Artifact
       if: github.event_name == 'workflow_dispatch'
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: RobloxStudioManagerDebug
         path: ./dist/robloxstudiomanager.exe
-
