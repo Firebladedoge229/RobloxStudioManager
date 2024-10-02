@@ -150,6 +150,21 @@ def fluent_background():
         root.configure(background="#1c1c1c")
         root.attributes("-alpha", 1.0)
 
+def show_info():
+    info = tk.Toplevel(root)
+    info.title("Roblox Studio Manager: Version Info")
+    info.iconbitmap(application_path + "\\icon.ico")
+    info.geometry("265x265")
+
+    ttk.Label(info, text="Version:").grid(row=2, column=0, sticky=tk.W, padx=10, pady=34)
+    ttk.Label(info, text=os.path.basename(selected_version)).grid(row=2, column=1, sticky=tk.W, padx=10, pady=34)
+
+    ttk.Label(info, text="Modded:").grid(row=3, column=0, sticky=tk.W, padx=10, pady=34)
+    ttk.Label(info, text=is_modded()).grid(row=3, column=1, sticky=tk.W, padx=10, pady=34)
+
+    ttk.Label(info, text="Channel:").grid(row=4, column=0, sticky=tk.W, padx=10, pady=34)
+    ttk.Label(info, text=get_channel()).grid(row=4, column=1, sticky=tk.W, padx=10, pady=34)
+
 Config = ConfigParser.ConfigParser()
 
 def update_settings_async():
@@ -166,7 +181,8 @@ def update_settings_async():
         log_all_var, minimize_logging_var, code_assist_var, disable_telemetry_var,
         rainbow_ui_var, force_high_graphics_var, visual_verified_var, old_font_var,
         classic_error_var, extra_plugins_var, faster_menu_var, cleaner_ui_var, 
-        performance_mode_var, foundation_colors_var, disable_updating_var, enable_internal_var
+        performance_mode_var, foundation_colors_var, disable_updating_var, enable_internal_var,
+        legacy_chrome_var, occlusion_culling_var
     ]
 
     total_checked = sum(var.get() for var in checkboxes if var.get())
@@ -200,6 +216,8 @@ def update_settings_async():
     disable_updating = disable_updating_var.get()
     extra_plugins = extra_plugins_var.get()
     fluent_ui = fluent_ui_var.get()
+    legacy_chrome = legacy_chrome_var.get()
+    occlusion_culling = occlusion_culling_var.get()
     performance_mode = performance_mode_var.get()
     faster_menu = faster_menu_var.get()
     cleaner_ui = cleaner_ui_var.get()
@@ -236,6 +254,8 @@ def update_settings_async():
     Config["Configuration"]["faster_menu"] = str(faster_menu_var.get())
     Config["Configuration"]["cleaner_ui"] = str(cleaner_ui_var.get())
     Config["Configuration"]["foundation_colors"] = str(foundation_colors_var.get())
+    Config["Configuration"]["legacy_chrome"] = str(legacy_chrome_var.get())
+    Config["Configuration"]["occlusion_culling"] = str(occlusion_culling_var.get())
     for plugin, state in plugin_check_states.items():
         if not state.get():
             Config["Plugins"][plugin] = str(state.get())
@@ -255,6 +275,17 @@ def update_settings_async():
     internal_patch = b"\x41\x38\x9E\x78\x01\x00\x00\x90\x90\xE8"
     watermark_signature = b"\x53\x74\x75\x64\x69\x6F\x2E\x41\x70\x70\x2E\x41\x62\x6F\x75\x74\x53\x74\x75\x64\x69\x6F\x44\x69\x61\x6C\x6F\x67\x2E\x43\x6F\x6E\x74\x61\x63\x74\x55\x73\x2C\x2C\x2C\x43\x6F\x6E\x74\x61\x63\x74\x20\x55\x73\x2C\x43\x6F\x6E\x74\x61\x63\x74\x20\x55\x73"
     watermark_patch = b"\x53\x74\x75\x64\x69\x6F\x2E\x41\x70\x70\x2E\x41\x62\x6F\x75\x74\x53\x74\x75\x64\x69\x6F\x44\x69\x61\x6C\x6F\x67\x2E\x43\x6F\x6E\x74\x61\x63\x74\x55\x73\x2C\x2C\x2C\x4D\x6F\x64\x64\x65\x64\x20\x52\x53\x4D\x2C\x4D\x6F\x64\x64\x65\x64\x20\x52\x53\x4D"
+
+    internal_signature_backup = None
+    internal_patch_backup = None
+
+    try:
+        signature_response = requests.get("https://raw.githubusercontent.com/7ap/internal-studio-patcher/refs/heads/main/src/main.rs")
+        internal_signature_backup, internal_patch_backup = re.findall(r'\[([^]]+)\]', signature_response.text)
+        internal_signature_backup = b"".join(bytes.fromhex(s.strip().replace('0x', '')) for s in internal_signature_backup.split(','))
+        internal_patch_backup = b"".join(bytes.fromhex(p.strip().replace('0x', '')) for p in internal_patch_backup.split(','))
+    except:
+        pass
 
     if menu_type == "Version 1":
         flags["FFlagDisableNewIGMinDUA"] = "true"  
@@ -495,6 +526,23 @@ def update_settings_async():
         flags["FFlagLuaAppEnableFoundationColors"] = "true"
         progressbar.step(1)
     
+    if legacy_chrome:
+        flags["FFlagEnableHamburgerIcon"] = "false"
+        flags["FFlagEnableUnibarV4IA"] = "false"
+        flags["FFlagEnableAlwaysOpenUnibar2"] = "false"
+        flags["FFlagUseNewUnibarIcon"] = "false"
+        flags["FFlagUseSelfieViewFlatIcon"] = "false"
+        flags["FFlagUnibarRespawn"] = "false"
+        flags["FFlagEnableChromePinIntegrations2"] = "false"
+        flags["FFlagUpdateHealthBar"] = "false"
+        flags["FFlagUseNewPinIcon"] = "false"
+        progressbar.step(1)
+
+    if occlusion_culling:
+        flags["DFFlagUseVisBugChecks"] = "true"
+        flags["FFlagEnableVisBugChecks27"] = "true"
+        progressbar.step(1)
+
     if enable_internal:
         flags["FFlagInternalDebugWidgetSleepButton"] = "true"
         progressbar.step(1)
@@ -538,6 +586,12 @@ def update_settings_async():
                 if index != -1:
                     f.seek(index)
                     f.write(internal_patch)
+                    if internal_signature_backup and internal_patch_backup:
+                        index = content.find(internal_signature_backup)
+                        if index != -1:
+                            f.seek(index)
+                            f.write(internal_patch_backup)
+
         elif enable_internal == False:
             exe_path = os.path.join(selected_version, "RobloxStudioBeta.exe")
             with open(exe_path, "r+b") as f:
@@ -546,6 +600,11 @@ def update_settings_async():
                 if index != -1:
                     f.seek(index)
                     f.write(internal_signature)
+                    if internal_signature_backup and internal_patch_backup:
+                        index = content.find(internal_patch_backup)
+                        if index != -1:
+                            f.seek(index)
+                            f.write(internal_signature_backup)
 
         if disable_updating:
             deployHistory = requests.get("https://setup.rbxcdn.com/DeployHistory.txt").text
@@ -677,6 +736,8 @@ cleaner_ui_var = tk.BooleanVar(value=get_config_value("Configuration", "cleaner_
 fluent_ui_var = tk.BooleanVar(value=get_config_value("Configuration", "fluent_ui", False))
 performance_mode_var = tk.BooleanVar(value=get_config_value("Configuration", "performance_mode", False))
 foundation_colors_var = tk.BooleanVar(value=get_config_value("Configuration", "foundation_colors", False))
+legacy_chrome_var = tk.BooleanVar(value=get_config_value("Configuration", "legacy_chrome", False))
+occlusion_culling_var = tk.BooleanVar(value=get_config_value("Configuration", "occlusion_culling", False))
 disable_updating_var = tk.BooleanVar(value=get_config_value("Configuration", "disable_updating", False))
 enable_internal_var = tk.BooleanVar(value=get_config_value("Configuration", "enable_internal", False))
 
@@ -685,12 +746,11 @@ if fluent_ui_var.get() == True:
 
 type_settings_one_column = 0
 type_settings_one_input_column = 1
-type_settings_two_column = 2
-type_settings_two_input_column = 3
-checkbox_column_one = 4
-checkbox_column_two = 5
+checkbox_column_one = 2
+checkbox_column_two = 3
+checkbox_column_three = 4
 
-ttk.Label(root, text="Roblox Studio Manager", font=("Segoe UI", 16)).grid(row=0, column=0, columnspan=6, pady=10)
+ttk.Label(root, text="Roblox Studio Manager", font=("Segoe UI", 16)).grid(row=0, column=0, columnspan=5, pady=10)
 
 ttk.Checkbutton(root, text="Optimize Roblox", variable=optimize_roblox_var).grid(row=1, column=0, sticky=tk.W, padx=10)
 ttk.Label(root, text="Menu Type:").grid(row=2, column=0, sticky=tk.W, padx=10)
@@ -729,15 +789,6 @@ combo_graphics_type.grid(row=9, column=type_settings_one_input_column, sticky="e
 ttk.Label(root, text="Scroll Delta:").grid(row=10, column=type_settings_one_column, sticky=tk.W, padx=10)
 ttk.Entry(root, textvariable=scroll_delta_var).grid(row=10, column=type_settings_one_input_column, sticky="ew")
 
-ttk.Label(root, text="Version:").grid(row=2, column=type_settings_two_column, sticky=tk.W, padx=10)
-ttk.Label(root, text=os.path.basename(selected_version)).grid(row=2, column=type_settings_two_input_column, sticky=tk.W, padx=10)
-
-ttk.Label(root, text="Modded:").grid(row=3, column=type_settings_two_column, sticky=tk.W, padx=10)
-ttk.Label(root, text=is_modded()).grid(row=3, column=type_settings_two_input_column, sticky=tk.W, padx=10)
-
-ttk.Label(root, text="Channel:").grid(row=4, column=type_settings_two_column, sticky=tk.W, padx=10)
-ttk.Label(root, text=get_channel()).grid(row=4, column=type_settings_two_input_column, sticky=tk.W, padx=10)
-
 ttk.Checkbutton(root, text="Log Requests", variable=log_requests_var).grid(row=1, column=checkbox_column_one, sticky=tk.W, padx=10, pady=3)
 ttk.Checkbutton(root, text="Enable Proxy", variable=enable_proxy_var).grid(row=2, column=checkbox_column_one, sticky=tk.W, padx=10, pady=3)
 ttk.Checkbutton(root, text="Show Flags", variable=show_flags_var).grid(row=3, column=checkbox_column_one, sticky=tk.W, padx=10, pady=3)
@@ -759,15 +810,20 @@ ttk.Checkbutton(root, text="Cleaner UI", variable=cleaner_ui_var).grid(row=5, co
 ttk.Checkbutton(root, text="Fluent UI [BETA]", variable=fluent_ui_var, command=fluent_background).grid(row=6, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
 ttk.Checkbutton(root, text="Performance Mode", variable=performance_mode_var).grid(row=7, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
 ttk.Checkbutton(root, text="Foundation Colors", variable=foundation_colors_var).grid(row=8, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Legacy Chrome UI", variable=legacy_chrome_var).grid(row=9, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Occlusion Culling", variable=occlusion_culling_var).grid(row=10, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
 disable_updates_cb = ttk.Checkbutton(root, text="Disable Updates", variable=disable_updating_var)
-disable_updates_cb.grid(row=9, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
-ttk.Checkbutton(root, text="Enable Internal", variable=enable_internal_var).grid(row=10, column=checkbox_column_two, sticky=tk.W, padx=10, pady=3)
+disable_updates_cb.grid(row=1, column=checkbox_column_three, sticky=tk.W, padx=10, pady=3)
+ttk.Checkbutton(root, text="Enable Internal", variable=enable_internal_var).grid(row=2, column=checkbox_column_three, sticky=tk.W, padx=10, pady=3)
 
 global pluginList
 pluginList = []
 
 global plugin_check_states
 plugin_check_states = {}
+
+help_button = ttk.Button(root, text="?", command=show_info)
+help_button.place(relx=1.0, anchor="ne", x=-4, y=4)
 
 def plugin_editor():
     new_window = tk.Toplevel(root)
@@ -1042,12 +1098,11 @@ def check_disabled_state(plugin):
     return False
 
 button_frame_top = ttk.Frame(root)
-button_frame_top.grid(row=11, column=0, columnspan=6, pady=(0, 1), sticky="n")
+button_frame_top.grid(row=11, column=0, columnspan=5, pady=(0, 1), sticky="n")
 button_frame_bottom = ttk.Frame(root)
-button_frame_bottom.grid(row=12, column=0, columnspan=6, sticky="n")
+button_frame_bottom.grid(row=12, column=0, columnspan=5, sticky="n")
 progress_frame = ttk.Frame(root)
-progress_frame.grid(row=13, column=1, pady=(6, 20), padx=(6, 6), sticky="ew", columnspan=4)
-progress_frame.rowconfigure(0, weight=44, minsize=4100)
+progress_frame.grid(row=13, column=0, padx=(150), pady=(0, 20), sticky="ew", columnspan=5)
 
 ttk.Button(button_frame_top, text="Apply Settings", command=update_settings).grid(row=11, column=0, pady=(20, 0))
 ttk.Button(button_frame_top, text="Reset Configuration", command=reset_fflags).grid(row=11, column=1, pady=(20, 0), padx=(6, 0))
