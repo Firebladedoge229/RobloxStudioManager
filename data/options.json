@@ -1,0 +1,112 @@
+{
+    "Dropdowns": [
+        {
+            "SectionTitle": "Graphics"
+        },
+        {
+            "Title": "MSAA Level",
+            "Description": "Adjust the level of antialiasing to improve visual quality and reduce jagged edges.",
+            "Section": "Flags",
+            "Options": [
+                "Off",
+                "2x",
+                "4x",
+                "8x"
+            ]
+        },
+        {
+            "Title": "Graphics Renderer",
+            "Description": "Select the graphics renderer to determine how the game renders visual elements.",
+            "Section": "Flags",
+            "Options": [
+                "DirectX 11",
+                "DirectX 10",
+                "OpenGL",
+                "Metal",
+                "Vulkan"
+            ]
+        }
+    ],
+    "Toggles": [
+        {
+            "Title": "Force High Graphics",
+            "Description": "Enable high-quality graphics, improving visual fidelity but potentially lowering performance.",
+            "Section": "Flags"
+        },
+        {
+            "SectionTitle": "Logging"
+        },
+        {
+            "Title": "Enable Proxy",
+            "Description": "Activates proxy settings to manage network traffic through an intermediary server.",
+            "Section": "Flags"
+        },
+        {
+            "Title": "Log Network Requests",
+            "Description": "Log all network requests made by the application for debugging and analysis purposes.",
+            "Section": "Flags"
+        },
+        {
+            "Title": "Occulusion Culling",
+            "Description": "Enable occlusion culling to optimize performance by not rendering objects that are blocked by others.",
+            "Section": "Flags"
+        },
+        {
+            "SectionTitle": "Debugging"
+        },
+        {
+            "Title": "Show Flags",
+            "Description": "Display a list of all enabled flags for debugging and configuration monitoring.",
+            "Section": "Flags"
+        },
+        {
+            "Title": "Enable Internal",
+            "Description": "Activate internal features of the platform, intended for testing or advanced users.",
+            "Section": "Mods"
+        },
+        {
+            "SectionTitle": "Misc"
+        },
+        {
+            "Title": "Classic Font",
+            "Description": "Restore the classic font style for a nostalgic or familiar appearance.",
+            "Section": "Mods"
+        },
+        {
+            "Title": "Faster Menu",
+            "Description": "Increase the speed of menu animations for a quicker, snappier experience.",
+            "Section": "Flags"
+        },
+        {
+            "Title": "Disable Updates",
+            "Description": "Turn off automatic updates to prevent the application from downloading or installing new versions.",
+            "Section": "Mods"
+        }
+    ],
+    "Type": [
+        {
+            "Title": "Max FPS",
+            "Description": "Set a limit on the maximum frames per second to control performance and reduce hardware load.",
+            "Section": "Flags",
+            "Accept": "Integer"
+        },
+        {
+            "Title": "Font Size",
+            "Description": "Adjust the size of the text used in the interface for improved readability or compactness.",
+            "Section": "Flags",
+            "Accept": "Integer"
+        },
+        {
+            "Title": "CoreGUI Transparency",
+            "Description": "Control the transparency level of the CoreGUI, making the interface more or less transparent.",
+            "Section": "Mods",
+            "Accept": "Integer"
+        },
+        {
+            "Title": "Scroll Delta",
+            "Description": "Modify the sensitivity of mouse scrolling, adjusting how much content moves per scroll event.",
+            "Section": "Flags",
+            "Accept": "Integer"
+        }
+    ]
+}

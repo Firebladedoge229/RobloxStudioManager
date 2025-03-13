@@ -1,10 +1,13 @@
-![Roblox Studio Manager](https://github.com/Firebladedoge229/RobloxStudioManager/blob/main/robloxstudiomanager.png?raw=true)
+![Roblox Studio Manager](https://github.com/Firebladedoge229/RobloxStudioManager/blob/main/images/RobloxStudioManager.png?raw=true)
 
 # Roblox Studio Manager
 
 A fork of [Roblox Studio Patcher](https://github.com/Firebladedoge229/RobloxStudioPatcher) with additional UI features.
 
-![Showcase](https://i.ibb.co/vxpZQZV/Roblox-Settings-Manager-b1.png)
+![Showcase](https://github.com/Firebladedoge229/RobloxStudioManager/blob/main/images/RobloxStudioManagerScrsht1.png?raw=true)
+![Showcase](https://github.com/Firebladedoge229/RobloxStudioManager/blob/main/images/RobloxStudioManagerScrsht2.png?raw=true)
+![Showcase](https://github.com/Firebladedoge229/RobloxStudioManager/blob/main/images/RobloxStudioManagerScrsht3.png?raw=true)
+![Showcase](https://github.com/Firebladedoge229/RobloxStudioManager/blob/main/images/RobloxStudioManagerScrsht4.png?raw=true)
 
 ## Installation
 
@@ -16,7 +19,7 @@ If you are suspicious, feel free to compile the [code](https://github.com/Firebl
 
 ### Build Command
 ```py
-pyinstaller --onefile --noconsole --icon=icon.ico --add-data="icon.ico;." --add-data="sv_ttk;sv_ttk" robloxstudiomanager.py
+pyinstaller --onefile --noconsole --icon=images/logo.ico --add-data="src/ui_components.py:." --add-data="src/logic.py:." --add-data="data:." --add-data="images/logo.png:." --add-data="images/RobloxStudioManager.png" src/main.py
 ```
 
 ## Author

@@ -1,0 +1,134 @@
+{
+    "MSAA Level": {
+        "Off": {
+            "DebugForceMSAASamples": 1
+        },
+        "2x": {
+            "DebugForceMSAASamples": 2
+        },
+        "4x": {
+            "DebugForceMSAASamples": 4
+        },
+        "8x": {
+            "DebugForceMSAASamples": 8
+        }
+    },
+    "Graphics Renderer": {
+        "DirectX 11": {
+            "FFlagDebugGraphicsDisableOpenGL": true,
+            "FFlagDebugGraphicsDisableVulkan": true,
+            "FFlagDebugGraphicsDisableVulkan11": true,
+            "FFlagDebugGraphicsPreferD3D11": true,
+            "FFlagDebugGraphicsPreferVulkan": false,
+            "FFlagDebugGraphicsPreferD3D11FL10": false
+        },
+        "DirectX 10": {
+            "FFlagDebugGraphicsDisableOpenGL": true,
+            "FFlagDebugGraphicsDisableVulkan": true,
+            "FFlagDebugGraphicsDisableVulkan11": true,
+            "FFlagDebugGraphicsPreferD3D11FL10": true,
+            "FFlagDebugGraphicsDisableDirect3D11": false,
+            "FFlagDebugGraphicsPreferVulkan": false,
+            "FFlagDebugGraphicsPreferD3D11": false
+        },
+        "OpenGL": {
+            "FFlagDebugGraphicsDisableDirect3D11": true,
+            "FFlagDebugGraphicsDisableVulkan": true,
+            "FFlagDebugGraphicsDisableVulkan11": true,
+            "FFlagDebugGraphicsPreferOpenGL": true,
+            "FFlagDebugGraphicsForceGL2": true,
+            "FFlagDebugGraphicsDisableOpenGL": false,
+            "FFlagDebugGraphicsPreferVulkan": false,
+            "FFlagDebugGraphicsPreferD3D11": false,
+            "FFlagDebugGraphicsPreferD3D11FL10": false
+        },
+        "Metal": {
+            "FFlagDebugGraphicsDisableDirect3D11": true,
+            "FFlagDebugGraphicsDisableOpenGL": true,
+            "FFlagDebugGraphicsDisableVulkan": true,
+            "FFlagDebugGraphicsDisableVulkan11": true,
+            "FFlagDebugGraphicsPreferMetal": true,
+            "FFlagDebugGraphicsPreferVulkan": false,
+            "FFlagDebugGraphicsPreferD3D11": false,
+            "FFlagDebugGraphicsPreferOpenGL": false,
+            "FFlagDebugGraphicsPreferD3D11FL10": false
+        },
+        "Vulkan": {
+            "FFlagDebugGraphicsDisableDirect3D11": true,
+            "FFlagDebugGraphicsDisableOpenGL": true,
+            "FFlagDebugGraphicsPreferVulkan": true,
+            "FFlagDebugGraphicsDisableVulkan": false,
+            "FFlagDebugGraphicsDisableVulkan11": false,
+            "FFlagDebugGraphicsPreferD3D11": false,
+            "FFlagDebugGraphicsPreferD3D11FL10": false
+        }
+    },
+    "Force High Graphics": {
+        "True": {
+            "DFFlagDisableDPIScale": true,
+            "FIntTextureCompositorLowResFactor": 4,
+            "FIntRomarkStartWithGraphicQualityLevel": 21
+        },
+        "False": {
+            "DFFlagDisableDPIScale": false,
+            "FIntTextureCompositorLowResFactor": 4,
+            "FIntRomarkStartWithGraphicQualityLevel": -1
+        }
+    },
+    "Enable Proxy": {
+        "True": {
+            "FFlagStudioReEnableNetworkProxy_Dev": true,
+            "DFFlagHideProxySettings": false,
+            "DFFlagDebugEnableHttpProxy": true
+        },
+        "False": {
+            "FFlagStudioReEnableNetworkProxy_Dev": false,
+            "DFFlagHideProxySettings": true,
+            "DFFlagDebugEnableHttpProxy": false
+        }
+    },
+    "Log Network Requests": {
+        "True": {
+            "DFLogHttpTraceLight": 12
+        },
+        "False": {
+            "DFLogHttpTraceLight": 6
+        }
+    },
+    "Occulusion Culling": {
+        "True": {
+            "DFFlagUseVisBugChecks": true,
+            "FFlagEnableVisBugChecks27": true
+        },
+        "False": {
+            "DFFlagUseVisBugChecks": false,
+            "FFlagEnableVisBugChecks27": false
+        }
+    },
+    "Enable Internal": {
+        "True": {
+            "FFlagInternalDebugWidgetSleepButton": true
+        },
+        "False": {
+            "FFlagInternalDebugWidgetSleepButton": false
+        }
+    },
+    "Faster Menu": {
+        "True": {
+            "FFlagInGameMenuV1FadeBackgroundAnimation": true
+        },
+        "False": {
+            "FFlagInGameMenuV1FadeBackgroundAnimation": false
+        }
+    },
+    "Max FPS": {
+        "DFIntTaskSchedulerTargetFps": 0,
+        "FFlagTaskSchedulerLimitTargetFpsTo2402": false
+    },
+    "Font Size": {
+        "FIntFontSizePadding": 0
+    },
+    "Scroll Delta": {
+        "FIntScrollWheelDeltaAmount": 0
+    }
+}
