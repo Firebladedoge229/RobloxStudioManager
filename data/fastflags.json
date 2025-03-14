@@ -63,6 +63,14 @@
             "FFlagDebugGraphicsPreferD3D11FL10": false
         }
     },
+    "Studio Menu Redesign": {
+        "True": {
+            "FFlagStudioMenuRedesign5": true
+        },
+        "False": {
+            "FFlagStudioMenuRedesign5": false
+        }
+    },
     "Force High Graphics": {
         "True": {
             "DFFlagDisableDPIScale": true,
@@ -103,6 +111,22 @@
         "False": {
             "DFFlagUseVisBugChecks": false,
             "FFlagEnableVisBugChecks27": false
+        }
+    },
+    "Telemetry [UNSTABLE]": {
+        "False": {
+            "DFStringAnalyticsEventStreamUrlEndpoint": "",
+            "DFStringAnalyticsNS1BeaconConfig": "https://0.0.0.0",
+            "DFStringCrashUploadToBacktraceBaseUrl": "https://0.0.0.0",
+            "DFStringHttpPointsReporterUrl": "https://0.0.0.0",
+            "DFStringLightstepHTTPTransportUrlHost": "https://0.0.0.0",
+            "DFStringLightstepHTTPTransportUrlPath": "",
+            "FStringVngAppUpsellUrl": "https://0.0.0.0",
+            "FStringVNGWebshopUrl": "https://0.0.0.0",
+            "DFStringRobloxAnalyticsURL": "https://0.0.0.0",
+            "GoogleAnalyticsAccountPropertyID": "",
+            "GoogleAnalyticsAccountPropertyIDPlayer": "",
+            "DFStringTelemetryV2Url": "https://ecsv2.roblox.com/client/pbe"
         }
     },
     "Enable Internal": {

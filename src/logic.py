@@ -8,6 +8,34 @@ import subprocess
 import psutil
 import xml.etree.ElementTree as ET
 
+repoLocation = "https://raw.githubusercontent.com/Firebladedoge229/RobloxStudioManager/refs/heads/main/"
+
+clientAppSettingsURL = "https://clientsettings.roblox.com/v2/settings/application/PCStudioApp/"
+fvariablesURL = "https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/roblox/FVariables.txt"
+
+cursorURL = f"{repoLocation}misc/ArrowCursor.png"
+cursorFarURL = f"{repoLocation}/misc/ArrowFarCursor.png"
+legacyCursorURL = f"{repoLocation}/misc/LegacyArrowCursor.png"
+legacyCursorFarURL = f"{repoLocation}/misc/LegacyArrowFarCursor.png"
+
+ouchURL = f"{repoLocation}misc/Ouch.ogg"
+legacyOuchURL = f"{repoLocation}misc/LegacyOuch.ogg"
+
+clientSettingsSuccess = False
+fVariablesSuccess = False
+
+try:
+    clientAppSettingsURL = requests.get(clientAppSettingsURL).json()
+    clientSettingsSuccess = True
+except Exception as exception:
+    print(f"\033[1;31mERROR:\033[0m ClientAppSettings could not be fetched: {exception}")
+
+try:
+    fvariablesURL = requests.get(fvariablesURL).text
+    fVariablesSuccess = True
+except Exception as exception:
+    print(f"\033[1;31mERROR:\033[0m FVariables could not be fetched: {exception}")
+
 def find_version_line(version, lines):
     return next((line for line in lines.splitlines() if version in line), None)
 
@@ -128,7 +156,7 @@ def handle_flags(settings):
             else:
                 print(f"\033[38;5;214mWARNING:\033[0m Unsupported value type for {key}: {value}")
         else:
-            print(f"\033[38;5;214mWARNING:\033[0m No flag \033[38;2;52;235;143mDATA:\033[0m found for {key}")
+            print(f"\033[38;5;214mWARNING:\033[0m No flag data found for {key}")
 
     if not os.path.exists(clientAppSettings):
         print("\033[1;31mERROR:\033[0m ClientAppSettings.json not found.")
@@ -139,8 +167,51 @@ def handle_flags(settings):
         for flag in applied_flags:
             flag_list += flag + ","
         applied_flags["FStringDebugShowFlagState"] = flag_list[:-1]
-    else:
-        applied_flags["FStringDebugShowFlagState"] = ""
+
+    if settings["Telemetry [UNSTABLE]"] == False:
+        if clientSettingsSuccess:
+            for key, _ in clientAppSettingsURL.items():
+                key = key.lower()
+                if "telemetry" in key or "analytics" in key or "metrics" in key and "createplacefromplace" not in key:
+                    if "createplacefromplace" in key:
+                        print(f"\033[1;36mINFO:\033[0m Skipping {key}")
+                        continue
+                    elif "percent" in key:
+                        applied_flags[key] = 0
+                    elif "rate" in key:
+                        applied_flags[key] = 999999999999999
+                    elif "fflag" in key and "percent" not in key:
+                        applied_flags[key] = "false"
+                    elif "fint" in key and "interval" in key:
+                        applied_flags[key] = 999999999999999
+                    elif "fint" in key and "interval" not in key:
+                        applied_flags[key] = 0
+                    elif "fstring" in key and "url" in key:
+                        applied_flags[key] = "https://0.0.0.0"
+                    elif "fstring" in key and "url" not in key:
+                        applied_flags[key] = ""
+        if fVariablesSuccess: 
+            for line in fvariablesURL.splitlines():
+                key = re.sub(r"\[[^\]]*\]\s*", "", line.strip())
+                key = key.lower()
+                if "telemetry" in key or "analytics" in key or "metrics" in key and "createplacefromplace" not in key:
+                    if "createplacefromplace" in key:
+                        print(f"\033[1;36mINFO:\033[0m Skipping {key}")
+                        continue
+                    elif "percent" in key:
+                        applied_flags[key] = 0
+                    elif "rate" in key:
+                        applied_flags[key] = 999999999999999
+                    elif "fflag" in key and "percent" not in key:
+                        applied_flags[key] = "false"
+                    elif "fint" in key and "interval" in key:
+                        applied_flags[key] = 999999999999999
+                    elif "fint" in key and "interval" not in key:
+                        applied_flags[key] = 0
+                    elif "fstring" in key and "url" in key:
+                        applied_flags[key] = "https://0.0.0.0"
+                    elif "fstring" in key and "url" not in key:
+                        applied_flags[key] = ""
 
     if check_if_integer(settings["CoreGUI Transparency"]):
         tree = ET.parse(os.path.join(os.path.join(os.environ["LOCALAPPDATA"], "Roblox"), "GlobalBasicSettings_13_Studio.xml"))
@@ -163,10 +234,40 @@ def handle_flags(settings):
 
         tree.write(os.path.join(os.path.join(os.environ["LOCALAPPDATA"], "Roblox"), "GlobalBasicSettings_13_Studio.xml"), encoding="utf-8", xml_declaration=True)
 
+    if settings["Classic Death Sound"] == True:
+        legacyOuchData = requests.get(legacyOuchURL).content
+
+        with open(os.path.join(selected_version, "content", "sounds", "ouch.ogg"), "wb") as f:
+            f.write(legacyOuchData)
+    else:
+        ouchData = requests.get(ouchURL).content
+
+        with open(os.path.join(selected_version, "content", "sounds", "ouch.ogg"), "wb") as f:
+            f.write(ouchData)
+
+    if settings["Legacy Cursor"] == True:
+        legacyCursorData = requests.get(legacyCursorURL).content
+        legacyCursorFarData = requests.get(legacyCursorFarURL).content
+
+        with open(os.path.join(selected_version, "content", "textures", "Cursors", "KeyboardMouse", "ArrowCursor.png"), "wb") as f:
+            f.write(legacyCursorData)
+
+        with open(os.path.join(selected_version, "content", "textures", "Cursors", "KeyboardMouse", "ArrowFarCursor.png"), "wb") as f:
+            f.write(legacyCursorFarData)
+    else:
+        cursorData = requests.get(cursorURL).content
+        cursorFarData = requests.get(cursorFarURL).content
+
+        with open(os.path.join(selected_version, "content", "textures", "Cursors", "KeyboardMouse", "ArrowCursor.png"), "wb") as f:
+            f.write(cursorData)
+
+        with open(os.path.join(selected_version, "content", "textures", "Cursors", "KeyboardMouse", "ArrowFarCursor.png"), "wb") as f:
+            f.write(cursorFarData)
+
     with open(clientAppSettings, 'w') as f:
         json.dump(applied_flags, f, indent=4)
 
-    print(f"\033[1;32mSUCCESS\033[0m Flags have been set in {clientAppSettings}")
+    print(f"\033[1;32mSUCCESS:\033[0m Flags have been set in {clientAppSettings}")
 
 def download_and_apply_font(selected_version):
     zip_path = os.path.join(selected_version, "content", "fonts", "GothamFont.zip")
@@ -186,10 +287,14 @@ def download_and_apply_font(selected_version):
 
         os.remove(zip_path)
     except Exception as exception:
-        print(f"Error downloading and applying font: {exception}")
+        print(f"\033[1;31mERROR:\033[0m Error Downloading and Applying Font: {exception}")
 
 def disable_updates(selected_version):
-    deploy_history = requests.get("https://setup.rbxcdn.com/DeployHistory.txt").text
+    try:
+        deploy_history = requests.get("https://setup.rbxcdn.com/DeployHistory.txt").text
+    except Exception as exception:
+        deploy_history = ""
+        print("\033[1;31mERROR:\033[0m", exception)
 
     result = find_version_line(os.path.basename(selected_version), deploy_history)
     latest_version = find_latest_studio_version(deploy_history)
@@ -256,10 +361,18 @@ def apply_settings(settings):
     if settings.get("Disable Updates"):
         disable_updates(selected_version)
 
+    try:
+        if internal_signature:
+            pass
+    except:
+        internal_signature = None
+
     if settings.get("Enable Internal"):
-        apply_patch(True, selected_version, internal_signature, internal_patch, internal_signature_backup, internal_patch_backup)
+        if internal_signature:
+            apply_patch(True, selected_version, internal_signature, internal_patch, internal_signature_backup, internal_patch_backup)
     else:
-        apply_patch(False, selected_version, internal_signature, internal_patch, internal_signature_backup, internal_patch_backup)
+        if internal_signature:
+            apply_patch(False, selected_version, internal_signature, internal_patch, internal_signature_backup, internal_patch_backup)
 
     save_settings(settings)
 
@@ -299,5 +412,8 @@ if not selected_version:
 print(f"\033[1;36mINFO:\033[0m Selected Version: {selected_version}" if selected_version else "\033[1;31mERROR:\033[0m No valid version found.")
 
 fetch = fetch_internal_patch_data()
-internal_signature, internal_patch = fetch or (None, None, None, None)
-internal_signature_backup, internal_patch_backup = fetch or (None, None, None, None)
+try:
+    internal_signature, internal_patch = fetch or (None, None, None, None)
+    internal_signature_backup, internal_patch_backup = fetch or (None, None, None, None)
+except Exception as exception:
+    print(f"\033[1;31mERROR:\033[0m Error fetching internal patch data: {exception}")
