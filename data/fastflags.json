@@ -126,7 +126,7 @@
             "DFStringRobloxAnalyticsURL": "https://0.0.0.0",
             "GoogleAnalyticsAccountPropertyID": "",
             "GoogleAnalyticsAccountPropertyIDPlayer": "",
-            "DFStringTelemetryV2Url": "https://ecsv2.roblox.com/client/pbe"
+            "DFStringTelemetryV2Url": "https://0.0.0.0"
         }
     },
     "Enable Internal": {
