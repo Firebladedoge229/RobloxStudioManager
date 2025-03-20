@@ -1,5 +1,7 @@
-import json
 import os
+import sys
+sys.stdout = open(os.devnull, "w")
+import json
 import zipfile
 import requests
 import re
@@ -146,8 +148,6 @@ def handle_flags(settings):
                     if key in applied_flags:
                         del applied_flags[key]
 
-                    os.makedirs(os.path.dirname(clientAppSettings), exist_ok=True)
-                    
                     with open(clientAppSettings, 'w') as f:
                         json.dump(applied_flags, f, indent=4)
                     continue
@@ -164,61 +164,75 @@ def handle_flags(settings):
         print("\033[1;31mERROR:\033[0m ClientAppSettings.json not found.")
         return
 
-    if settings["Show Flags"] == True:
-        flag_list = ""
-        for flag in applied_flags:
-            flag_list += flag + ","
-        applied_flags["FStringDebugShowFlagState"] = flag_list[:-1]
-
     if settings["Telemetry [UNSTABLE]"] == False:
         if clientSettingsSuccess:
             for key, _ in clientAppSettingsURL.items():
-                key = key.lower()
-                if "telemetry" in key or "analytics" in key or "metrics" in key and "createplacefromplace" not in key:
-                    if "createplacefromplace" in key:
+                lowerKey = key.lower()
+                if "telemetry" in lowerKey or "analytics" in lowerKey or "metrics" in lowerKey and "createplacefromplace" not in lowerKey:
+                    if "createplacefromplace" in lowerKey:
                         print(f"\033[1;36mINFO:\033[0m Skipping {key}")
                         continue
-                    elif "percent" in key:
+                    elif "percent" in lowerKey:
                         applied_flags[key] = 0
-                    elif "rate" in key:
+                    elif "rate" in lowerKey:
                         applied_flags[key] = 999999999999999
-                    elif "fflag" in key and "percent" not in key:
+                    elif "fflag" in lowerKey and "percent" not in lowerKey:
                         applied_flags[key] = "false"
-                    elif "fint" in key and "interval" in key:
+                    elif "fint" in lowerKey and "interval" in lowerKey:
                         applied_flags[key] = 999999999999999
-                    elif "fint" in key and "interval" not in key:
+                    elif "fint" in lowerKey and "interval" not in lowerKey:
                         applied_flags[key] = 0
-                    elif "fstring" in key and "url" in key:
+                    elif "fstring" in lowerKey and "url" in lowerKey:
                         applied_flags[key] = "https://0.0.0.0"
-                    elif "fstring" in key and "url" not in key:
+                    elif "fstring" in lowerKey and "url" not in lowerKey:
                         applied_flags[key] = ""
         if fVariablesSuccess: 
             for line in fvariablesURL.splitlines():
                 key = re.sub(r"\[[^\]]*\]\s*", "", line.strip())
-                key = key.lower()
-                if "telemetry" in key or "analytics" in key or "metrics" in key and "createplacefromplace" not in key:
-                    if "createplacefromplace" in key:
+                lowerKey = key.lower()
+                if "telemetry" in lowerKey or "analytics" in lowerKey or "metrics" in lowerKey and "createplacefromplace" not in lowerKey:
+                    if "createplacefromplace" in lowerKey:
                         print(f"\033[1;36mINFO:\033[0m Skipping {key}")
                         continue
-                    elif "percent" in key:
+                    elif "percent" in lowerKey:
                         applied_flags[key] = 0
-                    elif "rate" in key:
+                    elif "rate" in lowerKey:
                         applied_flags[key] = 999999999999999
-                    elif "fflag" in key and "percent" not in key:
+                    elif "fflag" in lowerKey and "percent" not in lowerKey:
                         applied_flags[key] = "false"
-                    elif "fint" in key and "interval" in key:
+                    elif "fint" in lowerKey and "interval" in lowerKey:
                         applied_flags[key] = 999999999999999
-                    elif "fint" in key and "interval" not in key:
+                    elif "fint" in lowerKey and "interval" not in lowerKey:
                         applied_flags[key] = 0
-                    elif "fstring" in key and "url" in key:
+                    elif "fstring" in lowerKey and "url" in lowerKey:
                         applied_flags[key] = "https://0.0.0.0"
-                    elif "fstring" in key and "url" not in key:
+                    elif "fstring" in lowerKey and "url" not in lowerKey:
                         applied_flags[key] = ""
 
-    tree = ET.parse(os.path.join(os.path.join(os.environ["LOCALAPPDATA"], "Roblox"), "GlobalBasicSettings_13_Studio.xml"))
-    root = tree.getroot()
-    
+        if settings["Enable Beta Features"] == True:
+            if clientSettingsSuccess:
+                for key, _ in clientAppSettingsURL.items():
+                    lowerKey = key.lower()
+                    if "flag" in lowerKey and "betafeature" in lowerKey:
+                        applied_flags[key] = True
+                        
+            if fVariablesSuccess: 
+                for line in fvariablesURL.splitlines():
+                    key = re.sub(r"\[[^\]]*\]\s*", "", line.strip())
+                    lowerKey = key.lower()
+                    if "flag" in lowerKey and "betafeature" in lowerKey:
+                        applied_flags[key] = True
+        
+        if settings["Show Flags"] == True:
+            flag_list = ""
+            for flag in applied_flags:
+                flag_list += flag + ","
+            applied_flags["FStringDebugShowFlagState"] = flag_list[:-1]
+
     if check_if_integer(settings["CoreGUI Transparency"]):
+        tree = ET.parse(os.path.join(os.path.join(os.environ["LOCALAPPDATA"], "Roblox"), "GlobalBasicSettings_13_Studio.xml"))
+        root = tree.getroot()
+
         for item in root.findall(".//Item[@class=\"UserGameSettings\"]"):
             for prop in item.find("Properties"):
                 if prop.tag == "float" and prop.attrib.get("name") == "PreferredTransparency":
@@ -266,8 +280,6 @@ def handle_flags(settings):
         with open(os.path.join(selected_version, "content", "textures", "Cursors", "KeyboardMouse", "ArrowFarCursor.png"), "wb") as f:
             f.write(cursorFarData)
 
-    os.makedirs(os.path.dirname(clientAppSettings), exist_ok=True)
-    
     with open(clientAppSettings, 'w') as f:
         json.dump(applied_flags, f, indent=4)
 
@@ -364,7 +376,7 @@ def apply_settings(settings):
 
     if settings.get("Disable Updates"):
         disable_updates(selected_version)
-        
+
     if settings.get("Enable Internal"):
         if internal_signature:
             apply_patch(True, selected_version, internal_signature, internal_patch, internal_signature_backup, internal_patch_backup)
@@ -411,7 +423,7 @@ print(f"\033[1;36mINFO:\033[0m Selected Version: {selected_version}" if selected
 
 fetch = fetch_internal_patch_data()
 try:
-    internal_signature, internal_patch = fetch or (None, None, None, None)
-    internal_signature_backup, internal_patch_backup = fetch or (None, None, None, None)
+    internal_signature, internal_patch = fetch
+    internal_signature_backup, internal_patch_backup = fetch
 except Exception as exception:
     print(f"\033[1;31mERROR:\033[0m Error fetching internal patch data: {exception}")
