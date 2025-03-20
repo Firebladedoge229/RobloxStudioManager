@@ -146,6 +146,8 @@ def handle_flags(settings):
                     if key in applied_flags:
                         del applied_flags[key]
 
+                    os.makedirs(os.path.dirname(clientAppSettings), exist_ok=True)
+                    
                     with open(clientAppSettings, 'w') as f:
                         json.dump(applied_flags, f, indent=4)
                     continue
@@ -264,6 +266,8 @@ def handle_flags(settings):
         with open(os.path.join(selected_version, "content", "textures", "Cursors", "KeyboardMouse", "ArrowFarCursor.png"), "wb") as f:
             f.write(cursorFarData)
 
+    os.makedirs(os.path.dirname(clientAppSettings), exist_ok=True)
+    
     with open(clientAppSettings, 'w') as f:
         json.dump(applied_flags, f, indent=4)
 
