@@ -364,13 +364,7 @@ def apply_settings(settings):
 
     if settings.get("Disable Updates"):
         disable_updates(selected_version)
-
-    try:
-        if internal_signature:
-            pass
-    except:
-        internal_signature = None
-
+        
     if settings.get("Enable Internal"):
         if internal_signature:
             apply_patch(True, selected_version, internal_signature, internal_patch, internal_signature_backup, internal_patch_backup)
