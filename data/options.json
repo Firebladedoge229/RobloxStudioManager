@@ -50,6 +50,16 @@
             "InternetRequired": false
         },
         {
+            "SectionTitle": "Features",
+            "SectionLocation": "Flags"
+        },
+        {
+            "Title": "Enable Beta Features",
+            "Description": "Unlocks and activates all experimental and beta features within Roblox Studio.",
+            "Section": "Flags",
+            "InternetRequired": true
+        },
+        {
             "SectionTitle": "Logging",
             "SectionLocation": "Flags"
         },
@@ -76,8 +86,8 @@
             "SectionLocation": "Flags"
         },
         {
-            "Title": "Show Flags",
-            "Description": "Display a list of all enabled flags for debugging and configuration monitoring.",
+            "Title": "Show Flags [UNSTABLE]",
+            "Description": "Display a list of all enabled flags for debugging and configuration monitoring. If your Studio is crashing, please disable this feature.",
             "Section": "Flags",
             "InternetRequired": false
         },
