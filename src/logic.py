@@ -215,10 +215,10 @@ def handle_flags(settings):
                     elif "fstring" in key and "url" not in key:
                         applied_flags[key] = ""
 
+    tree = ET.parse(os.path.join(os.path.join(os.environ["LOCALAPPDATA"], "Roblox"), "GlobalBasicSettings_13_Studio.xml"))
+    root = tree.getroot()
+    
     if check_if_integer(settings["CoreGUI Transparency"]):
-        tree = ET.parse(os.path.join(os.path.join(os.environ["LOCALAPPDATA"], "Roblox"), "GlobalBasicSettings_13_Studio.xml"))
-        root = tree.getroot()
-
         for item in root.findall(".//Item[@class=\"UserGameSettings\"]"):
             for prop in item.find("Properties"):
                 if prop.tag == "float" and prop.attrib.get("name") == "PreferredTransparency":
