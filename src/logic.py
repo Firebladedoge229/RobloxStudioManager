@@ -223,7 +223,7 @@ def handle_flags(settings):
                     if "flag" in lowerKey and "betafeature" in lowerKey:
                         applied_flags[key] = True
         
-        if settings["Show Flags"] == True:
+        if settings["Show Flags [UNSTABLE]"] == True:
             flag_list = ""
             for flag in applied_flags:
                 flag_list += flag + ","
