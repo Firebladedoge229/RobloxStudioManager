@@ -1,6 +1,4 @@
 import os
-import sys
-sys.stdout = open(os.devnull, "w")
 import json
 import zipfile
 import requests
@@ -168,8 +166,8 @@ def handle_flags(settings):
         if clientSettingsSuccess:
             for key, _ in clientAppSettingsURL.items():
                 lowerKey = key.lower()
-                if "telemetry" in lowerKey or "analytics" in lowerKey or "metrics" in lowerKey and "createplacefromplace" not in lowerKey:
-                    if "createplacefromplace" in lowerKey:
+                if "telemetry" in lowerKey or "analytics" in lowerKey or "metrics" in lowerKey and "createplacefromplace" not in lowerKey and "threadstacksizebytes" not in lowerKey and "inverseprobability" not in lowerKey:
+                    if "createplacefromplace" in lowerKey or "threadstacksizebytes" in lowerKey or "inverseprobability" in lowerKey:
                         print(f"\033[1;36mINFO:\033[0m Skipping {key}")
                         continue
                     elif "percent" in lowerKey:
@@ -190,8 +188,8 @@ def handle_flags(settings):
             for line in fvariablesURL.splitlines():
                 key = re.sub(r"\[[^\]]*\]\s*", "", line.strip())
                 lowerKey = key.lower()
-                if "telemetry" in lowerKey or "analytics" in lowerKey or "metrics" in lowerKey and "createplacefromplace" not in lowerKey:
-                    if "createplacefromplace" in lowerKey:
+                if "telemetry" in lowerKey or "analytics" in lowerKey or "metrics" in lowerKey and "createplacefromplace" not in lowerKey and "threadstacksizebytes" not in lowerKey and "inverseprobability" not in lowerKey:
+                    if "createplacefromplace" in lowerKey or "threadstacksizebytes" in lowerKey or "inverseprobability" in lowerKey:
                         print(f"\033[1;36mINFO:\033[0m Skipping {key}")
                         continue
                     elif "percent" in lowerKey:
