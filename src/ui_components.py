@@ -1,4 +1,6 @@
 import os
+import sys
+
 os.environ["QT_LOGGING_RULES"] = "qt.qpa.fonts.warning=false"
 import json
 import requests
@@ -57,6 +59,17 @@ class DownloadWorker(QThread):
 
     def run(self):
         download(self.folder, self.channel)  
+
+class ApplySettingsWorker(QThread):
+    settingsApplied = pyqtSignal(dict)
+
+    def __init__(self, settings):
+        super().__init__()
+        self.settings = settings
+
+    def run(self):
+        apply_settings(self.settings)
+        self.settingsApplied.emit(self.settings)
 
 class Window(FluentWindow):
     def __init__(self):
@@ -641,8 +654,11 @@ class Window(FluentWindow):
             settings[label] = toggle.isChecked()
 
         for label, lineEdit in self.type_widgets.items():
-
             settings[label] = lineEdit.text()
 
-        apply_settings(settings)
+        self.worker = ApplySettingsWorker(settings)
+        self.worker.settingsApplied.connect(self.onSettingsApplied)
+        self.worker.start()
+
+    def onSettingsApplied(self, settings):
         print(f"\033[38;2;52;235;143mDATA:\033[0m Settings applied: {settings}")
