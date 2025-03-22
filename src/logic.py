@@ -31,8 +31,8 @@ legacyOuchURL = f"{repoLocation}misc/LegacyOuch.ogg"
 clientSettingsSuccess = False
 fVariablesSuccess = False
 
-internalSignatureInfo = b"22 59 6F 75 72 20 61 63 63 6F 75 6E 74 20 69 73 20 61 73 73 6F 63 69 61 74 65 64 20 77 69 74 68 20 61 6E 20 40 72 6F 62 6C 6F 78 2E 63 6F 6D 20 65 6D 61 69 6C 20 61 64 64 72 65 73 73 20 6F 72 20 68 61 73 20 53 6F 6F 74 68 73 61 79 65 72 20 70 65 72 6D 69 73 73 69 6F 6E 73 2E 20 59 6F 75 20 61 6C 73 6F 20 68 61 76 65 20 69 6E 74 65 72 6E 61 6C 2D 6F 6E 6C 79 20 66 65 61 74 75 72 65 73 20 74 75 72 6E 65 64 20 6F 6E 2E 0D 0A 44 6F 20 79 6F 75 20 77 61 6E 74 20 74 6F 20 64 69 73 61 62 6C 65 20 49 6E 74 65 72 6E 61 6C 20 46 65 61 74 75 72 65 73 3F 20 54 68 69 73 20 77 69 6C 6C 20 6D 61 6B 65 20 79 6F 75 72 20 53 74 75 64 69 6F 20 65 78 70 65 72 69 65 6E 63 65 20 69 64 65 6E 74 69 63 61 6C 20 74 6F 20 64 65 76 65 6C 6F 70 65 72 73 2E 0D 0A 59 6F 75 20 63 61 6E 20 67 6F 20 74 6F 20 53 65 74 74 69 6E 67 73 20 3E 20 53 74 75 64 69 6F 20 3E 20 41 64 76 61 6E 63 65 64 20 74 6F 20 72 65 2D 65 6E 61 62 6C 65 20 49 6E 74 65 72 6E 61 6C 20 46 65 61 74 75 72 65 73 2E 22"
-internalPatchInfo = b"22 59 6F 75 20 63 75 72 72 65 6E 74 6C 79 20 68 61 76 65 20 74 68 65 20 45 6E 61 62 6C 65 20 49 6E 74 65 72 6E 61 6C 20 66 65 61 74 75 72 65 20 65 6E 61 62 6C 65 64 20 69 6E 20 52 6F 62 6C 6F 78 20 53 74 75 64 69 6F 20 4D 61 6E 61 67 65 72 2E 20 54 68 69 73 20 66 65 61 74 75 72 65 20 67 69 76 65 73 20 61 63 63 65 73 73 20 74 6F 20 73 70 65 63 69 61 6C 20 69 6E 74 65 72 6E 61 6C 2D 6F 6E 6C 79 20 66 65 61 74 75 72 65 73 20 73 75 63 68 20 61 73 20 74 68 65 20 66 6C 61 67 20 65 64 69 74 6F 72 2E 20 20 43 6C 69 63 6B 69 6E 67 20 59 65 73 20 77 69 6C 6C 20 64 69 73 61 62 6C 65 20 74 68 65 20 49 6E 74 65 72 6E 61 6C 20 46 65 61 74 75 72 65 73 2C 20 61 6E 64 20 79 6F 75 20 63 61 6E 20 67 6F 20 74 6F 20 74 68 65 20 53 65 74 74 69 6E 67 73 20 6D 65 6E 75 20 74 6F 20 72 65 6E 61 62 6C 65 20 69 74 2E 20 53 65 74 74 69 6E 73 20 3E 20 53 74 75 64 69 6F 20 3E 20 41 64 76 61 6E 63 65 64 20 74 6F 20 72 65 2D 65 6E 61 62 6C 65 20 74 68 65 20 66 65 61 74 75 72 65 73 2E 22"
+internalSignatureInfo = "22 59 6F 75 72 20 61 63 63 6F 75 6E 74 20 69 73 20 61 73 73 6F 63 69 61 74 65 64 20 77 69 74 68 20 61 6E 20 40 72 6F 62 6C 6F 78 2E 63 6F 6D 20 65 6D 61 69 6C 20 61 64 64 72 65 73 73 20 6F 72 20 68 61 73 20 53 6F 6F 74 68 73 61 79 65 72 20 70 65 72 6D 69 73 73 69 6F 6E 73 2E 20 59 6F 75 20 61 6C 73 6F 20 68 61 76 65 20 69 6E 74 65 72 6E 61 6C 2D 6F 6E 6C 79 20 66 65 61 74 75 72 65 73 20 74 75 72 6E 65 64 20 6F 6E 2E 0D 0A 44 6F 20 79 6F 75 20 77 61 6E 74 20 74 6F 20 64 69 73 61 62 6C 65 20 49 6E 74 65 72 6E 61 6C 20 46 65 61 74 75 72 65 73 3F 20 54 68 69 73 20 77 69 6C 6C 20 6D 61 6B 65 20 79 6F 75 72 20 53 74 75 64 69 6F 20 65 78 70 65 72 69 65 6E 63 65 20 69 64 65 6E 74 69 63 61 6C 20 74 6F 20 64 65 76 65 6C 6F 70 65 72 73 2E 0D 0A 59 6F 75 20 63 61 6E 20 67 6F 20 74 6F 20 53 65 74 74 69 6E 67 73 20 3E 20 53 74 75 64 69 6F 20 3E 20 41 64 76 61 6E 63 65 64 20 74 6F 20 72 65 2D 65 6E 61 62 6C 65 20 49 6E 74 65 72 6E 61 6C 20 46 65 61 74 75 72 65 73 2E 22"
+internalPatchInfo = "22 59 6F 75 20 63 75 72 72 65 6E 74 6C 79 20 68 61 76 65 20 74 68 65 20 45 6E 61 62 6C 65 20 49 6E 74 65 72 6E 61 6C 20 66 65 61 74 75 72 65 20 65 6E 61 62 6C 65 64 20 69 6E 20 52 6F 62 6C 6F 78 20 53 74 75 64 69 6F 20 4D 61 6E 61 67 65 72 2E 20 54 68 69 73 20 66 65 61 74 75 72 65 20 67 69 76 65 73 20 61 63 63 65 73 73 20 74 6F 20 73 70 65 63 69 61 6C 20 69 6E 74 65 72 6E 61 6C 2D 6F 6E 6C 79 20 66 65 61 74 75 72 65 73 20 73 75 63 68 20 61 73 20 74 68 65 20 66 6C 61 67 20 65 64 69 74 6F 72 2E 20 43 6C 69 63 6B 69 6E 67 20 59 65 73 20 77 69 6C 6C 20 64 69 73 61 62 6C 65 20 74 68 65 20 49 6E 74 65 72 6E 61 6C 20 46 65 61 74 75 72 65 73 2C 20 61 6E 64 20 79 6F 75 20 63 61 6E 20 67 6F 20 74 6F 20 74 68 65 20 53 65 74 74 69 6E 67 73 20 6D 65 6E 75 20 74 6F 20 72 65 2D 65 6E 61 62 6C 65 20 69 74 20 5B 53 65 74 74 69 6E 67 73 20 3E 20 53 74 75 64 69 6F 20 3E 20 41 64 76 61 6E 63 65 64 5D 22 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
 
 try:
     clientAppSettingsURL = requests.get(clientAppSettingsURL).json()
@@ -45,6 +45,10 @@ try:
     fVariablesSuccess = True
 except Exception as exception:
     print(f"\033[1;31mERROR:\033[0m FVariables could not be fetched: {exception}")
+
+def hex_to_bytes(hex_string):
+    hex_string = hex_string.replace(" ", "")
+    return b"".join(bytes([int(hex_string[i:i+2], 16)]) for i in range(0, len(hex_string), 2))
 
 def find_version_line(version, lines):
     return next((line for line in lines.splitlines() if version in line), None)
@@ -67,6 +71,9 @@ def find_latest_version(base_dir):
 
 def patch_exe(exe_path, signature, patch, signatureinfo, patchinfo):
     try:
+        signatureinfo = hex_to_bytes(signatureinfo)
+        patchinfo = hex_to_bytes(patchinfo)
+
         with open(exe_path, "r+b") as f:
             content = f.read()
             content = content.replace(signature, patch)
@@ -74,12 +81,13 @@ def patch_exe(exe_path, signature, patch, signatureinfo, patchinfo):
             f.seek(0)
             f.write(content)
             f.truncate()
+            print(f"\033[1;32mSUCCESS:\033[0m Patching {exe_path} completed.")
             return True
         return False
     except Exception as e:
         print(f"\033[1;31mERROR:\033[0m Error patching {exe_path}: {e}")
         return False
-
+    
 def replace_data_in_exe(exe_data, old_data, new_data):
     return exe_data.replace(old_data, new_data)
 
@@ -273,10 +281,10 @@ def handle_flags(settings):
         else:
             patch_banner(os.path.join(selected_version, "RobloxStudioBeta.exe"), True)
 
-    if check_if_integer(settings["CoreGUI Transparency"]):
-        tree = ET.parse(os.path.join(os.path.join(os.environ["LOCALAPPDATA"], "Roblox"), "GlobalBasicSettings_13_Studio.xml"))
-        root = tree.getroot()
+    tree = ET.parse(os.path.join(os.path.join(os.environ["LOCALAPPDATA"], "Roblox"), "GlobalBasicSettings_13_Studio.xml"))
+    root = tree.getroot()
 
+    if check_if_integer(settings["CoreGUI Transparency"]):
         for item in root.findall(".//Item[@class=\"UserGameSettings\"]"):
             for prop in item.find("Properties"):
                 if prop.tag == "float" and prop.attrib.get("name") == "PreferredTransparency":
