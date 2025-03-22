@@ -1,4 +1,5 @@
 import os
+import sys
 os.environ["QT_LOGGING_RULES"] = "qt.qpa.fonts.warning=false"
 import json
 import requests
@@ -612,7 +613,12 @@ class Window(FluentWindow):
             self.modsInterface.widget().vBoxLayout.addWidget(container)
 
     def loadAutoSettings(self):
-        settings_path = "RobloxStudioManagerSettings.json"
+        if getattr(sys, "frozen", False):
+            directory = os.path.dirname(sys.executable)
+        elif __file__:
+            directory = os.path.dirname(__file__)
+
+        settings_path = os.path.join(directory, "RobloxStudioManagerSettings.json")
 
         if os.path.exists(settings_path):
             try:
