@@ -16,7 +16,7 @@ If you are suspicious, feel free to compile the [code](https://github.com/Firebl
 
 ### Build Command
 ```py
-pyinstaller --onefile --noconsole --icon=images/logo.ico --add-data="src/ui_components.py:." --add-data="src/downloader.py:." --add-data="src/logic.py:." --add-data="data:." --add-data="images/logo.png:." --add-data="images/RobloxStudioManager.png" src/main.py
+pyinstaller --onefile --noconsole --icon=images/logo.ico --add-data="src/ui_components.py:." --add-data="src/downloader.py:." --add-data="src/logic.py:." --add-data="data:." --add-data="images/logo.png:." --add-data="images/RobloxStudioManager.png:." src/main.py
 ```
 
 ## Author
