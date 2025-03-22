@@ -185,6 +185,8 @@ def handle_flags(settings):
                     if key in applied_flags:
                         del applied_flags[key]
 
+                    os.makedirs(os.path.dirname(clientAppSettings), exist_ok=True)
+                    
                     with open(clientAppSettings, 'w') as f:
                         json.dump(applied_flags, f, indent=4)
                     continue
@@ -209,19 +211,19 @@ def handle_flags(settings):
                     if "createplacefromplace" in lowerKey or "threadstacksizebytes" in lowerKey or "inverseprobability" in lowerKey:
                         print(f"\033[1;36mINFO:\033[0m Skipping {key}")
                         continue
-                    if "percent" in lowerKey:
+                    elif "percent" in lowerKey:
                         applied_flags[key] = 0
-                    if "rate" in lowerKey:
+                    elif "rate" in lowerKey:
                         applied_flags[key] = 999999999999999
-                    if "fflag" in lowerKey and "percent" not in lowerKey:
+                    elif "fflag" in lowerKey and "percent" not in lowerKey:
                         applied_flags[key] = "false"
-                    if "fint" in lowerKey and "interval" in lowerKey:
+                    elif "fint" in lowerKey and "interval" in lowerKey:
                         applied_flags[key] = 999999999999999
-                    if "fint" in lowerKey and "interval" not in lowerKey:
+                    elif "fint" in lowerKey and "interval" not in lowerKey:
                         applied_flags[key] = 0
-                    if "fstring" in lowerKey and "url" in lowerKey:
+                    elif "fstring" in lowerKey and "url" in lowerKey:
                         applied_flags[key] = "https://0.0.0.0"
-                    if "fstring" in lowerKey and "url" not in lowerKey:
+                    elif "fstring" in lowerKey and "url" not in lowerKey:
                         applied_flags[key] = ""
         if fVariablesSuccess: 
             for line in fvariablesURL.splitlines():
@@ -231,19 +233,19 @@ def handle_flags(settings):
                     if "createplacefromplace" in lowerKey or "threadstacksizebytes" in lowerKey or "inverseprobability" in lowerKey:
                         print(f"\033[1;36mINFO:\033[0m Skipping {key}")
                         continue
-                    if "percent" in lowerKey:
+                    elif "percent" in lowerKey:
                         applied_flags[key] = 0
-                    if "rate" in lowerKey:
+                    elif "rate" in lowerKey:
                         applied_flags[key] = 999999999999999
-                    if "fflag" in lowerKey and "percent" not in lowerKey:
+                    elif "fflag" in lowerKey and "percent" not in lowerKey:
                         applied_flags[key] = "false"
-                    if "fint" in lowerKey and "interval" in lowerKey:
+                    elif "fint" in lowerKey and "interval" in lowerKey:
                         applied_flags[key] = 999999999999999
-                    if "fint" in lowerKey and "interval" not in lowerKey:
+                    elif "fint" in lowerKey and "interval" not in lowerKey:
                         applied_flags[key] = 0
-                    if "fstring" in lowerKey and "url" in lowerKey:
+                    elif "fstring" in lowerKey and "url" in lowerKey:
                         applied_flags[key] = "https://0.0.0.0"
-                    if "fstring" in lowerKey and "url" not in lowerKey:
+                    elif "fstring" in lowerKey and "url" not in lowerKey:
                         applied_flags[key] = ""
 
         if settings["Enable Beta Features"] == True:
@@ -322,6 +324,8 @@ def handle_flags(settings):
         with open(os.path.join(selected_version, "content", "textures", "Cursors", "KeyboardMouse", "ArrowFarCursor.png"), "wb") as f:
             f.write(cursorFarData)
 
+    os.makedirs(os.path.dirname(clientAppSettings), exist_ok=True)
+    
     with open(clientAppSettings, 'w') as f:
         json.dump(applied_flags, f, indent=4)
 
