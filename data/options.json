@@ -86,14 +86,20 @@
             "SectionLocation": "Flags"
         },
         {
-            "Title": "Show Flags [UNSTABLE]",
-            "Description": "Display a list of all enabled flags for debugging and configuration monitoring. If your Studio is crashing, please disable this feature.",
+            "Title": "Show Flags",
+            "Description": "Display a list of all enabled flags for debugging and configuration monitoring.",
             "Section": "Flags",
             "InternetRequired": false
         },
         {
             "SectionTitle": "Misc",
             "SectionLocation": "Mods"
+        },
+        {
+            "Title": "Legacy Launch Banner",
+            "Description": "Use the classic launch banner for a nostalgic or familiar appearance.",
+            "Section": "Mods",
+            "InternetRequired": true
         },
         {
             "Title": "Legacy Cursor",
