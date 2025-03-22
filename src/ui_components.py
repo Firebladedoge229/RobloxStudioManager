@@ -1,6 +1,4 @@
 import os
-import sys
-
 os.environ["QT_LOGGING_RULES"] = "qt.qpa.fonts.warning=false"
 import json
 import requests
