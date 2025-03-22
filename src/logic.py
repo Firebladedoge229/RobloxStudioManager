@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import zipfile
 import requests
@@ -137,7 +138,12 @@ def apply_patch(enable_internal, selected_version, internal_signature, internal_
             patch_exe(exe_path, internal_patch_backup, internal_signature_backup, internalPatchInfo, internalSignatureInfo)
 
 def save_settings(settings):
-    settings_file = os.path.join(os.getcwd(), 'RobloxStudioManagerSettings.json')
+    if getattr(sys, "frozen", False):
+        directory = os.path.dirname(sys.executable)
+    elif __file__:
+        directory = os.path.dirname(__file__)
+
+    settings_file = os.path.join(directory, "RobloxStudioManagerSettings.json")
     try:
         with open(settings_file, 'w') as f:
             json.dump(settings, f, indent=4)
