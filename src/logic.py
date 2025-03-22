@@ -18,6 +18,13 @@ cursorFarURL = f"{repoLocation}/misc/ArrowFarCursor.png"
 legacyCursorURL = f"{repoLocation}/misc/LegacyArrowCursor.png"
 legacyCursorFarURL = f"{repoLocation}/misc/LegacyArrowFarCursor.png"
 
+smallURL = f"{repoLocation}/misc/small.png"
+smallReplacementURL = f"{repoLocation}/misc/small-replacement.png"
+mediumURL = f"{repoLocation}/misc/medium.png"
+mediumReplacementURL = f"{repoLocation}/misc/medium-replacement.png"
+largeURL = f"{repoLocation}/misc/large.png"
+largeReplacementURL = f"{repoLocation}/misc/large-replacement.png"
+
 ouchURL = f"{repoLocation}misc/Ouch.ogg"
 legacyOuchURL = f"{repoLocation}misc/LegacyOuch.ogg"
 
@@ -73,6 +80,32 @@ def patch_exe(exe_path, signature, patch, signatureinfo, patchinfo):
         print(f"\033[1;31mERROR:\033[0m Error patching {exe_path}: {e}")
         return False
 
+def replace_data_in_exe(exe_data, old_data, new_data):
+    return exe_data.replace(old_data, new_data)
+
+def patch_banner(exe_path, inverse):
+    small_data = requests.get(smallURL).content
+    small_replacement_data = requests.get(smallReplacementURL).content
+    medium_data = requests.get(mediumURL).content
+    medium_replacement_data = requests.get(mediumReplacementURL).content
+    large_data = requests.get(largeURL).content
+    large_replacement_data = requests.get(largeReplacementURL).content
+
+    with open(exe_path, 'rb') as exe_file:
+        exe_data = exe_file.read()
+
+    if not inverse:
+        exe_data = replace_data_in_exe(exe_data, small_data, small_replacement_data)
+        exe_data = replace_data_in_exe(exe_data, medium_data, medium_replacement_data)
+        exe_data = replace_data_in_exe(exe_data, large_data, large_replacement_data)
+    elif inverse:
+        exe_data = replace_data_in_exe(exe_data, small_replacement_data, small_data)
+        exe_data = replace_data_in_exe(exe_data, medium_replacement_data, medium_data)
+        exe_data = replace_data_in_exe(exe_data, large_replacement_data, large_data)
+
+    with open(exe_path, 'wb') as exe_file:
+        exe_file.write(exe_data)
+
 def fetch_internal_patch_data():
     try:
         response = requests.get("https://raw.githubusercontent.com/7ap/internal-studio-patcher/refs/heads/main/src/main.rs")
@@ -124,6 +157,8 @@ def handle_flags(settings):
 
     clientAppSettings = os.path.join(selected_version, "ClientSettings", "ClientAppSettings.json")
 
+    os.makedirs(os.path.dirname(clientAppSettings), exist_ok=True)
+
     for key, value in settings.items():
         if key in flags_data:
 
@@ -150,8 +185,6 @@ def handle_flags(settings):
                     if key in applied_flags:
                         del applied_flags[key]
 
-                    os.makedirs(os.path.dirname(clientAppSettings), exist_ok=True)
-                    
                     with open(clientAppSettings, 'w') as f:
                         json.dump(applied_flags, f, indent=4)
                     continue
@@ -176,19 +209,19 @@ def handle_flags(settings):
                     if "createplacefromplace" in lowerKey or "threadstacksizebytes" in lowerKey or "inverseprobability" in lowerKey:
                         print(f"\033[1;36mINFO:\033[0m Skipping {key}")
                         continue
-                    elif "percent" in lowerKey:
+                    if "percent" in lowerKey:
                         applied_flags[key] = 0
-                    elif "rate" in lowerKey:
+                    if "rate" in lowerKey:
                         applied_flags[key] = 999999999999999
-                    elif "fflag" in lowerKey and "percent" not in lowerKey:
+                    if "fflag" in lowerKey and "percent" not in lowerKey:
                         applied_flags[key] = "false"
-                    elif "fint" in lowerKey and "interval" in lowerKey:
+                    if "fint" in lowerKey and "interval" in lowerKey:
                         applied_flags[key] = 999999999999999
-                    elif "fint" in lowerKey and "interval" not in lowerKey:
+                    if "fint" in lowerKey and "interval" not in lowerKey:
                         applied_flags[key] = 0
-                    elif "fstring" in lowerKey and "url" in lowerKey:
+                    if "fstring" in lowerKey and "url" in lowerKey:
                         applied_flags[key] = "https://0.0.0.0"
-                    elif "fstring" in lowerKey and "url" not in lowerKey:
+                    if "fstring" in lowerKey and "url" not in lowerKey:
                         applied_flags[key] = ""
         if fVariablesSuccess: 
             for line in fvariablesURL.splitlines():
@@ -198,19 +231,19 @@ def handle_flags(settings):
                     if "createplacefromplace" in lowerKey or "threadstacksizebytes" in lowerKey or "inverseprobability" in lowerKey:
                         print(f"\033[1;36mINFO:\033[0m Skipping {key}")
                         continue
-                    elif "percent" in lowerKey:
+                    if "percent" in lowerKey:
                         applied_flags[key] = 0
-                    elif "rate" in lowerKey:
+                    if "rate" in lowerKey:
                         applied_flags[key] = 999999999999999
-                    elif "fflag" in lowerKey and "percent" not in lowerKey:
+                    if "fflag" in lowerKey and "percent" not in lowerKey:
                         applied_flags[key] = "false"
-                    elif "fint" in lowerKey and "interval" in lowerKey:
+                    if "fint" in lowerKey and "interval" in lowerKey:
                         applied_flags[key] = 999999999999999
-                    elif "fint" in lowerKey and "interval" not in lowerKey:
+                    if "fint" in lowerKey and "interval" not in lowerKey:
                         applied_flags[key] = 0
-                    elif "fstring" in lowerKey and "url" in lowerKey:
+                    if "fstring" in lowerKey and "url" in lowerKey:
                         applied_flags[key] = "https://0.0.0.0"
-                    elif "fstring" in lowerKey and "url" not in lowerKey:
+                    if "fstring" in lowerKey and "url" not in lowerKey:
                         applied_flags[key] = ""
 
         if settings["Enable Beta Features"] == True:
@@ -227,11 +260,16 @@ def handle_flags(settings):
                     if "flag" in lowerKey and "betafeature" in lowerKey:
                         applied_flags[key] = True
         
-        if settings["Show Flags [UNSTABLE]"] == True:
+        if settings["Show Flags"] == True:
             flag_list = ""
             for flag in applied_flags:
                 flag_list += flag + ","
             applied_flags["FStringDebugShowFlagState"] = flag_list[:-1]
+
+        if settings["Legacy Launch Banner"] == True:
+            patch_banner(os.path.join(selected_version, "RobloxStudioBeta.exe"), False)
+        else:
+            patch_banner(os.path.join(selected_version, "RobloxStudioBeta.exe"), True)
 
     if check_if_integer(settings["CoreGUI Transparency"]):
         tree = ET.parse(os.path.join(os.path.join(os.environ["LOCALAPPDATA"], "Roblox"), "GlobalBasicSettings_13_Studio.xml"))
@@ -277,15 +315,13 @@ def handle_flags(settings):
     else:
         cursorData = requests.get(cursorURL).content
         cursorFarData = requests.get(cursorFarURL).content
-        
+
         with open(os.path.join(selected_version, "content", "textures", "Cursors", "KeyboardMouse", "ArrowCursor.png"), "wb") as f:
             f.write(cursorData)
 
         with open(os.path.join(selected_version, "content", "textures", "Cursors", "KeyboardMouse", "ArrowFarCursor.png"), "wb") as f:
             f.write(cursorFarData)
 
-    os.makedirs(os.path.dirname(clientAppSettings), exist_ok=True)
-    
     with open(clientAppSettings, 'w') as f:
         json.dump(applied_flags, f, indent=4)
 
