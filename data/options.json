@@ -29,6 +29,16 @@
             ],
             "InternetRequired": false
         }
+        {
+            "Title": "Video Recorder File Format",
+            "Description": "Select the file format to use when recording videos with the Roblox recorder.",
+            "Section": "Flags",
+            "Options": [
+                "WMV",
+                "MP4"
+            ],
+            "InternetRequired": false
+        }
     ],
     "Toggles": [
         {
