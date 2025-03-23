@@ -63,6 +63,14 @@
             "FFlagDebugGraphicsPreferD3D11FL10": false
         }
     },
+    "Video Recorder File Format": {
+        "WMV": {
+            "FFlagEnableMp4RecorderForAllWindows": false
+        },
+        "MP4": {
+            "FFlagEnableMp4RecorderForAllWindows": true   
+        }
+    }
     "Studio Menu Redesign": {
         "True": {
             "FFlagStudioMenuRedesign5": true
