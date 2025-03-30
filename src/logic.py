@@ -405,7 +405,7 @@ def disable_updates(selected_version):
         else:
             print("\033[1;31mERROR:\033[0m Unable to find git hash in either the result or latest version.")
     else:
-        print("\033[1;31mERROR:\033[0m Version information not found in the deploy history.")
+        print("\033[1;31mERROR:\033[0m Version information not found in the deploy history. Are you on the zLive channel?")
 
 def apply_settings(settings):
     print("\033[1;36mINFO:\033[0m Applied settings:", settings)
