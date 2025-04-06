@@ -260,7 +260,7 @@ class Window(FluentWindow):
         container.setFixedHeight(70)
 
         iconWidget = IconWidget(FIF.CLOSE)
-        iconWidget.setFixedSize(21, 21)
+        iconWidget.setFixedSize(16, 16)
         titleLabel = BodyLabel("Roblox Credentials", container)
         contentLabel = CaptionLabel("Clear stored Roblox credentials in the Windows Credentials Manager to resolve login issues in Roblox Studio.", container)
         contentLabel.setTextColor("#606060", "#d2d2d2")
@@ -270,7 +270,7 @@ class Window(FluentWindow):
         self.clearButton.clicked.connect(self.deleteCredentials)
 
         hBoxLayout = QHBoxLayout(container)
-        hBoxLayout.setContentsMargins(20, 11, 11, 11)
+        hBoxLayout.setContentsMargins(16, 11, 11, 11)
         hBoxLayout.addWidget(iconWidget, 0, Qt.AlignLeft)
         hBoxLayout.setSpacing(15)
 
@@ -438,7 +438,7 @@ class Window(FluentWindow):
             flagList = [[key, str(value)] for key, value in flagJson.items()]
         except Exception as exception:
             flagList = []
-
+            
         self.rowCount = len(flagList) if flagList else 0
         flagTable.setRowCount(self.rowCount)
 
@@ -657,7 +657,7 @@ class Window(FluentWindow):
         self.flagButton.clicked.connect(lambda : self.switchTo(self.flagEditorInterface))
 
         hBoxLayout = QHBoxLayout(container)
-        hBoxLayout.setContentsMargins(20, 11, 11, 11)
+        hBoxLayout.setContentsMargins(18, 11, 11, 11)
         hBoxLayout.addWidget(iconWidget, 0, Qt.AlignLeft)
         hBoxLayout.setSpacing(15)
 
@@ -746,7 +746,7 @@ class Window(FluentWindow):
         self.dropdown_widgets[labelText] = comboBox
 
         hBoxLayout = QHBoxLayout(container)
-        hBoxLayout.setContentsMargins(20, 11, 11, 11)
+        hBoxLayout.setContentsMargins(18, 11, 11, 11)
         hBoxLayout.setSpacing(15)
 
         vBoxLayout = QVBoxLayout()
@@ -785,7 +785,7 @@ class Window(FluentWindow):
         self.toggle_widgets[labelText] = toggleButton
 
         hBoxLayout = QHBoxLayout(container)
-        hBoxLayout.setContentsMargins(20, 11, 11, 11)
+        hBoxLayout.setContentsMargins(18, 11, 11, 11)
         hBoxLayout.setSpacing(15)
 
         vBoxLayout = QVBoxLayout()
@@ -824,7 +824,7 @@ class Window(FluentWindow):
         self.type_widgets[labelText] = lineEdit
 
         hBoxLayout = QHBoxLayout(container)
-        hBoxLayout.setContentsMargins(20, 11, 11, 11)
+        hBoxLayout.setContentsMargins(18, 11, 11, 11)
         hBoxLayout.setSpacing(15)
 
         vBoxLayout = QVBoxLayout()
