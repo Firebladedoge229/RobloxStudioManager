@@ -5,14 +5,14 @@ import json
 import requests
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QIcon, QPixmap, QIntValidator
-from PyQt5.QtWidgets import QApplication, QFrame, QVBoxLayout, QHBoxLayout, QSpacerItem, QSizePolicy, QLabel, QWidget, QFileDialog
-from qfluentwidgets import (NavigationItemPosition, FluentWindow, SubtitleLabel, TitleLabel, LineEdit, SingleDirectionScrollArea, ExpandGroupSettingCard, SettingCard, ToolButton, IndeterminateProgressBar,
-                            BodyLabel, ComboBox, StrongBodyLabel, SwitchButton, PrimaryPushButton, PushButton)
+from PyQt5.QtWidgets import QApplication, QFrame, QVBoxLayout, QHBoxLayout, QSpacerItem, QSizePolicy, QLabel, QWidget, QFileDialog, QHeaderView, QTableWidgetItem
+from qfluentwidgets import (NavigationItemPosition, FluentWindow, SubtitleLabel, TitleLabel, LineEdit, SingleDirectionScrollArea, ExpandGroupSettingCard, MessageBoxBase, SettingCard, ToolButton, IndeterminateProgressBar,
+                            BodyLabel, ComboBox, IconWidget, CardWidget, CaptionLabel, SwitchButton, SearchLineEdit, TableWidget, InfoBar, InfoBarPosition, PrimaryPushButton, PushButton)
 from qfluentwidgets import FluentIcon as FIF
-from logic import (apply_settings, reset_configuration, open_installation_folder, launch_studio, update_studio, open_plugin_editor, open_theme_manager)
+from logic import (apply_settings, reset_configuration, open_installation_folder, launch_studio, update_studio, open_plugin_editor, open_theme_manager, get_custom_flags, save_custom_flags)
 from downloader import download
 import re
-import winreg
+import win32cred
 
 global progressBar
 progressBar = None
@@ -77,35 +77,29 @@ class Window(FluentWindow):
         self.initNavigation()
         self.loadAutoSettings()  
 
-    def get_windows_theme(x):
-        try:
-            key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize")
-            value, _ = winreg.QueryValueEx(key, "AppsUseLightTheme")
-            winreg.CloseKey(key)
-            return "light" if value == 1 else "dark"
-        except Exception as exception:
-            print(f"\033[1;31mERROR:\033[0m Error getting Windows theme: {exception}")
-            return "dark"
-
     def initNavigation(self):
         self.homeInterface = ScrollableWidget(Widget(self, "homeInterface"))
         self.modsInterface = ScrollableWidget(Widget(self, "modsInterface"))
         self.flagsInterface = ScrollableWidget(Widget(self, "flagsInterface"))
+        self.flagEditorInterface = ScrollableWidget(Widget(self, "flagEditorInterface"))
         self.launchoptionsInterface = ScrollableWidget(Widget(self, "launchoptionsInterface"))
         self.settingInterface = ScrollableWidget(Widget(self, "settingInterface"))
 
         self.homeInterface.setObjectName("homeInterface")
         self.modsInterface.setObjectName("modsInterface")
         self.flagsInterface.setObjectName("flagsInterface")
+        self.flagEditorInterface.setObjectName("flagEditorInterface")
         self.launchoptionsInterface.setObjectName("launchoptionsInterface")
         self.settingInterface.setObjectName("settingInterface")
 
-        self.addSubInterface(self.homeInterface, FIF.HOME, 'Home')
+        self.addSubInterface(self.homeInterface, FIF.HOME, "Home")
         self.navigationInterface.addSeparator()
-        self.addSubInterface(self.modsInterface, FIF.ADD, 'Mods')
-        self.addSubInterface(self.flagsInterface, FIF.FLAG, 'Flags')
-        self.addSubInterface(self.launchoptionsInterface, FIF.PLAY, 'Launch Options')
-        self.addSubInterface(self.settingInterface, FIF.SETTING, 'Settings', NavigationItemPosition.BOTTOM)
+        self.addSubInterface(self.modsInterface, FIF.ADD, "Mods")
+        self.addSubInterface(self.flagsInterface, FIF.FLAG, "Flags")
+        self.addSubInterface(self.launchoptionsInterface, FIF.PLAY, "Launch Options")
+        flagEditorSubInterface = self.addSubInterface(self.flagEditorInterface, FIF.FLAG, "Flag Editor [INTERNAL]")
+        flagEditorSubInterface.hide()
+        self.addSubInterface(self.settingInterface, FIF.SETTING, "Settings", NavigationItemPosition.BOTTOM)
         self.navigationInterface.setAcrylicEnabled(True)
 
         headerLabelFlags = TitleLabel("Flags")
@@ -117,6 +111,11 @@ class Window(FluentWindow):
         headerLabelMods.setFixedHeight(37)
         headerLabelMods.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.modsInterface.widget().vBoxLayout.addWidget(headerLabelMods)
+
+        headerLabelFlagEditor = TitleLabel("FastFlag Editor")
+        headerLabelFlagEditor.setFixedHeight(37)  
+        headerLabelFlagEditor.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)  
+        self.flagEditorInterface.widget().vBoxLayout.addWidget(headerLabelFlagEditor)
 
         headerLabelSettings = TitleLabel("Settings")
         headerLabelSettings.setFixedHeight(37)
@@ -131,15 +130,41 @@ class Window(FluentWindow):
 
         self.addSettingsContent()
 
-        self.current_theme = self.get_windows_theme()
-        self.applyTheme()
+        self.addFlagEditorContent()
+
+    def deleteCredentials(self, _):
+        try:
+            creds = win32cred.CredEnumerate(None, 0)
+            
+            for cred in creds:
+                if "roblox" in cred["TargetName"].lower():
+                    win32cred.CredDelete(cred["TargetName"], 1)
+                    print(f"Deleted credential: {cred["TargetName"]}")
+            InfoBar.success(
+                title="Roblox Credentials",
+                content="Successfully deleted all of the Roblox-related credentials.",
+                orient=Qt.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP_RIGHT,
+                duration=2000,
+                parent=self
+            )
+        except Exception as e:
+            print(f"\033[1;31mERROR:\033[0m: {e}")
+            InfoBar.error(
+                title="Roblox Credentials",
+                content=f"Error attempting to delete Roblox Credentials: {e}",
+                orient=Qt.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP_RIGHT,
+                duration=2000,
+                parent=self
+            )
 
     def addHomepageContent(self):
 
         homeLayout = QVBoxLayout(self.homeInterface)
         homeLayout.setAlignment(Qt.AlignCenter)
-
-        self.homeInterface.setStyleSheet("background-color: #272727; border: none;")
 
         logoLabel = QLabel()
         logoPixmap = QPixmap("RobloxStudioManager.png")
@@ -166,11 +191,11 @@ class Window(FluentWindow):
         releaseLayout = QVBoxLayout()
         releaseLayout.setAlignment(Qt.AlignTop)
 
-        releaseLabel = TitleLabel(f"Latest Release: {release_info['tag_name']}")
+        releaseLabel = TitleLabel(f"Latest Release: {release_info["tag_name"]}")
         releaseLabel.setAlignment(Qt.AlignCenter)
         releaseLabel.setWordWrap(True)
 
-        releaseDescriptionLabel = SubtitleLabel(f"{release_info['body']}")
+        releaseDescriptionLabel = SubtitleLabel(f"{release_info["body"]}")
         releaseDescriptionLabel.setAlignment(Qt.AlignCenter)
         releaseDescriptionLabel.setWordWrap(True)
 
@@ -203,8 +228,6 @@ class Window(FluentWindow):
         settingsLayout = QVBoxLayout()
         settingsLayout.setAlignment(Qt.AlignTop)
 
-        self.settingInterface.setStyleSheet("background-color: #272727; border: none;")
-
         channelDownloaderCard = ExpandGroupSettingCard(FIF.DOWNLOAD, "Channel", "Pick a channel to download Roblox from.", self.settingInterface)
         settingsLayout.addWidget(channelDownloaderCard)
 
@@ -233,6 +256,36 @@ class Window(FluentWindow):
         channelDownloaderCard.addGroupWidget(self.versionGuidCard)
         channelDownloaderCard.addGroupWidget(self.deployedCard)
 
+        container = CardWidget()
+        container.setFixedHeight(70)
+
+        iconWidget = IconWidget(FIF.CLOSE)
+        iconWidget.setFixedSize(21, 21)
+        titleLabel = BodyLabel("Roblox Credentials", container)
+        contentLabel = CaptionLabel("Clear stored Roblox credentials in the Windows Credentials Manager to resolve login issues in Roblox Studio.", container)
+        contentLabel.setTextColor("#606060", "#d2d2d2")
+
+        self.clearButton = PushButton(container)
+        self.clearButton.setText("Clear Credentials")
+        self.clearButton.clicked.connect(self.deleteCredentials)
+
+        hBoxLayout = QHBoxLayout(container)
+        hBoxLayout.setContentsMargins(20, 11, 11, 11)
+        hBoxLayout.addWidget(iconWidget, 0, Qt.AlignLeft)
+        hBoxLayout.setSpacing(15)
+
+        vBoxLayout = QVBoxLayout()
+        vBoxLayout.setContentsMargins(0, 0, 0, 0)
+        vBoxLayout.setSpacing(0)
+        vBoxLayout.addWidget(titleLabel, 0, Qt.AlignVCenter)
+        vBoxLayout.addWidget(contentLabel, 0, Qt.AlignVCenter)
+
+        hBoxLayout.addLayout(vBoxLayout)
+        hBoxLayout.addStretch(1)
+        hBoxLayout.addWidget(self.clearButton, 0, Qt.AlignRight)
+
+        settingsLayout.addWidget(container)
+
         scrollArea = SingleDirectionScrollArea(orient=Qt.Vertical)
         scrollWidget = QWidget(self.settingInterface)
         scrollWidget.setLayout(settingsLayout)
@@ -251,6 +304,174 @@ class Window(FluentWindow):
             channelDownloaderCard.setEnabled(False)
             folderButton.setEnabled(False)
             downloadButton.setEnabled(False)
+
+        print("\033[1;36mINFO:\033[0m Settings Content Created")
+
+    def addRow(self, flagTable):
+        self.rowCount += 1
+        flagTable.setRowCount(self.rowCount)
+
+    def deleteSelectedRows(self, flagTable):
+        selectedRows = flagTable.selectionModel().selectedRows()
+
+        if not selectedRows:
+            return
+
+        for row in sorted(selectedRows, reverse=True):
+            deleted_row_index = row.row()
+            self.rowCount -= 1
+            flagTable.removeRow(deleted_row_index)
+
+        self.rowCount = flagTable.rowCount()
+
+        if self.rowCount > 0:
+            if deleted_row_index > 0:
+                flagTable.selectRow(deleted_row_index)
+            else:
+                flagTable.selectRow(0)
+
+    class JSONInput(MessageBoxBase):
+        def __init__(self, parent=None):
+            super().__init__(parent)
+            self.titleLabel = SubtitleLabel("JSON Input")
+            self.jsonLineEdit = LineEdit()
+
+            self.jsonLineEdit.setPlaceholderText("JSON Text")
+            self.jsonLineEdit.setClearButtonEnabled(True)
+
+            self.viewLayout.addWidget(self.titleLabel)
+            self.viewLayout.addWidget(self.jsonLineEdit)
+
+            self.widget.setMinimumWidth(350)
+
+    def promptJSONInput(self, flagTable):
+        prompt = self.JSONInput(self)
+        if prompt.exec():
+            try:
+                data = json.loads(prompt.jsonLineEdit.text())
+                flagList = [[key, str(value)] for key, value in data.items()]
+                self.rowCount = len(flagList) if flagList else 0
+                flagTable.setRowCount(self.rowCount)
+                for i, flag in enumerate(flagList):
+                    for j in range(2):
+                        flagTable.setItem(i, j, QTableWidgetItem(flag[j]))
+            except Exception as exception:
+                InfoBar.error(
+                    title="FastFlag Manager",
+                    content=f"Error while parsing JSON: {exception}",
+                    orient=Qt.Horizontal,
+                    isClosable=True,
+                    position=InfoBarPosition.TOP_RIGHT,
+                    duration=2000,
+                    parent=self
+                )
+                return
+
+    def tableToJSON(self, flagTable):
+        table_data = {}
+
+        rowCount = flagTable.rowCount()
+
+        for row in range(rowCount):
+            key_item = flagTable.item(row, 0)
+            value_item = flagTable.item(row, 1)
+            
+            if key_item is not None and value_item is not None:
+                key = key_item.text()
+                value_text = value_item.text()
+
+                if value_text.lower() == "true":
+                    value = True
+                elif value_text.lower() == "false":
+                    value = False
+                elif value_text.isdigit():
+                    value = int(value_text)
+                else:
+                    value = value_text
+
+                table_data[key] = value
+
+        return table_data
+
+    def addFlagEditorContent(self):
+        flagEditorLayout = QVBoxLayout()
+        flagEditorLayout.setAlignment(Qt.AlignTop)
+
+        backButton = PushButton(FIF.LEFT_ARROW, "Back")
+        addButton = PushButton(FIF.ADD, "Add Flag")
+        deleteButton = PushButton(FIF.DELETE, "Delete")
+        importButton = PushButton(FIF.DOWNLOAD, "Import JSON")
+        saveButton = PrimaryPushButton(FIF.SAVE, "Save")
+
+        backButton.clicked.connect(lambda : self.switchTo(self.flagsInterface))
+        addButton.clicked.connect(lambda : self.addRow(flagTable))
+        deleteButton.clicked.connect(lambda : self.deleteSelectedRows(flagTable))
+        importButton.clicked.connect(lambda: self.promptJSONInput(flagTable))
+        saveButton.clicked.connect(lambda: save_custom_flags(self.tableToJSON(flagTable)))
+
+        buttonRowLayout = QHBoxLayout()
+        buttonRowLayout.setSpacing(10)
+        buttonRowLayout.addWidget(backButton)
+        buttonRowLayout.addWidget(addButton)
+        buttonRowLayout.addWidget(deleteButton)
+        buttonRowLayout.addWidget(importButton)
+        buttonRowLayout.addWidget(saveButton)
+
+        flagEditorLayout.addLayout(buttonRowLayout)
+
+        searchEdit = SearchLineEdit()
+        searchEdit.setPlaceholderText("Search")
+        flagEditorLayout.addWidget(searchEdit)
+
+        searchEdit.textEdited.connect(lambda text: print("Search：" + text))
+
+        self.rowCount = 0
+
+        flagTable = TableWidget()
+        flagTable.setBorderVisible(True)
+        flagTable.setBorderRadius(5)
+        flagTable.setWordWrap(False)
+        flagTable.setColumnCount(2)
+
+        flagJson = get_custom_flags()
+        try:
+            flagList = [[key, str(value)] for key, value in flagJson.items()]
+        except Exception as exception:
+            flagList = []
+            InfoBar.error(
+                title="FastFlag Manager",
+                content=f"Error while fetching FastFlag list: {exception}",
+                orient=Qt.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP_RIGHT,
+                duration=2000,
+                parent=self
+            )
+
+        self.rowCount = len(flagList) if flagList else 0
+        flagTable.setRowCount(self.rowCount)
+
+        for i, flag in enumerate(flagList):
+            for j in range(2):
+                flagTable.setItem(i, j, QTableWidgetItem(flag[j]))
+
+        flagTable.setHorizontalHeaderLabels(["Flag", "Value"])
+        flagTable.verticalHeader().hide()
+
+        header = flagTable.horizontalHeader()
+        header.setSectionResizeMode(QHeaderView.Stretch)
+
+        flagEditorLayout.addWidget(flagTable)
+
+        scrollArea = SingleDirectionScrollArea(orient=Qt.Vertical)
+        scrollWidget = QWidget(self.flagEditorInterface)
+        scrollWidget.setLayout(flagEditorLayout)
+
+        scrollArea.setWidget(scrollWidget)
+        scrollArea.setWidgetResizable(True)
+
+        self.flagEditorInterface.widget().vBoxLayout.addWidget(scrollArea)
+
         print("\033[1;36mINFO:\033[0m Settings Content Created")
 
     def startDownload(self):
@@ -259,6 +480,15 @@ class Window(FluentWindow):
 
             self.worker = DownloadWorker(self.selectedFolderPath, self.selectedChannel.lower())
             self.worker.start()  
+            InfoBar.success(
+                title="Download Manager",
+                content=f"Started worker process for Roblox Studio on channel {self.selectedChannel}.",
+                orient=Qt.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP_RIGHT,
+                duration=2000,
+                parent=self
+            )
 
     def onFolderIconClicked(self):
         print("\033[1;36mINFO:\033[0m Folder Dialog Opened")
@@ -291,10 +521,19 @@ class Window(FluentWindow):
                 if "studio" in line.lower():
                     date_time = line.split("at")[-1].split(",")[0].strip()
                     version = line.split("file version:")[-1]
-                    version = '.'.join(re.sub(r',\s*git hash:.*', '', version).split(', ')).strip()
+                    version = ".".join(re.sub(r",\s*git hash:.*", "", version).split(", ")).strip()
                     self.updateDeploymentInfo(date_time, version)
                     break
         except Exception as exception:
+            InfoBar.error(
+                title="Download Manager",
+                content=f"Error while fetching Deploy History: {exception}",
+                orient=Qt.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP_RIGHT,
+                duration=2000,
+                parent=self
+            )
             print(f"\033[1;31mERROR:\033[0m Error fetching deploy history: {exception}")
             self.updateDeploymentInfo("Unknown", "Unknown")
 
@@ -306,6 +545,15 @@ class Window(FluentWindow):
             versionGuid = response.text.strip()
             self.updateVersionInfo(versionGuid)
         except Exception as exception:
+            InfoBar.error(
+                title="Download Manager",
+                content=f"Error while fetching Version Info: {exception}",
+                orient=Qt.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP_RIGHT,
+                duration=2000,
+                parent=self
+            )
             print(f"\033[1;31mERROR:\033[0m Error fetching version info: {exception}")
             self.updateVersionInfo("Unknown")
 
@@ -324,52 +572,37 @@ class Window(FluentWindow):
             response.raise_for_status()  
             release_data = response.json()
             release_info = {
-                'tag_name': release_data['tag_name'],  
-                'body': self.cleanReleaseDescription(release_data['body'])  
+                "tag_name": release_data["tag_name"],  
+                "body": self.cleanReleaseDescription(release_data["body"])  
             }
 
             return release_info
 
         except requests.exceptions.RequestException as exception:
+            InfoBar.error(
+                title="Download Manager",
+                content=f"Error while fetching release info: {exception}",
+                orient=Qt.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP_RIGHT,
+                duration=2000,
+                parent=self
+            )
             print(f"\033[1;31mERROR:\033[0m Error fetching release info: {exception}")
-            return {'tag_name': 'N/A', 'body': 'Unable to fetch release information.'}
+            return {"tag_name": "N/A", "body": "Unable to fetch release information."}
 
     def cleanReleaseDescription(self, body):
-        cleaned_body = re.sub(r'>.*\n', '', body)  
-        cleaned_body = re.sub(r'!\[.*?\]\(.*?\)', '', cleaned_body)  
-        cleaned_body = re.sub(r'\[.*?\]\(.*?\)', '', cleaned_body)  
+        cleaned_body = re.sub(r">.*\n", "", body)  
+        cleaned_body = re.sub(r"!\[.*?\]\(.*?\)", "", cleaned_body)  
+        cleaned_body = re.sub(r"\[.*?\]\(.*?\)", "", cleaned_body)  
         return cleaned_body.strip()  
-
-    def applyTheme(self):
-        if self.current_theme == "dark":
-            background_color = "#272727"
-            text_color = "white"
-            container_color = "#323232"
-        else:
-            background_color = "#f0f0f0"
-            text_color = "black"
-            container_color = "#fdfbfb"
-
-        self.homeInterface.setStyleSheet(f"background-color: {background_color}; border: none; color: {text_color};")
-
-        for _, comboBox in self.dropdown_widgets.items():
-            container = comboBox.parentWidget()
-            container.setStyleSheet(f"background-color: {container_color}; border-radius: 4px;")
-
-        for _, toggle in self.toggle_widgets.items():
-            container = toggle.parentWidget()
-            container.setStyleSheet(f"background-color: {container_color}; border-radius: 4px;")
-
-        for _, lineEdit in self.type_widgets.items():
-            container = lineEdit.parentWidget()
-            container.setStyleSheet(f"background-color: {container_color}; border-radius: 4px;")
 
     def initWindow(self):
         print(f"\033[1;36mINFO:\033[0m Current working directory: {os.getcwd()}")
         print(f"\033[1;36mINFO:\033[0m Real path: {os.path.dirname(os.path.realpath(__file__))}")
         self.resize(900, 700)
         self.setWindowIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), "logo.png")))
-        self.setWindowTitle('Roblox Studio Manager')
+        self.setWindowTitle("Roblox Studio Manager")
         desktop = QApplication.desktop().availableGeometry()
         w, h = desktop.width(), desktop.height()
         self.move(w // 2 - self.width() // 2, h // 2 - self.height() // 2)
@@ -401,6 +634,15 @@ class Window(FluentWindow):
                     self.addTypeOption(type_option["Title"], type_option["Description"], type_option["Section"], type_option["Accept"], type_option["InternetRequired"])
 
         except FileNotFoundError:
+            InfoBar.error(
+                title="Roblox Studio Manager",
+                content="Error while fetching options.json: File not found!",
+                orient=Qt.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP_RIGHT,
+                duration=2000,
+                parent=self
+            )
             print("\033[1;31mDATA ERROR:\033[0m options.json not found!")
 
         bottomSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
@@ -408,8 +650,41 @@ class Window(FluentWindow):
 
         bottomSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.flagsInterface.widget().vBoxLayout.addItem(bottomSpacer)
+ 
+    def addFlagEditorCard(self):
+        container = CardWidget()
+        container.setFixedHeight(73)
+
+        iconWidget = IconWidget(FIF.FLAG)
+        iconWidget.setFixedSize(21, 21)
+        titleLabel = BodyLabel("FastFlag Editor", container)
+        contentLabel = CaptionLabel("Configure and override Roblox FastFlags for fine-tuned performance and feature control.", container)
+        contentLabel.setTextColor("#606060", "#d2d2d2")
+
+        self.flagButton = PushButton(container)
+        self.flagButton.setText("Navigate")
+        self.flagButton.clicked.connect(lambda : self.switchTo(self.flagEditorInterface))
+
+        hBoxLayout = QHBoxLayout(container)
+        hBoxLayout.setContentsMargins(20, 11, 11, 11)
+        hBoxLayout.addWidget(iconWidget, 0, Qt.AlignLeft)
+        hBoxLayout.setSpacing(15)
+
+        vBoxLayout = QVBoxLayout()
+        vBoxLayout.setContentsMargins(0, 0, 0, 0)
+        vBoxLayout.setSpacing(0)
+        vBoxLayout.addWidget(titleLabel, 0, Qt.AlignVCenter)
+        vBoxLayout.addWidget(contentLabel, 0, Qt.AlignVCenter)
+
+        hBoxLayout.addLayout(vBoxLayout)
+        hBoxLayout.addStretch(1)
+        hBoxLayout.addWidget(self.flagButton, 0, Qt.AlignRight)
+
+        self.flagsInterface.widget().vBoxLayout.addWidget(container)
 
     def addLaunchOptionsButtons(self):
+
+        self.addFlagEditorCard()
 
         applyButton = PrimaryPushButton("Apply Settings")
         applyButton.clicked.connect(self.applySettings)
@@ -463,47 +738,35 @@ class Window(FluentWindow):
             self.flagsInterface.widget().vBoxLayout.addWidget(container)
 
     def addDropdown(self, labelText, items, description, section, internetRequired):
-        container = QFrame()
-        container.setStyleSheet("background-color: #323232; border-radius: 4px;")
-        container.setFixedHeight(70)
-        container.setContentsMargins(0, 0, 0, 0)
+        container = CardWidget(self)
+        container.setFixedHeight(73)
 
-        layout = QHBoxLayout()
-        layout.setContentsMargins(5, 5, 5, 5)  
-        layout.setSpacing(5)
+        titleLabel = BodyLabel(labelText, container)
+        contentLabel = CaptionLabel(description, container)
+        contentLabel.setTextColor("#606060", "#d2d2d2")
 
-        leftLayout = QVBoxLayout()
-        leftLayout.setContentsMargins(0, 0, 0, 0)
-        leftLayout.setSpacing(2)
-
-        title = StrongBodyLabel(labelText)
-        title.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-
-        descriptionLabel = BodyLabel(description)
-        descriptionLabel.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-
-        leftLayout.addWidget(title, alignment=Qt.AlignLeft)
-        leftLayout.addWidget(descriptionLabel, alignment=Qt.AlignLeft)
-
-        rightLayout = QVBoxLayout()
-        rightLayout.setContentsMargins(0, 0, 0, 0)
-        rightLayout.setSpacing(2)
-
-        comboBox = ComboBox()
+        comboBox = ComboBox(container)
         comboBox.addItems(items)
         comboBox.setFixedWidth(200)
 
-        self.dropdown_widgets[labelText] = comboBox
-
-        rightLayout.addWidget(comboBox, alignment=Qt.AlignRight)
-
-        layout.addLayout(leftLayout)
-        layout.addLayout(rightLayout)
-
-        container.setLayout(layout)
-
         if internetRequired and not internet:
             comboBox.setEnabled(False)
+
+        self.dropdown_widgets[labelText] = comboBox
+
+        hBoxLayout = QHBoxLayout(container)
+        hBoxLayout.setContentsMargins(20, 11, 11, 11)
+        hBoxLayout.setSpacing(15)
+
+        vBoxLayout = QVBoxLayout()
+        vBoxLayout.setContentsMargins(0, 0, 0, 0)
+        vBoxLayout.setSpacing(0)
+        vBoxLayout.addWidget(titleLabel, 0, Qt.AlignVCenter)
+        vBoxLayout.addWidget(contentLabel, 0, Qt.AlignVCenter)
+
+        hBoxLayout.addLayout(vBoxLayout)
+        hBoxLayout.addStretch(1)
+        hBoxLayout.addWidget(comboBox, 0, Qt.AlignRight)
 
         if section.lower() == "flags":
             self.flagsInterface.widget().vBoxLayout.addWidget(container)
@@ -513,48 +776,36 @@ class Window(FluentWindow):
             self.settingInterface.widget().vBoxLayout.addWidget(container)
 
     def addToggle(self, labelText, description, section, internetRequired):
-        container = QFrame()
-        container.setStyleSheet("background-color: #323232; border-radius: 4px;")
-        container.setFixedHeight(70)
-        container.setContentsMargins(0, 0, 0, 0)
+        container = CardWidget(self)
+        container.setFixedHeight(73)
 
-        layout = QHBoxLayout()
-        layout.setContentsMargins(5, 5, 5, 5)
-        layout.setSpacing(5)
+        titleLabel = BodyLabel(labelText, container)
+        contentLabel = CaptionLabel(description, container)
+        contentLabel.setTextColor("#606060", "#d2d2d2")
 
-        leftLayout = QVBoxLayout()
-        leftLayout.setContentsMargins(0, 0, 0, 0)
-        leftLayout.setSpacing(2)
-
-        title = StrongBodyLabel(labelText)
-        title.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-
-        descriptionLabel = BodyLabel(description)
-        descriptionLabel.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-
-        leftLayout.addWidget(title, alignment=Qt.AlignLeft)
-        leftLayout.addWidget(descriptionLabel, alignment=Qt.AlignLeft)
-
-        rightLayout = QVBoxLayout()
-        rightLayout.setContentsMargins(0, 0, 0, 0)
-        rightLayout.setSpacing(2)
-
-        toggleButton = SwitchButton()
+        toggleButton = SwitchButton(container)
         toggleButton.setChecked(False)
         toggleButton.setOnText("")
         toggleButton.setOffText("")
 
-        self.toggle_widgets[labelText] = toggleButton
-
-        rightLayout.addWidget(toggleButton, alignment=Qt.AlignRight)
-
-        layout.addLayout(leftLayout)
-        layout.addLayout(rightLayout)
-
-        container.setLayout(layout)
-
         if internetRequired and not internet:
             toggleButton.setEnabled(False)
+
+        self.toggle_widgets[labelText] = toggleButton
+
+        hBoxLayout = QHBoxLayout(container)
+        hBoxLayout.setContentsMargins(20, 11, 11, 11)
+        hBoxLayout.setSpacing(15)
+
+        vBoxLayout = QVBoxLayout()
+        vBoxLayout.setContentsMargins(0, 0, 0, 0)
+        vBoxLayout.setSpacing(0)
+        vBoxLayout.addWidget(titleLabel, 0, Qt.AlignVCenter)
+        vBoxLayout.addWidget(contentLabel, 0, Qt.AlignVCenter)
+
+        hBoxLayout.addLayout(vBoxLayout)
+        hBoxLayout.addStretch(1)
+        hBoxLayout.addWidget(toggleButton, 0, Qt.AlignRight)
 
         if section.lower() == "flags":
             self.flagsInterface.widget().vBoxLayout.addWidget(container)
@@ -562,50 +813,38 @@ class Window(FluentWindow):
             self.modsInterface.widget().vBoxLayout.addWidget(container)
 
     def addTypeOption(self, labelText, description, section, accept_type, internetRequired):
-        container = QFrame()
-        container.setStyleSheet("background-color: #323232; border-radius: 4px;")
-        container.setFixedHeight(70)
-        container.setContentsMargins(0, 0, 0, 0)
+        container = CardWidget(self)
+        container.setFixedHeight(73)
 
-        layout = QHBoxLayout()
-        layout.setContentsMargins(5, 5, 5, 5)
-        layout.setSpacing(5)
+        titleLabel = BodyLabel(labelText, container)
+        contentLabel = CaptionLabel(description, container)
+        contentLabel.setTextColor("#606060", "#d2d2d2")
 
-        leftLayout = QVBoxLayout()
-        leftLayout.setContentsMargins(0, 0, 0, 0)
-        leftLayout.setSpacing(2)
-
-        title = StrongBodyLabel(labelText)
-        title.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-
-        descriptionLabel = BodyLabel(description)
-        descriptionLabel.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-
-        leftLayout.addWidget(title, alignment=Qt.AlignLeft)
-        leftLayout.addWidget(descriptionLabel, alignment=Qt.AlignLeft)
-
-        rightLayout = QVBoxLayout()
-        rightLayout.setContentsMargins(0, 0, 0, 0)
-        rightLayout.setSpacing(2)
-
-        lineEdit = LineEdit()
+        lineEdit = LineEdit(container)
         lineEdit.setPlaceholderText("")
-        lineEdit.setText("")  
+        lineEdit.setText("")
 
         if accept_type.lower() == "integer":
             lineEdit.setValidator(QIntValidator())
 
-        self.type_widgets[labelText] = lineEdit  
-
-        rightLayout.addWidget(lineEdit, alignment=Qt.AlignRight)
-
-        layout.addLayout(leftLayout)
-        layout.addLayout(rightLayout)
-
-        container.setLayout(layout)
-
         if internetRequired and not internet:
             lineEdit.setEnabled(False)
+
+        self.type_widgets[labelText] = lineEdit
+
+        hBoxLayout = QHBoxLayout(container)
+        hBoxLayout.setContentsMargins(20, 11, 11, 11)
+        hBoxLayout.setSpacing(15)
+
+        vBoxLayout = QVBoxLayout()
+        vBoxLayout.setContentsMargins(0, 0, 0, 0)
+        vBoxLayout.setSpacing(0)
+        vBoxLayout.addWidget(titleLabel, 0, Qt.AlignVCenter)
+        vBoxLayout.addWidget(contentLabel, 0, Qt.AlignVCenter)
+
+        hBoxLayout.addLayout(vBoxLayout)
+        hBoxLayout.addStretch(1)
+        hBoxLayout.addWidget(lineEdit, 0, Qt.AlignRight)
 
         if section.lower() == "flags":
             self.flagsInterface.widget().vBoxLayout.addWidget(container)
@@ -628,8 +867,26 @@ class Window(FluentWindow):
                     self.applySettingsFromJson(settings)
 
             except json.JSONDecodeError:
+                InfoBar.error(
+                    title="Roblox Studio Manager",
+                    content="Error while decoding settings file: JSONDecodeError",
+                    orient=Qt.Horizontal,
+                    isClosable=True,
+                    position=InfoBarPosition.TOP_RIGHT,
+                    duration=2000,
+                    parent=self
+                )
                 print("\033[1;31mERROR:\033[0m Error loading settings from JSON file.")
             except Exception as exception:
+                InfoBar.error(
+                    title="Roblox Studio Manager",
+                    content=f"Error while fetching settings file: {exception}",
+                    orient=Qt.Horizontal,
+                    isClosable=True,
+                    position=InfoBarPosition.TOP_RIGHT,
+                    duration=2000,
+                    parent=self
+                )
                 print(f"\033[1;31mERROR:\033[0m {exception}")
 
     def applySettingsFromJson(self, settings):
@@ -665,4 +922,13 @@ class Window(FluentWindow):
         self.worker.start()
 
     def onSettingsApplied(self, settings):
+        InfoBar.success(
+            title="Roblox Studio Manager",
+            content="Settings have been applied successfully.",
+            orient=Qt.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP_RIGHT,
+            duration=2000,
+            parent=self
+        )
         print(f"\033[38;2;52;235;143mDATA:\033[0m Settings applied: {settings}")

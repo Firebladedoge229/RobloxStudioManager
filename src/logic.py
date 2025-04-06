@@ -84,7 +84,6 @@ def patch_exe(exe_path, signature, patch, signatureinfo, patchinfo):
             f.truncate()
             print(f"\033[1;32mSUCCESS:\033[0m Patching {exe_path} completed.")
             return True
-        return False
     except Exception as e:
         print(f"\033[1;31mERROR:\033[0m Error patching {exe_path}: {e}")
         return False
@@ -93,32 +92,35 @@ def replace_data_in_exe(exe_data, old_data, new_data):
     return exe_data.replace(old_data, new_data)
 
 def patch_banner(exe_path, inverse):
-    small_data = requests.get(smallURL).content
-    small_replacement_data = requests.get(smallReplacementURL).content
-    medium_data = requests.get(mediumURL).content
-    medium_replacement_data = requests.get(mediumReplacementURL).content
-    large_data = requests.get(largeURL).content
-    large_replacement_data = requests.get(largeReplacementURL).content
+    try:
+        small_data = requests.get(smallURL).content
+        small_replacement_data = requests.get(smallReplacementURL).content
+        medium_data = requests.get(mediumURL).content
+        medium_replacement_data = requests.get(mediumReplacementURL).content
+        large_data = requests.get(largeURL).content
+        large_replacement_data = requests.get(largeReplacementURL).content
 
-    with open(exe_path, 'rb') as exe_file:
-        exe_data = exe_file.read()
+        with open(exe_path, "rb") as exe_file:
+            exe_data = exe_file.read()
 
-    if not inverse:
-        exe_data = replace_data_in_exe(exe_data, small_data, small_replacement_data)
-        exe_data = replace_data_in_exe(exe_data, medium_data, medium_replacement_data)
-        exe_data = replace_data_in_exe(exe_data, large_data, large_replacement_data)
-    elif inverse:
-        exe_data = replace_data_in_exe(exe_data, small_replacement_data, small_data)
-        exe_data = replace_data_in_exe(exe_data, medium_replacement_data, medium_data)
-        exe_data = replace_data_in_exe(exe_data, large_replacement_data, large_data)
+        if not inverse:
+            exe_data = replace_data_in_exe(exe_data, small_data, small_replacement_data)
+            exe_data = replace_data_in_exe(exe_data, medium_data, medium_replacement_data)
+            exe_data = replace_data_in_exe(exe_data, large_data, large_replacement_data)
+        elif inverse:
+            exe_data = replace_data_in_exe(exe_data, small_replacement_data, small_data)
+            exe_data = replace_data_in_exe(exe_data, medium_replacement_data, medium_data)
+            exe_data = replace_data_in_exe(exe_data, large_replacement_data, large_data)
 
-    with open(exe_path, 'wb') as exe_file:
-        exe_file.write(exe_data)
+        with open(exe_path, "wb") as exe_file:
+            exe_file.write(exe_data)
+    except Exception as exception:
+            print(f"\033[1;31mERROR:\033[0m Error fetching legacy banner: {exception}")
 
 def fetch_internal_patch_data():
     try:
         response = requests.get("https://raw.githubusercontent.com/7ap/internal-studio-patcher/refs/heads/main/src/main.rs")
-        matches = re.findall(r'0x([0-9A-Fa-f]{2})', response.text)
+        matches = re.findall(r"0x([0-9A-Fa-f]{2})", response.text)
         if len(matches) >= 24:
             return (b"".join(bytes.fromhex(s) for s in matches[:12]), b"".join(bytes.fromhex(p) for p in matches[12:24]))
         else:
@@ -144,27 +146,63 @@ def save_settings(settings):
         directory = os.path.dirname(__file__)
 
     settings_file = os.path.join(directory, "RobloxStudioManagerSettings.json")
+
     try:
-        with open(settings_file, 'w') as f:
+        with open(settings_file, "w") as f:
             json.dump(settings, f, indent=4)
         print(f"\033[38;2;52;235;143mDATA:\033[0m Settings saved to {settings_file}")
     except Exception as e:
         print(f"\033[1;31mERROR:\033[0m Error saving settings: {e}")
 
+def get_custom_flags():
+    if getattr(sys, "frozen", False):
+        directory = os.path.dirname(sys.executable)
+    elif __file__:
+        directory = os.path.dirname(__file__)
+
+    settings_file = os.path.join(directory, "RobloxStudioManagerFFlags.json")
+
+    try:
+        with open(settings_file, "r") as f:
+            print(f"\033[38;2;52;235;143mDATA:\033[0m FFlag Settings sent from {settings_file}")
+            return json.load(f)
+    except Exception as e:
+        print(f"\033[1;31mERROR:\033[0m Error getting custom settings: {e}")
+
+def save_custom_flags(settings):
+    if getattr(sys, "frozen", False):
+        directory = os.path.dirname(sys.executable)
+    elif __file__:
+        directory = os.path.dirname(__file__)
+
+    settings_file = os.path.join(directory, "RobloxStudioManagerFFlags.json")
+
+    try:
+        with open(settings_file, "w") as f:
+            json.dump(settings, f, indent=4)
+        print(f"\033[38;2;52;235;143mDATA:\033[0m FFlag Settings saved to {settings_file}")
+    except Exception as e:
+        print(f"\033[1;31mERROR:\033[0m Error saving custom settings: {e}")
+
 def check_if_integer(value):
     try:
-        int_value = int(value)
+        _ = int(value)
         return True  
     except ValueError:
         return False  
 
+def get_flags():
+    clientAppSettings = os.path.join(selected_version, "ClientSettings", "ClientAppSettings.json")
+    with open(clientAppSettings) as file: content = file.read()
+    return json.loads(content)
+
 def handle_flags(settings):
-    json_file_path = os.path.join(os.getcwd(), 'fastflags.json')
+    json_file_path = os.path.join(os.getcwd(), "fastflags.json")
     if not os.path.exists(json_file_path):
         print("\033[1;31mERROR:\033[0m fastflags.json file not found.")
         return
 
-    with open(json_file_path, 'r') as f:
+    with open(json_file_path, "r") as f:
         flags_data = json.load(f)
 
     applied_flags = {}
@@ -201,7 +239,7 @@ def handle_flags(settings):
 
                     os.makedirs(os.path.dirname(clientAppSettings), exist_ok=True)
                     
-                    with open(clientAppSettings, 'w') as f:
+                    with open(clientAppSettings, "w") as f:
                         json.dump(applied_flags, f, indent=4)
                     continue
                 if value in flags_data[key]:
@@ -309,39 +347,54 @@ def handle_flags(settings):
         tree.write(os.path.join(os.path.join(os.environ["LOCALAPPDATA"], "Roblox"), "GlobalBasicSettings_13_Studio.xml"), encoding="utf-8", xml_declaration=True)
 
     if settings["Classic Death Sound"] == True:
-        legacyOuchData = requests.get(legacyOuchURL).content
+        try:
+            legacyOuchData = requests.get(legacyOuchURL).content
 
-        with open(os.path.join(selected_version, "content", "sounds", "ouch.ogg"), "wb") as f:
-            f.write(legacyOuchData)
+            with open(os.path.join(selected_version, "content", "sounds", "ouch.ogg"), "wb") as f:
+                f.write(legacyOuchData)
+        except Exception as exception:
+            print(f"\033[1;31mERROR:\033[0m Error while replacing death sound: {exception}")
     else:
-        ouchData = requests.get(ouchURL).content
+        try:
+            ouchData = requests.get(ouchURL).content
 
-        with open(os.path.join(selected_version, "content", "sounds", "ouch.ogg"), "wb") as f:
-            f.write(ouchData)
+            with open(os.path.join(selected_version, "content", "sounds", "ouch.ogg"), "wb") as f:
+                f.write(ouchData)
+        except Exception as exception:
+            print(f"\033[1;31mERROR:\033[0m Error while replacing death sound: {exception}")
 
     if settings["Legacy Cursor"] == True:
-        legacyCursorData = requests.get(legacyCursorURL).content
-        legacyCursorFarData = requests.get(legacyCursorFarURL).content
+        try:
+            legacyCursorData = requests.get(legacyCursorURL).content
+            legacyCursorFarData = requests.get(legacyCursorFarURL).content
 
-        with open(os.path.join(selected_version, "content", "textures", "Cursors", "KeyboardMouse", "ArrowCursor.png"), "wb") as f:
-            f.write(legacyCursorData)
+            with open(os.path.join(selected_version, "content", "textures", "Cursors", "KeyboardMouse", "ArrowCursor.png"), "wb") as f:
+                f.write(legacyCursorData)
 
-        with open(os.path.join(selected_version, "content", "textures", "Cursors", "KeyboardMouse", "ArrowFarCursor.png"), "wb") as f:
-            f.write(legacyCursorFarData)
+            with open(os.path.join(selected_version, "content", "textures", "Cursors", "KeyboardMouse", "ArrowFarCursor.png"), "wb") as f:
+                f.write(legacyCursorFarData)
+        except Exception as exception:
+            print(f"\033[1;31mERROR:\033[0m Error while replacing cursor: {exception}")
     else:
-        cursorData = requests.get(cursorURL).content
-        cursorFarData = requests.get(cursorFarURL).content
+        try:
+            cursorData = requests.get(cursorURL).content
+            cursorFarData = requests.get(cursorFarURL).content
 
-        with open(os.path.join(selected_version, "content", "textures", "Cursors", "KeyboardMouse", "ArrowCursor.png"), "wb") as f:
-            f.write(cursorData)
+            with open(os.path.join(selected_version, "content", "textures", "Cursors", "KeyboardMouse", "ArrowCursor.png"), "wb") as f:
+                f.write(cursorData)
 
-        with open(os.path.join(selected_version, "content", "textures", "Cursors", "KeyboardMouse", "ArrowFarCursor.png"), "wb") as f:
-            f.write(cursorFarData)
+            with open(os.path.join(selected_version, "content", "textures", "Cursors", "KeyboardMouse", "ArrowFarCursor.png"), "wb") as f:
+                f.write(cursorFarData)
+        except Exception as exception:
+            print(f"\033[1;31mERROR:\033[0m Error while replacing cursor: {exception}")
 
     os.makedirs(os.path.dirname(clientAppSettings), exist_ok=True)
-    
-    with open(clientAppSettings, 'w') as f:
-        json.dump(applied_flags, f, indent=4)
+
+    combined_flags = applied_flags.copy()
+    combined_flags.update(get_custom_flags())
+
+    with open(clientAppSettings, "w") as f:
+        json.dump(combined_flags, f, indent=4)
 
     print(f"\033[1;32mSUCCESS:\033[0m Flags have been set in {clientAppSettings}")
 
@@ -356,7 +409,7 @@ def download_and_apply_font(selected_version):
             target_dir = next((file_info.filename for file_info in zip_ref.infolist() if file_info.is_dir()), None)
             if target_dir:
                 for file_info in zip_ref.infolist():
-                    if file_info.filename.startswith(target_dir) and file_info.filename.endswith(('.ttf', '.otf')):
+                    if file_info.filename.startswith(target_dir) and file_info.filename.endswith((".ttf", ".otf")):
                         dest_path = os.path.join(selected_version, "content", "fonts", os.path.basename(file_info.filename))
                         with zip_ref.open(file_info) as source, open(dest_path, "wb") as target:
                             target.write(source.read())
@@ -410,9 +463,11 @@ def disable_updates(selected_version):
 def apply_settings(settings):
     print("\033[1;36mINFO:\033[0m Applied settings:", settings)
 
+    save_settings(settings)
+
     studio_running = False
-    for proc in psutil.process_iter(['pid', 'name']):
-        if proc.info['name'] == "RobloxStudioBeta.exe":
+    for proc in psutil.process_iter(["pid", "name"]):
+        if proc.info["name"] == "RobloxStudioBeta.exe":
             studio_running = True
             break
 
@@ -420,8 +475,8 @@ def apply_settings(settings):
         response = ctypes.windll.user32.MessageBoxW(0, "Roblox Studio is currently running. Do you want to close it to apply the changes?", "Roblox Studio Manager", 0x04)
         if response == 6:  
 
-            for proc in psutil.process_iter(['pid', 'name']):
-                if proc.info['name'] == "RobloxStudioBeta.exe":
+            for proc in psutil.process_iter(["pid", "name"]):
+                if proc.info["name"] == "RobloxStudioBeta.exe":
                     proc.terminate()
                     print("\033[1;36mINFO:\033[0m Roblox Studio has been forcefully terminated.")
                     break
@@ -438,13 +493,17 @@ def apply_settings(settings):
         disable_updates(selected_version)
 
     if settings.get("Enable Internal"):
-        if internal_signature:
-            apply_patch(True, selected_version, internal_signature, internal_patch, internal_signature_backup, internal_patch_backup)
+        try:
+            if internal_signature:
+                apply_patch(True, selected_version, internal_signature, internal_patch, internal_signature_backup, internal_patch_backup)
+        except Exception as exception:
+                print(f"\033[1;31mERROR:\033[0m Error applying internal patch: {exception}")
     else:
-        if internal_signature:
-            apply_patch(False, selected_version, internal_signature, internal_patch, internal_signature_backup, internal_patch_backup)
-
-    save_settings(settings)
+        try:
+            if internal_signature:
+                apply_patch(False, selected_version, internal_signature, internal_patch, internal_signature_backup, internal_patch_backup)
+        except Exception as exception:
+                print(f"\033[1;31mERROR:\033[0m Error applying internal patch: {exception}")
 
 def reset_configuration():
     response = ctypes.windll.user32.MessageBoxW(0, "Are you sure you want to reset your FFlags?", "Roblox Studio Manager", 0x04)

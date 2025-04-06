@@ -44,19 +44,19 @@ def validate_md5(file_path, expected_md5):
 def download_file(url, output_path):
     response = requests.get(url, stream=True)
     response.raise_for_status()
-    total_size = int(response.headers.get('content-length', 0))
+    total_size = int(response.headers.get("content-length", 0))
     downloaded_size = 0
-    with open(output_path, 'wb') as file:
+    with open(output_path, "wb") as file:
         for chunk in response.iter_content(1024):
             file.write(chunk)
             downloaded_size += len(chunk)
             if total_size:
                 percent = (downloaded_size / total_size) * 100
-                print(f'\r{output_path}: {percent:.2f}% complete', end='')
+                print(f"\r{output_path}: {percent:.2f}% complete", end="")
     print()
 
 def extract_zip(file_path, extract_to):
-    with zipfile.ZipFile(file_path, 'r') as zip_ref:
+    with zipfile.ZipFile(file_path, "r") as zip_ref:
         zip_ref.extractall(extract_to)
 
 
@@ -86,8 +86,8 @@ def download_and_extract(version, file_name, file_md5, channel, selected_folder,
     else:
         print(f"\033[1;32mSUCCESS:\033[0m Checksum Validated for {file_name}.")
     location_info = locations.get(file_name.replace(".zip", ""), None)
-    if location_info and 'ExtractTo' in location_info:
-        extract_to = os.path.join(selected_folder, folder_name, location_info['ExtractTo'])
+    if location_info and "ExtractTo" in location_info:
+        extract_to = os.path.join(selected_folder, folder_name, location_info["ExtractTo"])
         os.makedirs(extract_to, exist_ok=True)
         extract_zip(output_path, extract_to)
         os.remove(output_path)
@@ -115,7 +115,7 @@ def download(selected_folder, channel):
             i += 4
         else:
             i += 1
-    with open(os.path.join(selected_folder, folder_name, "AppSettings.xml"), 'w') as f:
+    with open(os.path.join(selected_folder, folder_name, "AppSettings.xml"), "w") as f:
         f.write(appSettings)
     print("\033[1;32mSUCCESS\033[0m Download Complete")
     from ui_components import endDownload
