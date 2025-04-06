@@ -438,15 +438,6 @@ class Window(FluentWindow):
             flagList = [[key, str(value)] for key, value in flagJson.items()]
         except Exception as exception:
             flagList = []
-            InfoBar.error(
-                title="FastFlag Manager",
-                content=f"Error while fetching FastFlag list: {exception}",
-                orient=Qt.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP_RIGHT,
-                duration=2000,
-                parent=self
-            )
 
         self.rowCount = len(flagList) if flagList else 0
         flagTable.setRowCount(self.rowCount)
