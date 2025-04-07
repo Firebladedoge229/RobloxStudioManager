@@ -4,12 +4,12 @@ os.environ["QT_LOGGING_RULES"] = "qt.qpa.fonts.warning=false"
 import json
 import requests
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
-from PyQt5.QtGui import QIcon, QPixmap, QIntValidator
+from PyQt5.QtGui import QIcon, QPixmap, QIntValidator, QColor
 from PyQt5.QtWidgets import QApplication, QFrame, QVBoxLayout, QHBoxLayout, QSpacerItem, QSizePolicy, QLabel, QWidget, QFileDialog, QHeaderView, QTableWidgetItem
 from qfluentwidgets import (NavigationItemPosition, FluentWindow, SubtitleLabel, TitleLabel, LineEdit, SingleDirectionScrollArea, ExpandGroupSettingCard, MessageBoxBase, SettingCard, ToolButton, IndeterminateProgressBar,
-                            BodyLabel, ComboBox, IconWidget, CardWidget, CaptionLabel, SwitchButton, SearchLineEdit, TableWidget, InfoBar, InfoBarPosition, PrimaryPushButton, PushButton)
+                            BodyLabel, ComboBox, IconWidget, CardWidget, CaptionLabel, SwitchButton, MessageBox, ColorDialog, SearchLineEdit, TableWidget, InfoBar, InfoBarPosition, PrimaryPushButton, PushButton)
 from qfluentwidgets import FluentIcon as FIF
-from logic import (apply_settings, reset_configuration, open_installation_folder, launch_studio, update_studio, open_plugin_editor, open_theme_manager, get_custom_flags, save_custom_flags)
+from logic import (apply_settings, reset_configuration, open_installation_folder, launch_studio, update_studio, get_custom_flags, save_custom_flags, get_builtin_plugins, download_default_themes, patch_studio_for_themes, get_theme_colors, apply_custom_theme, toggle_plugin_enabled)
 from downloader import download
 import re
 import win32cred
@@ -70,6 +70,13 @@ class ApplySettingsWorker(QThread):
         apply_settings(self.settings)
         self.settingsApplied.emit(self.settings)
 
+class PatchThread(QThread):
+    taskFinished = pyqtSignal()
+
+    def run(self):
+        patch_studio_for_themes()  
+        self.taskFinished.emit()
+
 class Window(FluentWindow):
     def __init__(self):
         super().__init__()
@@ -83,6 +90,8 @@ class Window(FluentWindow):
         self.flagsInterface = ScrollableWidget(Widget(self, "flagsInterface"))
         self.flagEditorInterface = ScrollableWidget(Widget(self, "flagEditorInterface"))
         self.launchoptionsInterface = ScrollableWidget(Widget(self, "launchoptionsInterface"))
+        self.pluginEditorInterface = ScrollableWidget(Widget(self, "pluginEditorInterface"))
+        self.themeEditorInterface = ScrollableWidget(Widget(self, "flagEditorInterface"))
         self.settingInterface = ScrollableWidget(Widget(self, "settingInterface"))
 
         self.homeInterface.setObjectName("homeInterface")
@@ -90,6 +99,8 @@ class Window(FluentWindow):
         self.flagsInterface.setObjectName("flagsInterface")
         self.flagEditorInterface.setObjectName("flagEditorInterface")
         self.launchoptionsInterface.setObjectName("launchoptionsInterface")
+        self.pluginEditorInterface.setObjectName("pluginEditorInterface")
+        self.themeEditorInterface.setObjectName("themeEditorInterface")
         self.settingInterface.setObjectName("settingInterface")
 
         self.addSubInterface(self.homeInterface, FIF.HOME, "Home")
@@ -99,6 +110,10 @@ class Window(FluentWindow):
         self.addSubInterface(self.launchoptionsInterface, FIF.PLAY, "Launch Options")
         flagEditorSubInterface = self.addSubInterface(self.flagEditorInterface, FIF.FLAG, "Flag Editor [INTERNAL]")
         flagEditorSubInterface.hide()
+        pluginEditorSubInterface = self.addSubInterface(self.pluginEditorInterface, FIF.APPLICATION, "Plugin Editor [INTERNAL]")
+        pluginEditorSubInterface.hide()
+        themeEditorSubInterface = self.addSubInterface(self.themeEditorInterface, FIF.SETTING, "Theme Manager [INTERNAL]")
+        themeEditorSubInterface.hide()
         self.addSubInterface(self.settingInterface, FIF.SETTING, "Settings", NavigationItemPosition.BOTTOM)
         self.navigationInterface.setAcrylicEnabled(True)
 
@@ -117,6 +132,16 @@ class Window(FluentWindow):
         headerLabelFlagEditor.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)  
         self.flagEditorInterface.widget().vBoxLayout.addWidget(headerLabelFlagEditor)
 
+        headerLabelpluginEditor = TitleLabel("Plugin Editor")
+        headerLabelpluginEditor.setFixedHeight(37)  
+        headerLabelpluginEditor.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)  
+        self.pluginEditorInterface.widget().vBoxLayout.addWidget(headerLabelpluginEditor)
+
+        headerLabelthemeEditor = TitleLabel("Theme Manager")
+        headerLabelthemeEditor.setFixedHeight(37)  
+        headerLabelthemeEditor.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)  
+        self.themeEditorInterface.widget().vBoxLayout.addWidget(headerLabelthemeEditor)
+
         headerLabelSettings = TitleLabel("Settings")
         headerLabelSettings.setFixedHeight(37)
         headerLabelSettings.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
@@ -132,6 +157,10 @@ class Window(FluentWindow):
 
         self.addFlagEditorContent()
 
+        self.addPluginEditorContent()
+
+        self.addThemeEditorContent()
+
     def deleteCredentials(self, _):
         try:
             creds = win32cred.CredEnumerate(None, 0)
@@ -139,7 +168,7 @@ class Window(FluentWindow):
             for cred in creds:
                 if "roblox" in cred["TargetName"].lower():
                     win32cred.CredDelete(cred["TargetName"], 1)
-                    print(f"Deleted credential: {cred["TargetName"]}")
+                    print(f"\033[1;36mINFO:\033[0m Deleted credential: {cred["TargetName"]}")
             InfoBar.success(
                 title="Roblox Credentials",
                 content="Successfully deleted all of the Roblox-related credentials.",
@@ -149,17 +178,388 @@ class Window(FluentWindow):
                 duration=2000,
                 parent=self
             )
-        except Exception as e:
-            print(f"\033[1;31mERROR:\033[0m: {e}")
+        except Exception as exception:
+            print(f"\033[1;31mERROR:\033[0m: {exception}")
             InfoBar.error(
                 title="Roblox Credentials",
-                content=f"Error attempting to delete Roblox Credentials: {e}",
+                content=f"Error attempting to delete Roblox Credentials: {exception}",
                 orient=Qt.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP_RIGHT,
                 duration=2000,
                 parent=self
             )
+
+    def on_patch_button_clicked(self):
+        patchProgress.start()
+        self.patchButton.setEnabled(False)
+
+        self.patchThread = PatchThread()
+        self.patchThread.taskFinished.connect(self.on_patch_finished)
+        self.patchThread.start()
+
+    def on_patch_finished(self):
+        patchProgress.stop()
+        self.patchButton.setEnabled(True)
+        print("\033[1;32mSUCCESS:\033[0m Successfully patched Roblox Studio for theme use.")
+
+    def displayColorPicker(self, title, color, colorDisplay):
+        picker = ColorDialog(color, title, self, enableAlpha=False)
+        if picker.exec():
+            colorDisplay.setStyleSheet(f"background-color: rgb({picker.color.red()}, {picker.color.green()}, {picker.color.blue()}); height: 30px; width: 30px; border-radius: 5px;")
+            return color
+        else:
+            return None
+    
+    def addColorPickerObject(self, title, description, color : QColor, themeEditorLayout):
+        container = CardWidget()
+        container.setFixedHeight(70)
+
+        titleLabel = BodyLabel(title, container)
+        contentLabel = CaptionLabel(description, container)
+        contentLabel.setTextColor("#606060", "#d2d2d2")
+
+        colorDisplay = PushButton(container)
+        colorDisplay.setText("")
+        colorDisplay.clicked.connect(lambda: self.displayColorPicker(title, color, colorDisplay))
+        colorDisplay.setStyleSheet(f"background-color: {color}; height: 30px; width: 30px; border-radius: 5px;")
+
+        hBoxLayout = QHBoxLayout(container)
+        hBoxLayout.setContentsMargins(18, 11, 11, 11)
+        hBoxLayout.setSpacing(15)
+
+        vBoxLayout = QVBoxLayout()
+        vBoxLayout.setContentsMargins(0, 0, 0, 0)
+        vBoxLayout.setSpacing(0)
+        vBoxLayout.addWidget(titleLabel, 0, Qt.AlignVCenter)
+        vBoxLayout.addWidget(contentLabel, 0, Qt.AlignVCenter)
+
+        hBoxLayout.addLayout(vBoxLayout)
+        hBoxLayout.addStretch(1)
+        hBoxLayout.addWidget(colorDisplay, 0, Qt.AlignRight)
+
+        container.isColorPicker = True
+
+        themeEditorLayout.addWidget(container)
+
+    def inheritColors(self, theme, themeEditorLayout : QVBoxLayout):
+        json_data = get_theme_colors(theme)
+
+        for i in reversed(range(themeEditorLayout.count())): 
+            widget_item = themeEditorLayout.itemAt(i).widget()
+            try:
+                if widget_item.isColorPicker == True:
+                    widget_item.setParent(None)
+            except:
+                pass
+
+        for color_entry in json_data["Colors"]:
+            for color_name, color_values in color_entry.items():
+                if "rdl" not in color_name.lower():
+                    if isinstance(color_values, dict):
+                        for sub_name, color in color_values.items():
+                            if isinstance(color, str) and color.startswith("#"):
+                                self.addColorPickerObject(color_name, sub_name, color, themeEditorLayout)
+                    elif isinstance(color_values, str) and color_values.startswith("#"):
+                        self.addColorPickerObject(color_name, "Default", color_values, themeEditorLayout)
+
+                if isinstance(color_values, list):
+                    continue
+
+    def rgbToHex(self, rgb_str):
+        rgb_values = rgb_str.strip("rgb()").split(",")
+        r, g, b = map(int, rgb_values)
+        return f"#{r:02X}{g:02X}{b:02X}"
+
+    def rebuildJSON(self, themeEditorLayout):
+        json_data = {"Colors": []}
+        
+        color_groups = {}
+        
+        for i in range(themeEditorLayout.count()):
+            widget_item = themeEditorLayout.itemAt(i).widget()
+            
+            try:
+                if widget_item.isColorPicker:
+                    title = widget_item.findChild(BodyLabel).text()
+                    description = widget_item.findChild(CaptionLabel).text()
+                    color_display = widget_item.findChild(PushButton)
+                    color_value = color_display.styleSheet().split(": ")[1].split(";")[0]
+
+                    if color_value.startswith("rgb"):
+                        color_value = self.rgbToHex(color_value)
+
+                    if title not in color_groups:
+                        color_groups[title] = {}
+                    
+                    color_groups[title][description] = color_value
+            except AttributeError:
+                continue
+        
+        for color_name, sub_colors in color_groups.items():
+            json_data["Colors"].append({color_name: sub_colors})
+
+        json_string = json.dumps(json_data, indent=4)
+        return json_string
+
+    def importTheme(self, themeEditorLayout):
+        file_dialog = QFileDialog()
+        file_path, _ = file_dialog.getOpenFileName(self, "Select File", "", "Theme Files (*.rbxst);;JSON Files (*.json)")
+        if file_path:
+            with open(file_path, "r") as file:
+                try:
+                    json_data = json.load(file)
+                except Exception as exception:
+                    InfoBar.error(
+                        title="Theme Manager",
+                        content=f"Error while parsing JSON: {exception}",
+                        orient=Qt.Horizontal,
+                        isClosable=True,
+                        position=InfoBarPosition.TOP_RIGHT,
+                        duration=2000,
+                        parent=self
+                    )
+                    print(f"\033[1;31mERROR:\033[0m Error while parsing JSON file: {exception}")
+                    return
+                
+            for i in reversed(range(themeEditorLayout.count())): 
+                widget_item = themeEditorLayout.itemAt(i).widget()
+                try:
+                    if widget_item.isColorPicker == True:
+                        widget_item.setParent(None)
+                except:
+                    pass
+
+            for color_entry in json_data["Colors"]:
+                for color_name, color_values in color_entry.items():
+                    if "rdl" not in color_name.lower():
+                        if isinstance(color_values, dict):
+                            for sub_name, color in color_values.items():
+                                if isinstance(color, str) and color.startswith("#"):
+                                    self.addColorPickerObject(color_name, sub_name, color, themeEditorLayout)
+                        elif isinstance(color_values, str) and color_values.startswith("#"):
+                            self.addColorPickerObject(color_name, "Default", color_values, themeEditorLayout)
+
+                    if isinstance(color_values, list):
+                        continue
+
+            InfoBar.success(
+                        title="Theme Manager",
+                        content="Theme loaded successfully.",
+                        orient=Qt.Horizontal,
+                        isClosable=True,
+                        position=InfoBarPosition.TOP_RIGHT,
+                        duration=2000,
+                        parent=self
+                    )
+
+    def exportTheme(self, themeEditorLayout):
+        file_path, _ = QFileDialog.getSaveFileName(self, "Save Theme File", "", "Theme Files (*.rbxst);;JSON Files (*.json)")
+
+        if file_path:
+            try:
+                with open(file_path, "w") as theme_file:
+                    theme_file.write(self.rebuildJSON(themeEditorLayout))
+
+                print(f"\033[1;32mSUCCESS:\033[0m File successfully saved as {file_path}")
+            except Exception as exception:
+                print(f"\033[1;31mERROR:\033[0m Error saving file: {exception}")
+
+    def togglePlugin(self, plugin : SwitchButton, directory, pluginName):
+        if plugin.checked:
+            toggle_plugin_enabled(os.path.join("DisabledPlugins", pluginName) + f"-{directory}", plugin.checked)
+        else:
+            toggle_plugin_enabled(os.path.join(directory, pluginName), plugin.checked)
+
+    def redownloadDefaultThemes(self, theme, themeEditorLayout):
+        download_default_themes()
+        self.inheritColors(theme, themeEditorLayout)
+    def addPluginToggle(self, pluginName, pluginDirectory, enabled, pluginEditorLayout):
+        container = CardWidget()
+        container.setFixedHeight(70)
+
+        if pluginDirectory == "DisabledPlugins":
+            split = pluginName.split("-", 2)
+            pluginName = split[0]
+            pluginDirectory = split[1]
+            enabled = False
+
+        titleLabel = BodyLabel(pluginName, container)
+        contentLabel = CaptionLabel(pluginDirectory, container)
+        contentLabel.setTextColor("#606060", "#d2d2d2")
+
+        enabledToggle = SwitchButton(container)
+        enabledToggle.setOnText("")
+        enabledToggle.setOffText("")
+        enabledToggle.setChecked(enabled)
+        enabledToggle.checkedChanged.connect(lambda : self.togglePlugin(enabledToggle, pluginDirectory, pluginName))
+
+        hBoxLayout = QHBoxLayout(container)
+        hBoxLayout.setContentsMargins(18, 11, 11, 11)
+        hBoxLayout.setSpacing(15)
+
+        vBoxLayout = QVBoxLayout()
+        vBoxLayout.setContentsMargins(0, 0, 0, 0)
+        vBoxLayout.setSpacing(0)
+        vBoxLayout.addWidget(titleLabel, 0, Qt.AlignVCenter)
+        vBoxLayout.addWidget(contentLabel, 0, Qt.AlignVCenter)
+
+        hBoxLayout.addLayout(vBoxLayout)
+        hBoxLayout.addStretch(1)
+        hBoxLayout.addWidget(enabledToggle, 0, Qt.AlignRight)
+
+        pluginEditorLayout.addWidget(container)
+
+    def addPluginEditorContent(self):
+        pluginEditorLayout = QVBoxLayout()
+        pluginEditorLayout.setAlignment(Qt.AlignTop)
+        
+        plugins = get_builtin_plugins()
+
+        for plugin in plugins:
+            file_name = plugin["name"]
+            file_base_folder = plugin["base_folder"]
+            file_enabled = plugin["enabled"]
+            self.addPluginToggle(file_name, file_base_folder, file_enabled, pluginEditorLayout)
+        
+        scrollArea = SingleDirectionScrollArea(orient=Qt.Vertical)
+        scrollWidget = QWidget(self.themeEditorInterface)
+        scrollWidget.setLayout(pluginEditorLayout)
+
+        scrollArea.setWidget(scrollWidget)
+        scrollArea.setWidgetResizable(True)
+
+        self.pluginEditorInterface.widget().vBoxLayout.addWidget(scrollArea)
+
+    def addThemeEditorContent(self):
+        themeEditorLayout = QVBoxLayout()
+        themeEditorLayout.setAlignment(Qt.AlignTop)
+
+        container = CardWidget()
+        container.setFixedHeight(70)
+
+        iconWidget = IconWidget(FIF.SAVE_AS)
+        iconWidget.setFixedSize(16, 16)
+        titleLabel = BodyLabel("Theme Patcher", container)
+        contentLabel = CaptionLabel("Patch Roblox Studio to be able to run aboriginal themes.", container)
+        contentLabel.setTextColor("#606060", "#d2d2d2")
+
+        self.patchButton = PrimaryPushButton(container)
+        self.patchButton.setText("Patch")
+        self.patchButton.clicked.connect(self.on_patch_button_clicked)
+
+        global patchProgress
+        patchProgress = IndeterminateProgressBar(start = False)
+
+        hBoxLayout = QHBoxLayout(container)
+        hBoxLayout.setContentsMargins(16, 11, 11, 11)
+        hBoxLayout.addWidget(iconWidget, 0, Qt.AlignLeft)
+        hBoxLayout.setSpacing(15)
+
+        vBoxLayout = QVBoxLayout()
+        vBoxLayout.setContentsMargins(0, 0, 0, 0)
+        vBoxLayout.setSpacing(0)
+        vBoxLayout.addWidget(titleLabel, 0, Qt.AlignVCenter)
+        vBoxLayout.addWidget(contentLabel, 0, Qt.AlignVCenter)
+
+        hBoxLayout.addLayout(vBoxLayout)
+        hBoxLayout.addStretch(1)
+        hBoxLayout.addWidget(self.patchButton, 0, Qt.AlignRight)
+
+        themeEditorLayout.addWidget(patchProgress)
+        themeEditorLayout.addWidget(container)
+
+        container = CardWidget()
+        container.setFixedHeight(70)
+
+        iconWidget = IconWidget(FIF.SETTING)
+        iconWidget.setFixedSize(16, 16)
+        titleLabel = BodyLabel("Inherited Theme", container)
+        contentLabel = CaptionLabel("Choose the theme to inherit the colors from", container)
+        contentLabel.setTextColor("#606060", "#d2d2d2")
+
+        self.inheritDropdown = ComboBox(container)
+        self.inheritDropdown.addItems(["LightTheme", "DarkTheme"])
+        self.inheritDropdown.setCurrentIndex(0)
+        self.inheritDropdown.currentIndexChanged.connect(lambda : self.inheritColors(self.inheritDropdown.currentText(), themeEditorLayout))
+
+        hBoxLayout = QHBoxLayout(container)
+        hBoxLayout.setContentsMargins(16, 11, 11, 11)
+        hBoxLayout.addWidget(iconWidget, 0, Qt.AlignLeft)
+        hBoxLayout.setSpacing(15)
+
+        vBoxLayout = QVBoxLayout()
+        vBoxLayout.setContentsMargins(0, 0, 0, 0)
+        vBoxLayout.setSpacing(0)
+        vBoxLayout.addWidget(titleLabel, 0, Qt.AlignVCenter)
+        vBoxLayout.addWidget(contentLabel, 0, Qt.AlignVCenter)
+
+        hBoxLayout.addLayout(vBoxLayout)
+        hBoxLayout.addStretch(1)
+        hBoxLayout.addWidget(self.inheritDropdown, 0, Qt.AlignRight)
+
+        themeEditorLayout.addWidget(container)
+
+        container = CardWidget()
+        container.setFixedHeight(70)
+
+        iconWidget = IconWidget(FIF.EMBED)
+        iconWidget.setFixedSize(16, 16)
+        titleLabel = BodyLabel("Data Operations", container)
+        contentLabel = CaptionLabel("Choose whether you would like to import or export a theme.", container)
+        contentLabel.setTextColor("#606060", "#d2d2d2")
+
+        self.importButton = PushButton(container)
+        self.importButton.setText("Import")
+        self.importButton.clicked.connect(lambda: self.importTheme(themeEditorLayout))
+
+        self.exportButton = PushButton(container)
+        self.exportButton.setText("Export")
+        self.exportButton.clicked.connect(lambda: self.exportTheme(themeEditorLayout))
+
+        self.resetButton = PushButton(container)
+        self.resetButton.setText("Reset")
+        self.resetButton.clicked.connect(lambda : self.redownloadDefaultThemes(self.inheritDropdown.currentText(), themeEditorLayout))
+
+        self.applyButton = PrimaryPushButton(container)
+        self.applyButton.setText("Save")
+        self.applyButton.clicked.connect(lambda: apply_custom_theme(self.rebuildJSON(themeEditorLayout)))
+
+        hBoxLayout = QHBoxLayout(container)
+        hBoxLayout.setContentsMargins(16, 11, 11, 11)
+        hBoxLayout.addWidget(iconWidget, 0, Qt.AlignLeft)
+        hBoxLayout.setSpacing(15)
+
+        vBoxLayout = QVBoxLayout()
+        vBoxLayout.setContentsMargins(0, 0, 0, 0)
+        vBoxLayout.setSpacing(0)
+        vBoxLayout.addWidget(titleLabel, 0, Qt.AlignVCenter)
+        vBoxLayout.addWidget(contentLabel, 0, Qt.AlignVCenter)
+
+        hBoxLayout.addLayout(vBoxLayout)
+        hBoxLayout.addStretch(1)
+
+        buttonLayout = QHBoxLayout()
+        buttonLayout.addWidget(self.importButton)
+        buttonLayout.addWidget(self.exportButton)
+        buttonLayout.addWidget(self.resetButton)
+        buttonLayout.addWidget(self.applyButton)
+        buttonLayout.setSpacing(10)
+
+        hBoxLayout.addLayout(buttonLayout)
+
+        themeEditorLayout.addWidget(container)
+
+        self.inheritColors("LightTheme", themeEditorLayout)
+
+        scrollArea = SingleDirectionScrollArea(orient=Qt.Vertical)
+        scrollWidget = QWidget(self.themeEditorInterface)
+        scrollWidget.setLayout(themeEditorLayout)
+
+        scrollArea.setWidget(scrollWidget)
+        scrollArea.setWidgetResizable(True)
+
+        self.themeEditorInterface.widget().vBoxLayout.addWidget(scrollArea)
 
     def addHomepageContent(self):
 
@@ -237,7 +637,7 @@ class Window(FluentWindow):
         channelDownloaderCard.addWidget(self.channelLineEdit)
 
         folderButton = ToolButton(FIF.FOLDER)
-        downloadButton = PushButton("Download")
+        downloadButton = PrimaryPushButton("Download")
 
         channelDownloaderCard.addWidget(folderButton)
         channelDownloaderCard.addWidget(downloadButton)
@@ -283,6 +683,36 @@ class Window(FluentWindow):
         hBoxLayout.addLayout(vBoxLayout)
         hBoxLayout.addStretch(1)
         hBoxLayout.addWidget(self.clearButton, 0, Qt.AlignRight)
+
+        settingsLayout.addWidget(container)
+
+        container = CardWidget()
+        container.setFixedHeight(70)
+
+        iconWidget = IconWidget(FIF.PALETTE)
+        iconWidget.setFixedSize(16, 16)
+        titleLabel = BodyLabel("Theme Manager", container)
+        contentLabel = CaptionLabel("Edit and customize colors for the Roblox Studio User Interface.", container)
+        contentLabel.setTextColor("#606060", "#d2d2d2")
+
+        self.modifyButton = PrimaryPushButton(container)
+        self.modifyButton.setText("Modify")
+        self.modifyButton.clicked.connect(lambda : self.switchTo(self.themeEditorInterface))
+
+        hBoxLayout = QHBoxLayout(container)
+        hBoxLayout.setContentsMargins(16, 11, 11, 11)
+        hBoxLayout.addWidget(iconWidget, 0, Qt.AlignLeft)
+        hBoxLayout.setSpacing(15)
+
+        vBoxLayout = QVBoxLayout()
+        vBoxLayout.setContentsMargins(0, 0, 0, 0)
+        vBoxLayout.setSpacing(0)
+        vBoxLayout.addWidget(titleLabel, 0, Qt.AlignVCenter)
+        vBoxLayout.addWidget(contentLabel, 0, Qt.AlignVCenter)
+
+        hBoxLayout.addLayout(vBoxLayout)
+        hBoxLayout.addStretch(1)
+        hBoxLayout.addWidget(self.modifyButton, 0, Qt.AlignRight)
 
         settingsLayout.addWidget(container)
 
@@ -365,6 +795,7 @@ class Window(FluentWindow):
                     duration=2000,
                     parent=self
                 )
+                print(f"\033[1;31mERROR:\033[0m Error while parsing JSON: {exception}")
                 return
 
     def tableToJSON(self, flagTable):
@@ -393,6 +824,18 @@ class Window(FluentWindow):
 
         return table_data
 
+    def filterTable(self):
+        search_term = self.searchEdit.text().lower()
+        
+        for row in range(self.flagTable.rowCount()):
+            flag_item = self.flagTable.item(row, 0).text().lower()
+            value_item = self.flagTable.item(row, 1).text().lower()
+            
+            if search_term in flag_item or search_term in value_item:
+                self.flagTable.setRowHidden(row, False)
+            else:
+                self.flagTable.setRowHidden(row, True)
+
     def addFlagEditorContent(self):
         flagEditorLayout = QVBoxLayout()
         flagEditorLayout.setAlignment(Qt.AlignTop)
@@ -404,10 +847,10 @@ class Window(FluentWindow):
         saveButton = PrimaryPushButton(FIF.SAVE, "Save")
 
         backButton.clicked.connect(lambda : self.switchTo(self.flagsInterface))
-        addButton.clicked.connect(lambda : self.addRow(flagTable))
-        deleteButton.clicked.connect(lambda : self.deleteSelectedRows(flagTable))
-        importButton.clicked.connect(lambda: self.promptJSONInput(flagTable))
-        saveButton.clicked.connect(lambda: save_custom_flags(self.tableToJSON(flagTable)))
+        addButton.clicked.connect(lambda : self.addRow(self.flagTable))
+        deleteButton.clicked.connect(lambda : self.deleteSelectedRows(self.flagTable))
+        importButton.clicked.connect(lambda: self.promptJSONInput(self.flagTable))
+        saveButton.clicked.connect(lambda: save_custom_flags(self.tableToJSON(self.flagTable)))
 
         buttonRowLayout = QHBoxLayout()
         buttonRowLayout.setSpacing(10)
@@ -419,19 +862,19 @@ class Window(FluentWindow):
 
         flagEditorLayout.addLayout(buttonRowLayout)
 
-        searchEdit = SearchLineEdit()
-        searchEdit.setPlaceholderText("Search")
-        flagEditorLayout.addWidget(searchEdit)
+        self.searchEdit = SearchLineEdit()
+        self.searchEdit.setPlaceholderText("Search")
+        flagEditorLayout.addWidget(self.searchEdit)
 
-        searchEdit.textEdited.connect(lambda text: print("Search：" + text))
+        self.searchEdit.textChanged.connect(self.filterTable)
 
         self.rowCount = 0
 
-        flagTable = TableWidget()
-        flagTable.setBorderVisible(True)
-        flagTable.setBorderRadius(5)
-        flagTable.setWordWrap(False)
-        flagTable.setColumnCount(2)
+        self.flagTable = TableWidget()
+        self.flagTable.setBorderVisible(True)
+        self.flagTable.setBorderRadius(5)
+        self.flagTable.setWordWrap(False)
+        self.flagTable.setColumnCount(2)
 
         flagJson = get_custom_flags()
         try:
@@ -440,19 +883,19 @@ class Window(FluentWindow):
             flagList = []
             
         self.rowCount = len(flagList) if flagList else 0
-        flagTable.setRowCount(self.rowCount)
+        self.flagTable.setRowCount(self.rowCount)
 
         for i, flag in enumerate(flagList):
             for j in range(2):
-                flagTable.setItem(i, j, QTableWidgetItem(flag[j]))
+                self.flagTable.setItem(i, j, QTableWidgetItem(flag[j]))
 
-        flagTable.setHorizontalHeaderLabels(["Flag", "Value"])
-        flagTable.verticalHeader().hide()
+        self.flagTable.setHorizontalHeaderLabels(["Flag", "Value"])
+        self.flagTable.verticalHeader().hide()
 
-        header = flagTable.horizontalHeader()
+        header = self.flagTable.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.Stretch)
 
-        flagEditorLayout.addWidget(flagTable)
+        flagEditorLayout.addWidget(self.flagTable)
 
         scrollArea = SingleDirectionScrollArea(orient=Qt.Vertical)
         scrollWidget = QWidget(self.flagEditorInterface)
@@ -673,6 +1116,11 @@ class Window(FluentWindow):
 
         self.flagsInterface.widget().vBoxLayout.addWidget(container)
 
+    def resetConfiguration(self):
+        response = MessageBox("Roblox Studio Manager", "Are you sure you want to reset your FFlags?", self)
+        if response.exec():
+            reset_configuration()
+
     def addLaunchOptionsButtons(self):
 
         self.addFlagEditorCard()
@@ -681,7 +1129,7 @@ class Window(FluentWindow):
         applyButton.clicked.connect(self.applySettings)
 
         resetButton = PushButton("Reset Configuration")
-        resetButton.clicked.connect(reset_configuration)
+        resetButton.clicked.connect(self.resetConfiguration)
 
         installButton = PushButton("Installation Folder")
         installButton.clicked.connect(open_installation_folder)
@@ -693,12 +1141,10 @@ class Window(FluentWindow):
         updateButton.clicked.connect(update_studio)
 
         pluginButton = PushButton("Plugin Editor")
-        pluginButton.setEnabled(False)
-        pluginButton.clicked.connect(open_plugin_editor)
+        pluginButton.clicked.connect(lambda: self.switchTo(self.pluginEditorInterface))
 
         themeButton = PushButton("Theme Manager")
-        themeButton.setEnabled(False)
-        themeButton.clicked.connect(open_theme_manager)
+        themeButton.clicked.connect(lambda: self.switchTo(self.themeEditorInterface))
 
         self.launchoptionsInterface.widget().vBoxLayout.addWidget(applyButton)
         self.launchoptionsInterface.widget().vBoxLayout.addWidget(resetButton)

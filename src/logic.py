@@ -506,39 +506,230 @@ def apply_settings(settings):
                 print(f"\033[1;31mERROR:\033[0m Error applying internal patch: {exception}")
 
 def reset_configuration():
-    response = ctypes.windll.user32.MessageBoxW(0, "Are you sure you want to reset your FFlags?", "Roblox Studio Manager", 0x04)
-    if response == 6:
-        clientPath = os.path.join(selected_version, "ClientSettings", "ClientAppSettings.json")
-        if os.path.exists(clientPath):
-            os.remove(clientPath)
-            print("\033[1;36mINFO:\033[0m Configuration reset")
-        else:
-            print("\033[1;31mERROR:\033[0m The file does not exist")
-        print("\033[1;36mINFO:\033[0m Reset Configuration clicked")
+    clientPath = os.path.join(selected_version, "ClientSettings", "ClientAppSettings.json")
+    if os.path.exists(clientPath):
+        os.remove(clientPath)
+        print("\033[1;36mINFO:\033[0m Configuration reset")
+    else:
+        print("\033[1;31mERROR:\033[0m The file does not exist")
+    print("\033[1;36mINFO:\033[0m Reset Configuration clicked")
 
 def open_installation_folder():
     subprocess.Popen(["explorer", selected_version])
     print("\033[1;36mINFO:\033[0m Installation Folder clicked")
 
 def launch_studio():
-    subprocess.Popen([os.path.join(selected_version, "RobloxStudioBeta.exe")])
+    subprocess.Popen([os.path.join(selected_version, "RobloxStudioBeta.exe")], cwd=selected_version)
     print("\033[1;36mINFO:\033[0m Launch Studio clicked")
 
 def update_studio():
-    subprocess.Popen([os.path.join(selected_version, "RobloxStudioInstaller.exe")])
+    subprocess.Popen([os.path.join(selected_version, "RobloxStudioInstaller.exe")], cwd=selected_version)
     print("\033[1;36mINFO:\033[0m Update Studio clicked")
-
-def open_plugin_editor():
-    print("\033[1;36mINFO:\033[0m Plugin Editor clicked")
-
-def open_theme_manager():
-    print("\033[1;36mINFO:\033[0m Theme Manager clicked")
 
 selected_version = find_latest_version(os.path.join(os.environ["LOCALAPPDATA"], "Roblox", "Versions"))
 if not selected_version:
     selected_version = find_latest_version(os.path.join(os.environ["PROGRAMFILES(X86)"], "Roblox", "Versions"))
 
 print(f"\033[1;36mINFO:\033[0m Selected Version: {selected_version}" if selected_version else "\033[1;31mERROR:\033[0m No valid version found.")
+
+def patch_studio_for_themes():
+    def patch_studio():
+        file_path = os.path.join(selected_version, "RobloxStudioBeta.exe")
+
+        with open(file_path, "rb") as f:
+            file_data = f.read()
+
+        print("\033[1;36mINFO:\033[0m Searching for bytes..")
+        patch_done = False
+        for i in range(len(file_data) - 3):
+            if file_data[i:i+4] == b":/Pl":
+                file_data = file_data[:i] + b"./Pl" + file_data[i+4:]
+                patch_done = True
+
+        patched_file_path = os.path.join(selected_version, "RobloxStudioBeta.exe")
+        with open(patched_file_path, "wb") as f:
+            f.write(file_data)
+
+        if not patch_done:
+            print("\033[1;36mINFO:\033[0m No bytes found.")
+            return
+
+        print("\033[1;32mSUCCESS:\033[0m Successfully patched Roblox Studio for theme use.")
+    
+    patch_studio()
+
+target_dir = selected_version
+platform_path = os.path.join(target_dir, "Platform")
+base_path = os.path.join(platform_path, "Base", "QtUI", "themes")
+base_path = os.path.normpath(base_path)
+os.makedirs(platform_path, exist_ok=True)
+os.makedirs(base_path, exist_ok=True)
+
+dark_theme_url = "https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/roblox/QtResources/Platform/Base/QtUI/themes/DarkTheme.json"
+light_theme_url = "https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/roblox/QtResources/Platform/Base/QtUI/themes/LightTheme.json"
+foundation_dark_theme_url = "https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/roblox/QtResources/Platform/Base/QtUI/themes/FoundationDarkTheme.json"
+foundation_light_theme_url = "https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/roblox/QtResources/Platform/Base/QtUI/themes/FoundationLightTheme.json"
+
+dark_theme_path = os.path.join(base_path, "DarkTheme.json")
+light_theme_path = os.path.join(base_path, "LightTheme.json")
+foundation_dark_theme_path = os.path.join(base_path, "FoundationDarkTheme.json")
+foundation_light_theme_path = os.path.join(base_path, "FoundationLightTheme.json")
+
+def download_default_themes():
+    def download_file(url, file_path):
+        response = requests.get(url)
+        response.raise_for_status()
+        with open(file_path, "wb") as file:
+            file.write(response.content)
+
+    print("\033[1;36mINFO:\033[0m Downloading theme files..")
+    try:
+        download_file(dark_theme_url, dark_theme_path)
+        download_file(light_theme_url, light_theme_path)
+        download_file(foundation_dark_theme_url, foundation_dark_theme_path)
+        download_file(foundation_light_theme_url, foundation_light_theme_path)
+        print("\033[1;32mSUCCESS:\033[0m Theme files downloaded successfully.")
+    except Exception as exception:
+        print(f"\033[1;31mERROR:\033[0m Failed to download theme files: {exception}")
+
+if not os.path.exists(dark_theme_path):
+    download_default_themes()
+
+def get_theme_colors(selection = "LightTheme"):
+    with open(os.path.join(base_path, f"{selection}.json"), "r") as file:
+        json_data = json.load(file)
+    return json_data
+
+theme_paths = [
+    os.path.join(base_path, "LightTheme.json"),
+    os.path.join(base_path, "FoundationLightTheme.json"),
+    os.path.join(base_path, "DarkTheme.json"),
+    os.path.join(base_path, "FoundationDarkTheme.json")
+]
+
+def apply_custom_theme(themeJSON):
+    try:
+        theme_dict = json.loads(themeJSON)
+    except json.JSONDecodeError:
+        print("\033[1;31mERROR:\033[0m Failed to decode theme JSON.")
+        return
+    for theme_path in theme_paths:
+        try:
+            with open(theme_path, "r") as file:
+                original_theme = json.load(file)
+            
+            original_theme.update(theme_dict)
+            
+            with open(theme_path, "w") as file:
+                json.dump(original_theme, file, indent=4)
+            
+            print(f"\033[1;32mSUCCESS:\033[0m Custom theme applied to {theme_path}")
+        
+        except Exception as exception:
+            print(f"\033[1;31mERROR:\033[0m An error occurred while parsing {theme_path}: {exception}")
+
+disabledPlugins = os.path.join(selected_version, "DisabledPlugins", "Optimized_Embedded_Signature")
+
+def get_disabled_plugins():
+    file_info = []
+    folder_path = os.path.join(selected_version, "DisabledPlugins", "Optimized_Embedded_Signature")
+    if os.path.isdir(folder_path):
+        for root, _, files in os.walk(folder_path):
+            for file in files:
+                if file.endswith(".rbxm"):
+                    name, _ = os.path.splitext(file)
+                    split = name.split("-", 2)
+                    name = split[0]
+                    folder = split[1]
+                    file_info.append(f"{folder}/{name}")
+    else:
+        print(f"\033[1;31mERROR:\033[0m Folder {folder_path} does not exist.")
+
+    file_info.sort()
+    return file_info
+
+def toggle_plugin_enabled(plugin, enabled, *disableSaving):
+    if enabled:
+        split = os.path.normpath(plugin).split(os.sep)
+        split = split[1].split("-")
+        name = split[0]
+        folder = split[1]
+        
+        actualPath = os.path.join(selected_version, "DisabledPlugins", "Optimized_Embedded_Signature", name) + f"-{folder}.rbxm"
+        modifiedPath = os.path.join(selected_version, folder, "Optimized_Embedded_Signature", name) + ".rbxm"
+        
+        os.rename(actualPath, modifiedPath)
+        print(f"\033[1;36mINFO:\033[0m Moved file {actualPath} to directory of {modifiedPath} [ENABLED]")
+    else:
+        split = os.path.normpath(plugin).split(os.sep)
+        actualPath = os.path.join(selected_version, split[0], "Optimized_Embedded_Signature", split[1]) + ".rbxm"
+        modifiedPath = os.path.join(selected_version, "DisabledPlugins", "Optimized_Embedded_Signature", split[1]) + f"-{split[0]}.rbxm"
+        
+        os.rename(actualPath, modifiedPath)
+        print(f"\033[1;36mINFO:\033[0m Moved file {actualPath} to directory of {modifiedPath} [DISABLED]")
+
+    if not disableSaving:
+        if getattr(sys, "frozen", False):
+            directory = os.path.dirname(sys.executable)
+        elif __file__:
+            directory = os.path.dirname(__file__)
+
+        plugin_file = os.path.join(directory, "RobloxStudioPluginStatus.rbxp")
+        
+        try:
+            disabledPlugins = get_disabled_plugins()
+            with open(plugin_file, "w") as file:
+                file.write("\n".join(disabledPlugins))
+        except Exception as exception:
+            print(f"\033[1;31mERROR:\033[0m An error occurred while writing to {plugin_file}: {exception}")
+
+if not os.path.exists(disabledPlugins):
+    os.makedirs(disabledPlugins)
+
+    if getattr(sys, "frozen", False):
+        directory = os.path.dirname(sys.executable)
+    elif __file__:
+        directory = os.path.dirname(__file__)
+
+    plugin_file = os.path.join(directory, "RobloxStudioPluginStatus.rbxp")
+
+    try:
+        file = open(plugin_file, "r")
+        content = file.read().splitlines()
+        file.close()
+        for plugin in content:
+            toggle_plugin_enabled(plugin, False, True)
+            split = plugin.split(os.sep)
+            os.remove(os.path.join(selected_version, split[0], "Optimized_Embedded_Signature", split[1]) + ".rbxm")
+    except Exception as exception:
+        print(f"\033[1;31mERROR:\033[0m An error occurred while inspecting {plugin_file}: {exception}")
+
+pluginFolders = ["DisabledPlugins", "BuiltInPlugins", "BuiltInStandalonePlugins"]
+
+def get_builtin_plugins():
+    file_info = {}
+
+    for folder in pluginFolders:
+        folder_path = os.path.join(selected_version, folder, "Optimized_Embedded_Signature")
+        folder_path = os.path.normpath(folder_path)
+        if os.path.isdir(folder_path):
+            for root, _, files in os.walk(folder_path):
+                for file in files:
+                    if file.endswith(".rbxm"):
+                        name, _ = os.path.splitext(file)
+                        if os.path.split(os.path.split(root)[0])[1] == "DisabledPlugins":
+                            split = name.split("-", 2)
+                            name = split[0]
+                            folder = split[1]
+                            duplicateFile = os.path.join(selected_version, folder, "Optimized_Embedded_Signature", name) + ".rbxm"
+                            if os.path.isfile(duplicateFile):
+                                os.remove(duplicateFile)
+                        file_info[file] = {"name": name, "base_folder": folder, "enabled": os.path.split(os.path.split(root)[0])[1] != "DisabledPlugins"}
+        else:
+            print(f"\033[1;31mERROR:\033[0m Folder {folder_path} does not exist.")
+
+    sorted_files = sorted(file_info.values(), key=lambda x: x["name"])
+    return sorted_files
 
 fetch = fetch_internal_patch_data()
 try:
