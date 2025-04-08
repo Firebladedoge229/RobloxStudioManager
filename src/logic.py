@@ -7,6 +7,7 @@ import re
 import ctypes
 import subprocess
 import psutil
+from time import time, sleep
 import xml.etree.ElementTree as ET
 
 repoLocation = "https://raw.githubusercontent.com/Firebladedoge229/RobloxStudioManager/refs/heads/main/"
@@ -56,6 +57,11 @@ def find_version_line(version, lines):
 
 def find_latest_studio_version(lines):
     return next((line for line in reversed(lines.splitlines()) if "Studio64" in line), "")
+
+def rgb_to_hex(rgb_str):
+    rgb_values = rgb_str.strip("rgb()").split(",")
+    r, g, b = map(int, rgb_values)
+    return f"#{r:02X}{g:02X}{b:02X}"
 
 def find_latest_version(base_dir):
     selected_version = None
@@ -525,6 +531,18 @@ def launch_studio():
 def update_studio():
     subprocess.Popen([os.path.join(selected_version, "RobloxStudioInstaller.exe")], cwd=selected_version)
     print("\033[1;36mINFO:\033[0m Update Studio clicked")
+    start_time = time()
+    while True:
+        for proc in psutil.process_iter(["name"]):
+            if proc.info["name"].lower() == "robloxstudiobeta.exe":
+                proc.terminate()
+                for proc in psutil.process_iter(["name"]):
+                    if proc.info["name"].lower() == "robloxstudioinstaller.exe":
+                        proc.terminate()
+                return
+        if (time() - start_time) >= 60:
+            return
+        sleep(0.1)
 
 selected_version = find_latest_version(os.path.join(os.environ["LOCALAPPDATA"], "Roblox", "Versions"))
 if not selected_version:
