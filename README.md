@@ -14,7 +14,7 @@ A fork of [Roblox Studio Patcher](https://github.com/Firebladedoge229/RobloxStud
 
 **Q: Could using this program result in a ban?**
 
-**A:** The likelihood of getting banned for using this program is **extremely low**; however some features are more risky than others. This is especially limited to those that modify core ROBLOX Studio files. Such features are clearly outlined in the repository's wiki, allowing you to make an informed decision. **Please note that if, for any reason, you do get banned—independent of the usage this program—I take no responsibility for it. You have been warned.**
+**A:** The likelihood of getting banned for using this program is **extremely low**; however some features are more risky than others. This is especially limited to those that modify core ROBLOX Studio files. Such features are clearly outlined in the repository's [wiki](https://github.com/Firebladedoge229/RobloxStudioManager/wiki/Advanced-and-Risky-Features), allowing you to make an informed decision. **Please note that if, for any reason, you do get banned—independent of the usage this program—I take no responsibility for it. You have been warned.**
 
 **Q: Is this program compatible with all versions of ROBLOX Studio?**
 
