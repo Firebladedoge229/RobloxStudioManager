@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QApplication, QFrame, QVBoxLayout, QHBoxLayout, QSpa
 from qfluentwidgets import (NavigationItemPosition, FluentWindow, SubtitleLabel, TitleLabel, LineEdit, SingleDirectionScrollArea, ExpandGroupSettingCard, MessageBoxBase, SettingCard, ToolButton, IndeterminateProgressBar,
                             BodyLabel, ComboBox, IconWidget, CardWidget, CaptionLabel, SwitchButton, MessageBox, ColorDialog, SearchLineEdit, TableWidget, InfoBar, InfoBarPosition, PrimaryPushButton, PushButton)
 from qfluentwidgets import FluentIcon as FIF
-from logic import (apply_settings, reset_configuration, open_installation_folder, launch_studio, update_studio, get_custom_flags, save_custom_flags, get_builtin_plugins, download_default_themes, patch_studio_for_themes, get_theme_colors, apply_custom_theme, toggle_plugin_enabled)
+from logic import (apply_settings, reset_configuration, open_installation_folder, launch_studio, update_studio, rgb_to_hex, get_custom_flags, save_custom_flags, get_builtin_plugins, download_default_themes, patch_studio_for_themes, get_theme_colors, apply_custom_theme, toggle_plugin_enabled)
 from downloader import download
 import re
 import win32cred
@@ -266,11 +266,6 @@ class Window(FluentWindow):
                 if isinstance(color_values, list):
                     continue
 
-    def rgbToHex(self, rgb_str):
-        rgb_values = rgb_str.strip("rgb()").split(",")
-        r, g, b = map(int, rgb_values)
-        return f"#{r:02X}{g:02X}{b:02X}"
-
     def rebuildJSON(self, themeEditorLayout):
         json_data = {"Colors": []}
         
@@ -287,7 +282,7 @@ class Window(FluentWindow):
                     color_value = color_display.styleSheet().split(": ")[1].split(";")[0]
 
                     if color_value.startswith("rgb"):
-                        color_value = self.rgbToHex(color_value)
+                        color_value = rgb_to_hex(color_value)
 
                     if title not in color_groups:
                         color_groups[title] = {}
@@ -774,6 +769,14 @@ class Window(FluentWindow):
 
             self.widget.setMinimumWidth(350)
 
+    class UpdateThread(QThread):
+        def run(self):
+            update_studio()
+
+    def start_update(self):
+        self.update_thread = self.UpdateThread()
+        self.update_thread.start()
+
     def promptJSONInput(self, flagTable):
         prompt = self.JSONInput(self)
         if prompt.exec():
@@ -1138,7 +1141,7 @@ class Window(FluentWindow):
         launchButton.clicked.connect(launch_studio)
 
         updateButton = PushButton("Update Studio")
-        updateButton.clicked.connect(update_studio)
+        updateButton.clicked.connect(self.start_update)
 
         pluginButton = PushButton("Plugin Editor")
         pluginButton.clicked.connect(lambda: self.switchTo(self.pluginEditorInterface))
