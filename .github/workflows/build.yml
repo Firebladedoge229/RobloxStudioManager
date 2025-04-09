@@ -21,6 +21,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Modify FluentWidgets
+        run: |
+          QFLUENT_PATH=$(python -c "import qfluentwidgets; print(qfluentwidgets.__path__[0])")
+          curl -o "$QFLUENT_PATH/common/config.py" https://raw.githubusercontent.com/Firebladedoge229/PyQt-Fluent-Widgets/refs/heads/master/qfluentwidgets/common/config.py
+
       - name: Install PyInstaller
         run: |
           pip install pyinstaller
