@@ -23,7 +23,7 @@ jobs:
 
       - name: Modify FluentWidgets
         run: |
-          $QFLUENT_PATH = python -c "import qfluentwidgets; import sys; sys.stdout = open('nul', 'w'); print(qfluentwidgets.__path__[0])"
+          $QFLUENT_PATH = python -c "import qfluentwidgets; import sys; sys.stdout = sys.__stdout__; next(iter(qfluentwidgets.__path__)); print(qfluentwidgets.__path__[0])"
           Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Firebladedoge229/PyQt-Fluent-Widgets/refs/heads/master/qfluentwidgets/common/config.py" -OutFile "$QFLUENT_PATH/common/config.py"
 
       - name: Install PyInstaller
