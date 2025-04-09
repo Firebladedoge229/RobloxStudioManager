@@ -2,4 +2,4 @@ requests
 colorama
 psutil
 PyQt5
-qfluentwidgets
+PyQt-Fluent-Widgets[full]
