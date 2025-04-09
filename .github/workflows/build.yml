@@ -9,10 +9,10 @@ jobs:
 
     steps:
       - name: Download Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v5
         with:
           python-version: "latest"
 
@@ -36,13 +36,13 @@ jobs:
         working-directory: ./
 
       - name: Upload Production Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: RobloxStudioManager
           path: "dist/RobloxStudioManager.exe"
 
       - name: Upload Development Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: RobloxStudioManagerDebug
           path: "dist/RobloxStudioManagerDebug.exe"
