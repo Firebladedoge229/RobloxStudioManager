@@ -174,6 +174,7 @@ def get_custom_flags():
             return json.load(f)
     except Exception as e:
         print(f"\033[1;31mERROR:\033[0m Error getting custom settings: {e}")
+        return {}
 
 def save_custom_flags(settings):
     if getattr(sys, "frozen", False):
