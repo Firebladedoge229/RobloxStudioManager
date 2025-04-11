@@ -4,15 +4,16 @@ os.environ["QT_LOGGING_RULES"] = "qt.qpa.fonts.warning=false"
 import json
 import requests
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
-from PyQt5.QtGui import QIcon, QPixmap, QIntValidator, QColor
+from PyQt5.QtGui import QIcon, QPixmap, QIntValidator, QColor, QFont
 from PyQt5.QtWidgets import QApplication, QFrame, QVBoxLayout, QHBoxLayout, QSpacerItem, QSizePolicy, QLabel, QWidget, QFileDialog, QHeaderView, QTableWidgetItem
 from qfluentwidgets import (NavigationItemPosition, FluentWindow, SubtitleLabel, TitleLabel, LineEdit, SingleDirectionScrollArea, ExpandGroupSettingCard, MessageBoxBase, SettingCard, ToolButton, IndeterminateProgressBar,
-                            BodyLabel, ComboBox, IconWidget, CardWidget, CaptionLabel, SwitchButton, MessageBox, ColorDialog, SearchLineEdit, TableWidget, InfoBar, InfoBarPosition, PrimaryPushButton, PushButton)
+                            BodyLabel, ComboBox, IconWidget, CardWidget, CaptionLabel, SwitchButton, Dialog, MessageBox, ColorDialog, SearchLineEdit, TableWidget, InfoBar, InfoBarPosition, PrimaryPushButton, PushButton)
 from qfluentwidgets import FluentIcon as FIF
 from logic import (apply_settings, reset_configuration, open_installation_folder, launch_studio, update_studio, rgb_to_hex, get_custom_flags, save_custom_flags, get_builtin_plugins, download_default_themes, patch_studio_for_themes, get_theme_colors, apply_custom_theme, toggle_plugin_enabled)
 from downloader import download
 import re
 import win32cred
+import traceback
 
 global progressBar
 progressBar = None
@@ -27,6 +28,29 @@ try:
     internet = True
 except:
     internet = False
+
+main_window = None
+
+def handle_exception(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+
+    error_msg = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+    print("Caught an unhandled exception:", error_msg)
+
+    dialog = Dialog("Unhandled Exception", f"```{error_msg}```", main_window)
+    dialog.contentLabel.setStyleSheet("font-family: Consolas; background-color: #202020;")
+    dialog.yesButton.setText("Exit")
+    dialog.cancelButton.setText("Report on Github")
+    
+    if dialog.exec_():
+        sys.exit(1)
+    else:
+        error_msg = re.sub(r"(?<=\\Users\\)[a-zA-Z0-9]+(?=\\)", r"%USERNAME%", error_msg)
+        os.startfile(f"https://github.com/Firebladedoge229/RobloxStudioManager/issues/new?title=Unhandled%20Exception&body={requests.utils.quote(error_msg)}")
+
+sys.excepthook = handle_exception
 
 class Widget(QFrame):
     def __init__(self, parent=None, name=None):
@@ -80,6 +104,8 @@ class PatchThread(QThread):
 class Window(FluentWindow):
     def __init__(self):
         super().__init__()
+        global main_window
+        main_window = self
         self.initWindow()
         self.initNavigation()
         self.loadAutoSettings()  
@@ -840,6 +866,7 @@ class Window(FluentWindow):
                 self.flagTable.setRowHidden(row, True)
 
     def addFlagEditorContent(self):
+        1 / 0
         flagEditorLayout = QVBoxLayout()
         flagEditorLayout.setAlignment(Qt.AlignTop)
 
