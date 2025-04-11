@@ -4,7 +4,7 @@ os.environ["QT_LOGGING_RULES"] = "qt.qpa.fonts.warning=false"
 import json
 import requests
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
-from PyQt5.QtGui import QIcon, QPixmap, QIntValidator, QColor, QFont
+from PyQt5.QtGui import QIcon, QPixmap, QIntValidator, QColor
 from PyQt5.QtWidgets import QApplication, QFrame, QVBoxLayout, QHBoxLayout, QSpacerItem, QSizePolicy, QLabel, QWidget, QFileDialog, QHeaderView, QTableWidgetItem
 from qfluentwidgets import (NavigationItemPosition, FluentWindow, SubtitleLabel, TitleLabel, LineEdit, SingleDirectionScrollArea, ExpandGroupSettingCard, MessageBoxBase, SettingCard, ToolButton, IndeterminateProgressBar,
                             BodyLabel, ComboBox, IconWidget, CardWidget, CaptionLabel, SwitchButton, Dialog, MessageBox, ColorDialog, SearchLineEdit, TableWidget, InfoBar, InfoBarPosition, PrimaryPushButton, PushButton)
