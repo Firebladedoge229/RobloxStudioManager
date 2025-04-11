@@ -866,7 +866,6 @@ class Window(FluentWindow):
                 self.flagTable.setRowHidden(row, True)
 
     def addFlagEditorContent(self):
-        1 / 0
         flagEditorLayout = QVBoxLayout()
         flagEditorLayout.setAlignment(Qt.AlignTop)
 
