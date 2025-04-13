@@ -48,11 +48,11 @@ jobs:
         run: |
           nuitka src/main.py --standalone --onefile --output-filename=RobloxStudioManagerDebug --windows-icon-from-ico=images/logo.ico --enable-plugin=pyqt5 --include-data-files="src/ui_components.py=ui_components.py" --include-data-files="src/downloader.py=downloader.py" --include-data-files="src/logic.py=logic.py" --include-data-files="data/fastflags.json=fastflags.json" --include-data-files="data/options.json=options.json" --include-data-files="images/logo.png=logo.png" --include-data-files="images/RobloxStudioManager.png=RobloxStudioManager.png"
         working-directory: ./
-
+        
       - name: Compress Executable with UPX
         run: |
-          upx --best --lzma dist/RobloxStudioManager.exe
-          upx --best --lzma dist/RobloxStudioManagerDebug.exe
+          upx --best --lzma RobloxStudioManager.exe
+          upx --best --lzma RobloxStudioManagerDebug.exe
 
       - name: Upload Production Artifact
         uses: actions/upload-artifact@v4
