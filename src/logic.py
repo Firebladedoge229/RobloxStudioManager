@@ -578,12 +578,16 @@ def patch_studio_for_themes():
     
     patch_studio()
 
-target_dir = selected_version
-platform_path = os.path.join(target_dir, "Platform")
-base_path = os.path.join(platform_path, "Base", "QtUI", "themes")
-base_path = os.path.normpath(base_path)
-os.makedirs(platform_path, exist_ok=True)
-os.makedirs(base_path, exist_ok=True)
+try:
+    target_dir = selected_version
+    platform_path = os.path.join(target_dir, "Platform")
+    base_path = os.path.join(platform_path, "Base", "QtUI", "themes")
+    base_path = os.path.normpath(base_path)
+    os.makedirs(platform_path, exist_ok=True)
+    os.makedirs(base_path, exist_ok=True)
+except:
+    print("\033[1;36mINFO:\033[0m No valid Roblox Studio version was found. You will not be able to make any modifications.")
+    pass
 
 dark_theme_url = "https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/roblox/QtResources/Platform/Base/QtUI/themes/DarkTheme.json"
 light_theme_url = "https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/roblox/QtResources/Platform/Base/QtUI/themes/LightTheme.json"
