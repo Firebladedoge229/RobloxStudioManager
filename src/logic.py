@@ -66,6 +66,7 @@ def rgb_to_hex(rgb_str):
 def find_latest_version(base_dir):
     selected_version = None
     max_files_count = 0
+    os.makedirs(base_dir, exist_ok=True)
     for version in os.listdir(base_dir):
         version_dir = os.path.join(base_dir, version)
         exe_path = os.path.join(version_dir, "RobloxStudioBeta.exe")
