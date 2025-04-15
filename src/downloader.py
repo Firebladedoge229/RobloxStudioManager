@@ -5,7 +5,7 @@ import hashlib
 import subprocess
 
 try:
-    locations = requests.get("https://raw.githubusercontent.com/MaximumADHD/Roblox-Studio-Mod-Manager/cd3a3444ce36a03b5cf03113ed1a18bd93bb3823/Config/KnownRoots.json").json()
+    locations = requests.get("https://raw.githubusercontent.com/MaximumADHD/Roblox-Studio-Mod-Manager/main/Config/KnownRoots.json").json()
 except Exception as exception:
     print(f"\033[1;31mERROR:\033[0m Error fetching install directories {exception}")
 
