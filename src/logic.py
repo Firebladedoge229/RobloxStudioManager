@@ -33,9 +33,6 @@ legacyOuchURL = f"{repoLocation}misc/LegacyOuch.ogg"
 clientSettingsSuccess = False
 fVariablesSuccess = False
 
-internalSignatureInfo = "22 59 6F 75 72 20 61 63 63 6F 75 6E 74 20 69 73 20 61 73 73 6F 63 69 61 74 65 64 20 77 69 74 68 20 61 6E 20 40 72 6F 62 6C 6F 78 2E 63 6F 6D 20 65 6D 61 69 6C 20 61 64 64 72 65 73 73 20 6F 72 20 68 61 73 20 53 6F 6F 74 68 73 61 79 65 72 20 70 65 72 6D 69 73 73 69 6F 6E 73 2E 20 59 6F 75 20 61 6C 73 6F 20 68 61 76 65 20 69 6E 74 65 72 6E 61 6C 2D 6F 6E 6C 79 20 66 65 61 74 75 72 65 73 20 74 75 72 6E 65 64 20 6F 6E 2E 0D 0A 44 6F 20 79 6F 75 20 77 61 6E 74 20 74 6F 20 64 69 73 61 62 6C 65 20 49 6E 74 65 72 6E 61 6C 20 46 65 61 74 75 72 65 73 3F 20 54 68 69 73 20 77 69 6C 6C 20 6D 61 6B 65 20 79 6F 75 72 20 53 74 75 64 69 6F 20 65 78 70 65 72 69 65 6E 63 65 20 69 64 65 6E 74 69 63 61 6C 20 74 6F 20 64 65 76 65 6C 6F 70 65 72 73 2E 0D 0A 59 6F 75 20 63 61 6E 20 67 6F 20 74 6F 20 53 65 74 74 69 6E 67 73 20 3E 20 53 74 75 64 69 6F 20 3E 20 41 64 76 61 6E 63 65 64 20 74 6F 20 72 65 2D 65 6E 61 62 6C 65 20 49 6E 74 65 72 6E 61 6C 20 46 65 61 74 75 72 65 73 2E 22"
-internalPatchInfo = "22 59 6F 75 20 63 75 72 72 65 6E 74 6C 79 20 68 61 76 65 20 74 68 65 20 45 6E 61 62 6C 65 20 49 6E 74 65 72 6E 61 6C 20 66 65 61 74 75 72 65 20 65 6E 61 62 6C 65 64 20 69 6E 20 52 6F 62 6C 6F 78 20 53 74 75 64 69 6F 20 4D 61 6E 61 67 65 72 2E 20 54 68 69 73 20 66 65 61 74 75 72 65 20 67 69 76 65 73 20 61 63 63 65 73 73 20 74 6F 20 73 70 65 63 69 61 6C 20 69 6E 74 65 72 6E 61 6C 2D 6F 6E 6C 79 20 66 65 61 74 75 72 65 73 20 73 75 63 68 20 61 73 20 74 68 65 20 66 6C 61 67 20 65 64 69 74 6F 72 2E 20 43 6C 69 63 6B 69 6E 67 20 59 65 73 20 77 69 6C 6C 20 64 69 73 61 62 6C 65 20 74 68 65 20 49 6E 74 65 72 6E 61 6C 20 46 65 61 74 75 72 65 73 2C 20 61 6E 64 20 79 6F 75 20 63 61 6E 20 67 6F 20 74 6F 20 74 68 65 20 53 65 74 74 69 6E 67 73 20 6D 65 6E 75 20 74 6F 20 72 65 2D 65 6E 61 62 6C 65 20 69 74 20 5B 53 65 74 74 69 6E 67 73 20 3E 20 53 74 75 64 69 6F 20 3E 20 41 64 76 61 6E 63 65 64 5D 22 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
-
 try:
     clientAppSettingsURL = requests.get(clientAppSettingsURL).json()
     clientSettingsSuccess = True
@@ -47,10 +44,6 @@ try:
     fVariablesSuccess = True
 except Exception as exception:
     print(f"\033[1;31mERROR:\033[0m FVariables could not be fetched: {exception}")
-
-def hex_to_bytes(hex_string):
-    hex_string = hex_string.replace(" ", "")
-    return b"".join(bytes([int(hex_string[i:i+2], 16)]) for i in range(0, len(hex_string), 2))
 
 def find_version_line(version, lines):
     return next((line for line in lines.splitlines() if version in line), None)
@@ -77,15 +70,11 @@ def find_latest_version(base_dir):
                 selected_version = version_dir
     return selected_version
 
-def patch_exe(exe_path, signature, patch, signatureinfo, patchinfo):
+def patch_exe(exe_path, signature, patch):
     try:
-        signatureinfo = hex_to_bytes(signatureinfo)
-        patchinfo = hex_to_bytes(patchinfo)
-
         with open(exe_path, "r+b") as f:
             content = f.read()
             content = content.replace(signature, patch)
-            content = content.replace(signatureinfo, patchinfo)
             f.seek(0)
             f.write(content)
             f.truncate()
@@ -140,11 +129,11 @@ def fetch_internal_patch_data():
 def apply_patch(enable_internal, selected_version, internal_signature, internal_patch, internal_signature_backup, internal_patch_backup):
     exe_path = os.path.join(selected_version, "RobloxStudioBeta.exe")
     if enable_internal:
-        if patch_exe(exe_path, internal_signature, internal_patch, internalSignatureInfo, internalPatchInfo):
-            patch_exe(exe_path, internal_signature_backup, internal_patch_backup, internalSignatureInfo, internalPatchInfo)
+        if patch_exe(exe_path, internal_signature, internal_patch):
+            patch_exe(exe_path, internal_signature_backup, internal_patch_backup)
     else:
-        if patch_exe(exe_path, internal_patch, internal_signature, internalPatchInfo, internalSignatureInfo):
-            patch_exe(exe_path, internal_patch_backup, internal_signature_backup, internalPatchInfo, internalSignatureInfo)
+        if patch_exe(exe_path, internal_patch, internal_signature):
+            patch_exe(exe_path, internal_patch_backup, internal_signature_backup)
 
 def save_settings(settings):
     if getattr(sys, "frozen", False):
@@ -426,47 +415,54 @@ def download_and_apply_font(selected_version):
     except Exception as exception:
         print(f"\033[1;31mERROR:\033[0m Error Downloading and Applying Font: {exception}")
 
+def get_product_version(exe_path):
+    command = [
+        "powershell",
+        "-Command",
+        f"(Get-Item '{exe_path}').VersionInfo.ProductVersion"
+    ]
+    result = subprocess.run(command, capture_output=True, text=True)
+    result = result.stdout.strip().replace(", ", ".")
+    print(f"\033[1;36mINFO:\033[0m Product Version: {result}")
+    return result
+
 def disable_updates(selected_version):
-    try:
-        deploy_history = requests.get("https://setup.rbxcdn.com/DeployHistory.txt").text
-    except Exception as exception:
-        deploy_history = ""
-        print("\033[1;31mERROR:\033[0m", exception)
+    exe_path = os.path.join(selected_version, "RobloxStudioBeta.exe")
+    version = get_product_version(exe_path)
 
-    result = find_version_line(os.path.basename(selected_version), deploy_history)
-    latest_version = find_latest_studio_version(deploy_history)
+    installer = os.path.join(selected_version, "RobloxStudioInstaller.exe")
 
-    if result and latest_version:
-        print(f"\033[1;36mINFO:\033[0m Result: {result}")  
-        print(f"\033[1;36mINFO:\033[0m Latest Version: {latest_version}")  
+    if not version:
+        print("\033[1;31mERROR:\033[0m Unable to get version information.")
+        return
+    
+    print(f"\033[1;36mINFO:\033[0m Version: {version}")   
+    latest = re.sub(r"[^\s\.]", "9", version)
 
-        result_hash_match = re.search(r"git hash:\s*([\d\.]+)", result)
-        latest_hash_match = re.search(r"git hash:\s*([\d\.]+)", latest_version)
+    print(f"\033[1;36mINFO:\033[0m Latest: {latest}")  
 
-        if result_hash_match and latest_hash_match:
-            result_hash = result_hash_match.group(1)
-            latest_hash = latest_hash_match.group(1)
+    if latest:
+        try:
+            result_bytes = bytes.fromhex("".join(format(ord(c), "02X") for c in version))
+            patch_bytes = bytes.fromhex("".join(format(ord(c), "02X") for c in latest))
 
-            print(f"\033[1;36mINFO:\033[0m Result Hash: {result_hash}")  
-            print(f"\033[1;36mINFO:\033[0m Latest Hash: {latest_hash}")  
+            with open(exe_path, "r+b") as f:
+                content = f.read()
+                index = content.find(result_bytes)
 
-            if len(result_hash) != len(latest_hash):
-                ctypes.windll.user32.MessageBoxW(0, "The current version and latest version are not the same size. Due to hex limitations, you cannot disable updating on this version.", "Roblox Studio Manager", 1)
-            else:
-                result_bytes = bytes.fromhex("".join(format(ord(c), "02X") for c in result_hash))
-                patch_bytes = bytes.fromhex("".join(format(ord(c), "02X") for c in latest_hash))
-
-                exe_path = os.path.join(selected_version, "RobloxStudioBeta.exe")
-                with open(exe_path, "r+b") as f:
-                    content = f.read()
-                    index = content.find(result_bytes)
-                    if index != -1:
-                        f.seek(index)
-                        f.write(patch_bytes)
-        else:
-            print("\033[1;31mERROR:\033[0m Unable to find git hash in either the result or latest version.")
+                if index != -1:
+                    f.seek(index)
+                    f.write(patch_bytes)
+                    print("\033[1;32mSUCCESS:\033[0m Version bytes patched.")
+                    if os.path.exists(installer):
+                        os.remove(installer)
+                        print("\033[1;32mSUCCESS:\033[0m Installer deleted successfully.")
+                else:
+                    print("\033[1;31mERROR:\033[0m Version bytes not found in file.")
+        except Exception as exception:
+            print(f"\033[1;31mERROR:\033[0m Exception: {exception}")
     else:
-        print("\033[1;31mERROR:\033[0m Version information not found in the deploy history. Are you on the zLive channel?")
+        print("\033[1;31mERROR:\033[0m Unable to find version information.")
 
 def apply_settings(settings):
     print("\033[1;36mINFO:\033[0m Applied settings:", settings)
