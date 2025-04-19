@@ -1,5 +1,4 @@
 requests
-colorama
 psutil
 PyQt5
-PyQt-Fluent-Widgets[full]
+PyQt-Fluent-Widgets
