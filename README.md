@@ -41,8 +41,11 @@ A [Windows Defender SmartScreen](https://learn.microsoft.com/en-us/windows/secur
 
 If you are suspicious, feel free to compile the [code](https://github.com/Firebladedoge229/RobloxStudioManager/archive/refs/heads/main.zip) yourself!
 
-> [!important]
+> [!note]
 > The project has since [moved](https://github.com/Firebladedoge229/RobloxStudioManager/commit/6111a6f15e8637141cda28f73307f455f62447a3) from PyInstaller to Nuitka for compiling the application after version v2.4.1.
+
+> [!important]
+> When building, make sure to download [version 0.1.0](https://github.com/electron/rcedit/releases/tag/v0.1.0) of RCEdit, placing it in the main directory.
 
 ### Build Command
 #### Nuitka
