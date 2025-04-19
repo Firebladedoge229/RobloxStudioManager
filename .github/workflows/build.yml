@@ -12,7 +12,9 @@ jobs:
     steps:
       - name: Checkout Repository
         id: checkout
-        uses: actions/checkout@v4 
+        uses: actions/checkout@v4
+      - name: List files in the repository
+        run: dir
 
   cache_dependencies:
     runs-on: windows-latest
@@ -32,7 +34,7 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r ${{ github.workspace }}/requirements.txt
       - name: Modify FluentWidgets
         run: |
           $QFLUENT_PATH = python -c "import sys; sys.stdout = open('nul', 'w'); import qfluentwidgets; sys.stdout = sys.__stdout__;  print(qfluentwidgets.__path__[0])"
