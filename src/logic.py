@@ -548,7 +548,10 @@ def update_studio():
     if os.path.exists(exe_path):
         subprocess.Popen([exe_path], cwd=selected_version)
     else:
-        subprocess.Popen([os.path.join(selected_version, "RobloxStudioInstaller-ModManager.exe")], cwd=selected_version)
+        try:
+            subprocess.Popen([os.path.join(selected_version, "RobloxStudioInstaller-ModManager.exe")], cwd=selected_version)
+        except Exception as exception:
+            print("\033[1;31mERROR:\033[0m The Roblox Studio Installer executable could not be found.")
     print("\033[1;36mINFO:\033[0m Update Studio clicked")
     start_time = time()
     while True:
