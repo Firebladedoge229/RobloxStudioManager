@@ -4,67 +4,61 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  download_repo:
     runs-on: windows-latest
+    outputs:
+      repo-path: ${{ steps.checkout.outputs.path }}
 
     steps:
-      - name: Download Repository
-        uses: actions/checkout@v4
+      - name: Checkout Repository
+        id: checkout
+        uses: actions/checkout@v4 
 
+  cache_dependencies:
+    runs-on: windows-latest
+    needs: download_repo
+    steps:
+      - name: Cache Python dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
       - name: Install Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.x"
-
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Modify FluentWidgets
-        run: |
-          $QFLUENT_PATH = python -c "import sys; sys.stdout = open('nul', 'w'); import qfluentwidgets; sys.stdout = sys.__stdout__;  print(qfluentwidgets.__path__[0])"
-          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Firebladedoge229/PyQt-Fluent-Widgets/refs/heads/master/qfluentwidgets/common/config.py" -OutFile "$QFLUENT_PATH/common/config.py"
-
-      - name: Install Nuitka
-        run: |
-          pip install nuitka
-
-      - name: Download and set up Dependency Walker
-        run: |
-          Invoke-WebRequest -Uri "https://dependencywalker.com/depends22_x64.zip" -OutFile "depends.zip"
-          Expand-Archive depends.zip -DestinationPath "$env:LOCALAPPDATA\Nuitka\Nuitka\Cache\downloads\depends\x86_64"
-
+  build_release:
+    runs-on: windows-latest
+    needs: cache_dependencies
+    steps:
       - name: Build RobloxStudioManager
         run: |
           nuitka src/main.py --standalone --onefile --windows-disable-console --output-dir=build --output-filename=RobloxStudioManager --windows-icon-from-ico=images/logo.ico --enable-plugin=pyqt5 --include-data-files="src/ui_components.py=ui_components.py" --include-data-files="src/downloader.py=downloader.py" --include-data-files="src/logic.py=logic.py" --include-data-files="data/fastflags.json=fastflags.json" --include-data-files="data/options.json=options.json" --include-data-files="images/logo.png=logo.png" --include-data-files="images/RobloxStudioManager.png=RobloxStudioManager.png"
-        working-directory: ./
 
+  build_debug:
+    runs-on: windows-latest
+    needs: cache_dependencies
+    steps:
       - name: Build RobloxStudioManagerDebug
         run: |
           nuitka src/main.py --standalone --onefile --output-dir=build --output-filename=RobloxStudioManagerDebug --windows-icon-from-ico=images/logo.ico --enable-plugin=pyqt5 --include-data-files="src/ui_components.py=ui_components.py" --include-data-files="src/downloader.py=downloader.py" --include-data-files="src/logic.py=logic.py" --include-data-files="data/fastflags.json=fastflags.json" --include-data-files="data/options.json=options.json" --include-data-files="images/logo.png=logo.png" --include-data-files="images/RobloxStudioManager.png=RobloxStudioManager.png"
-        working-directory: ./
-              
-      - name: Search for Executables
-        shell: pwsh
-        run: |
-          Write-Host "🔍 Searching.."
-          Get-ChildItem -Path . -Recurse -Directory | ForEach-Object {
-            $exeFiles = Get-ChildItem -Path $_.FullName -Filter *.exe -File -ErrorAction SilentlyContinue
-            if ($exeFiles) {
-              Write-Host "`n📁 Directory: $($_.FullName)"
-              foreach ($file in $exeFiles) {
-                Write-Host "  🟢 Found: $($file.FullName)"
-              }
-            }
-          }
-
+  
+  upload_artifacts:
+    runs-on: windows-latest
+    needs: [build_release, build_debug]
+    steps:
       - name: Upload Production Artifact
         uses: actions/upload-artifact@v4
         with:
           name: RobloxStudioManager
           path: "build/RobloxStudioManager.exe"
-
       - name: Upload Development Artifact
         uses: actions/upload-artifact@v4
         with:
