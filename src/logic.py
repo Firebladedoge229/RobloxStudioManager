@@ -362,31 +362,6 @@ def handle_flags(settings):
         except Exception as exception:
             print(f"\033[1;31mERROR:\033[0m Error while replacing death sound: {exception}")
 
-    if settings["Legacy Logo"] == True:
-        try:
-            legacyLogoData = requests.get(legacyLogoURL).content
-
-            with open(os.path.join(selected_version, "RobloxStudioBeta.ico"), "wb") as f:
-                f.write(legacyLogoData)
-        except Exception as exception:
-            print(f"\033[1;31mERROR:\033[0m Error while downloading logo: {exception}")
-    else:
-        try:
-            logoData = requests.get(logoURL).content
-
-            with open(os.path.join(selected_version, "RobloxStudioBeta.ico"), "wb") as f:
-                f.write(logoData)
-        except Exception as exception:
-            print(f"\033[1;31mERROR:\033[0m Error while downloading logo: {exception}")
-    
-    try:
-        rcedit = os.path.join(os.path.dirname(os.path.realpath(__file__)), "rcedit.exe")
-        subprocess.run([rcedit, os.path.join(selected_version, "RobloxStudioBeta.exe"), "--set-icon", os.path.join(selected_version, "RobloxStudioBeta.ico")])
-        subprocess.run([rcedit, os.path.join(selected_version, "RobloxStudioInstaller.exe"), "--set-icon", os.path.join(selected_version, "RobloxStudioBeta.ico")])
-        subprocess.run([rcedit, os.path.join(selected_version, "RobloxStudioInstaller-ModManager.exe"), "--set-icon", os.path.join(selected_version, "RobloxStudioBeta.ico")])
-    except Exception as exception:
-        print(f"\033[1;31mERROR:\033[0m Error while replacing logo: {exception}")
-
     if settings["Legacy Cursor"] == True:
         try:
             legacyCursorData = requests.get(legacyCursorURL).content
@@ -552,6 +527,29 @@ def apply_settings(settings):
                 apply_patch(False, selected_version, internal_signature, internal_patch, internal_signature_backup, internal_patch_backup)
         except Exception as exception:
                 print(f"\033[1;31mERROR:\033[0m Error applying internal patch: {exception}")
+
+    if settings.get("Legacy Logo") == True:
+        try:
+            legacyLogoData = requests.get(legacyLogoURL).content
+
+            with open(os.path.join(selected_version, "IDI_ICON1.ico"), "wb") as f:
+                f.write(legacyLogoData)
+        except Exception as exception:
+            print(f"\033[1;31mERROR:\033[0m Error while downloading logo: {exception}")
+    else:
+        try:
+            logoData = requests.get(logoURL).content
+
+            with open(os.path.join(selected_version, "IDI_ICON1.ico"), "wb") as f:
+                f.write(logoData)
+        except Exception as exception:
+            print(f"\033[1;31mERROR:\033[0m Error while downloading logo: {exception}")
+    
+    try:
+        rcedit = os.path.join(os.path.dirname(os.path.realpath(__file__)), "rcedit.exe")
+        subprocess.run([rcedit, os.path.join(selected_version, "RobloxStudioBeta.exe"), "--set-icon", os.path.join(selected_version, "IDI_ICON1.ico")])
+    except Exception as exception:
+        print(f"\033[1;31mERROR:\033[0m Error while replacing logo: {exception}")
 
 def reset_configuration():
     clientPath = os.path.join(selected_version, "ClientSettings", "ClientAppSettings.json")
