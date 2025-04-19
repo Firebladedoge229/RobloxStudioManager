@@ -7,13 +7,14 @@ from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QIcon, QPixmap, QIntValidator, QColor
 from PyQt5.QtWidgets import QApplication, QFrame, QVBoxLayout, QHBoxLayout, QSpacerItem, QSizePolicy, QLabel, QWidget, QFileDialog, QHeaderView, QTableWidgetItem
 from qfluentwidgets import (NavigationItemPosition, FluentWindow, SubtitleLabel, TitleLabel, LineEdit, SingleDirectionScrollArea, ExpandGroupSettingCard, MessageBoxBase, SettingCard, ToolButton, IndeterminateProgressBar,
-                            BodyLabel, ComboBox, IconWidget, CardWidget, CaptionLabel, SwitchButton, Dialog, MessageBox, ColorDialog, SearchLineEdit, TableWidget, InfoBar, InfoBarPosition, PrimaryPushButton, PushButton)
-from qfluentwidgets import FluentIcon as FIF
+                            BodyLabel, ComboBox, IconWidget, CardWidget, CaptionLabel, SwitchButton, Dialog, MessageBox, ColorDialog, SearchLineEdit, TableWidget, InfoBar, InfoBarPosition, PrimaryPushButton, PushButton, FluentIcon)
 from logic import (apply_settings, reset_configuration, open_installation_folder, launch_studio, update_studio, rgb_to_hex, get_custom_flags, save_custom_flags, get_builtin_plugins, download_default_themes, patch_studio_for_themes, get_theme_colors, apply_custom_theme, toggle_plugin_enabled)
 from downloader import download
 import re
 import win32cred
 import traceback
+
+version = "2.4.3"
 
 global progressBar
 progressBar = None
@@ -110,6 +111,11 @@ class Window(FluentWindow):
         self.initWindow()
         self.initNavigation()
         self.loadAutoSettings()  
+        latest_version = self.fetchLatestReleaseInfo()["tag_name"]
+        modified_version = [int(x) for x in version.split(".")]
+        modified_latest_version = [int(x) for x in latest_version.lstrip("v").split(".")]
+        if modified_latest_version > modified_version:
+            self.showUpdateDialog()
 
     def initNavigation(self):
         self.homeInterface = ScrollableWidget(Widget(self, "homeInterface"))
@@ -130,18 +136,18 @@ class Window(FluentWindow):
         self.themeEditorInterface.setObjectName("themeEditorInterface")
         self.settingInterface.setObjectName("settingInterface")
 
-        self.addSubInterface(self.homeInterface, FIF.HOME, "Home")
+        self.addSubInterface(self.homeInterface, FluentIcon.HOME, "Home")
         self.navigationInterface.addSeparator()
-        self.addSubInterface(self.modsInterface, FIF.ADD, "Mods")
-        self.addSubInterface(self.flagsInterface, FIF.FLAG, "Flags")
-        self.addSubInterface(self.launchoptionsInterface, FIF.PLAY, "Launch Options")
-        flagEditorSubInterface = self.addSubInterface(self.flagEditorInterface, FIF.FLAG, "Flag Editor [INTERNAL]")
+        self.addSubInterface(self.modsInterface, FluentIcon.ADD, "Mods")
+        self.addSubInterface(self.flagsInterface, FluentIcon.FLAG, "Flags")
+        self.addSubInterface(self.launchoptionsInterface, FluentIcon.PLAY, "Launch Options")
+        flagEditorSubInterface = self.addSubInterface(self.flagEditorInterface, FluentIcon.FLAG, "Flag Editor [INTERNAL]")
         flagEditorSubInterface.hide()
-        pluginEditorSubInterface = self.addSubInterface(self.pluginEditorInterface, FIF.APPLICATION, "Plugin Editor [INTERNAL]")
+        pluginEditorSubInterface = self.addSubInterface(self.pluginEditorInterface, FluentIcon.APPLICATION, "Plugin Editor [INTERNAL]")
         pluginEditorSubInterface.hide()
-        themeEditorSubInterface = self.addSubInterface(self.themeEditorInterface, FIF.SETTING, "Theme Manager [INTERNAL]")
+        themeEditorSubInterface = self.addSubInterface(self.themeEditorInterface, FluentIcon.SETTING, "Theme Manager [INTERNAL]")
         themeEditorSubInterface.hide()
-        self.addSubInterface(self.settingInterface, FIF.SETTING, "Settings", NavigationItemPosition.BOTTOM)
+        self.addSubInterface(self.settingInterface, FluentIcon.SETTING, "Settings", NavigationItemPosition.BOTTOM)
         self.navigationInterface.setAcrylicEnabled(True)
 
         headerLabelFlags = TitleLabel("Flags")
@@ -175,18 +181,22 @@ class Window(FluentWindow):
         self.settingInterface.widget().vBoxLayout.addWidget(headerLabelSettings)
 
         self.addLaunchOptionsButtons()
-
         self.loadOptions()
-
         self.addHomepageContent()
-
         self.addSettingsContent()
-
         self.addFlagEditorContent()
-
         self.addPluginEditorContent()
-
         self.addThemeEditorContent()
+
+    def showUpdateDialog(self):
+        dialog = Dialog("Update Available", "A new version of Roblox Studio Manager is available. Would you like to update?", self)
+        dialog.yesButton.setText("Update")
+        dialog.cancelButton.setText("Ignore")
+        
+        if dialog.exec_():
+            os.startfile("https://github.com/Firebladedoge229/RobloxStudioManager/releases/latest")
+        else:
+            pass
 
     def deleteCredentials(self, _):
         try:
@@ -460,7 +470,7 @@ class Window(FluentWindow):
         container = CardWidget()
         container.setFixedHeight(70)
 
-        iconWidget = IconWidget(FIF.SAVE_AS)
+        iconWidget = IconWidget(FluentIcon.SAVE_AS)
         iconWidget.setFixedSize(16, 16)
         titleLabel = BodyLabel("Theme Patcher", container)
         contentLabel = CaptionLabel("Patch Roblox Studio to be able to run aboriginal themes.", container)
@@ -494,7 +504,7 @@ class Window(FluentWindow):
         container = CardWidget()
         container.setFixedHeight(70)
 
-        iconWidget = IconWidget(FIF.SETTING)
+        iconWidget = IconWidget(FluentIcon.SETTING)
         iconWidget.setFixedSize(16, 16)
         titleLabel = BodyLabel("Inherited Theme", container)
         contentLabel = CaptionLabel("Choose the theme to inherit the colors from", container)
@@ -525,7 +535,7 @@ class Window(FluentWindow):
         container = CardWidget()
         container.setFixedHeight(70)
 
-        iconWidget = IconWidget(FIF.EMBED)
+        iconWidget = IconWidget(FluentIcon.EMBED)
         iconWidget.setFixedSize(16, 16)
         titleLabel = BodyLabel("Data Operations", container)
         contentLabel = CaptionLabel("Choose whether you would like to import or export a theme.", container)
@@ -617,7 +627,7 @@ class Window(FluentWindow):
         releaseLabel.setAlignment(Qt.AlignCenter)
         releaseLabel.setWordWrap(True)
 
-        releaseDescriptionLabel = SubtitleLabel(f"{release_info["body"]}")
+        releaseDescriptionLabel = SubtitleLabel(f"{release_info["body"].split("**Differences**")[0]}")
         releaseDescriptionLabel.setAlignment(Qt.AlignCenter)
         releaseDescriptionLabel.setWordWrap(True)
 
@@ -650,7 +660,7 @@ class Window(FluentWindow):
         settingsLayout = QVBoxLayout()
         settingsLayout.setAlignment(Qt.AlignTop)
 
-        channelDownloaderCard = ExpandGroupSettingCard(FIF.DOWNLOAD, "Channel", "Pick a channel to download Roblox from.", self.settingInterface)
+        channelDownloaderCard = ExpandGroupSettingCard(FluentIcon.DOWNLOAD, "Channel", "Pick a channel to download Roblox from.", self.settingInterface)
         settingsLayout.addWidget(channelDownloaderCard)
 
         self.channelLineEdit = LineEdit()
@@ -658,7 +668,7 @@ class Window(FluentWindow):
         self.channelLineEdit.returnPressed.connect(self.onChannelReturnPressed)
         channelDownloaderCard.addWidget(self.channelLineEdit)
 
-        folderButton = ToolButton(FIF.FOLDER)
+        folderButton = ToolButton(FluentIcon.FOLDER)
         downloadButton = PrimaryPushButton("Download")
 
         channelDownloaderCard.addWidget(folderButton)
@@ -667,9 +677,9 @@ class Window(FluentWindow):
         folderButton.clicked.connect(self.onFolderIconClicked)
         downloadButton.clicked.connect(self.startDownload)
 
-        self.versionCard = SettingCard(title="Version", icon=FIF.INFO, content="")
-        self.versionGuidCard = SettingCard(title="VersionGuid", icon=FIF.TAG, content="")
-        self.deployedCard = SettingCard(title="Deployed", icon=FIF.DATE_TIME, content="")
+        self.versionCard = SettingCard(title="Version", icon=FluentIcon.INFO, content="")
+        self.versionGuidCard = SettingCard(title="VersionGuid", icon=FluentIcon.TAG, content="")
+        self.deployedCard = SettingCard(title="Deployed", icon=FluentIcon.DATE_TIME, content="")
 
         self.fetchVersionInfo()
         self.fetchDeployHistory()
@@ -681,7 +691,7 @@ class Window(FluentWindow):
         container = CardWidget()
         container.setFixedHeight(70)
 
-        iconWidget = IconWidget(FIF.CLOSE)
+        iconWidget = IconWidget(FluentIcon.CLOSE)
         iconWidget.setFixedSize(16, 16)
         titleLabel = BodyLabel("Roblox Credentials", container)
         contentLabel = CaptionLabel("Clear stored Roblox credentials in the Windows Credentials Manager to resolve login issues in Roblox Studio.", container)
@@ -711,7 +721,7 @@ class Window(FluentWindow):
         container = CardWidget()
         container.setFixedHeight(70)
 
-        iconWidget = IconWidget(FIF.PALETTE)
+        iconWidget = IconWidget(FluentIcon.PALETTE)
         iconWidget.setFixedSize(16, 16)
         titleLabel = BodyLabel("Theme Manager", container)
         contentLabel = CaptionLabel("Edit and customize colors for the Roblox Studio User Interface.", container)
@@ -870,11 +880,11 @@ class Window(FluentWindow):
         flagEditorLayout = QVBoxLayout()
         flagEditorLayout.setAlignment(Qt.AlignTop)
 
-        backButton = PushButton(FIF.LEFT_ARROW, "Back")
-        addButton = PushButton(FIF.ADD, "Add Flag")
-        deleteButton = PushButton(FIF.DELETE, "Delete")
-        importButton = PushButton(FIF.DOWNLOAD, "Import JSON")
-        saveButton = PrimaryPushButton(FIF.SAVE, "Save")
+        backButton = PushButton(FluentIcon.LEFT_ARROW, "Back")
+        addButton = PushButton(FluentIcon.ADD, "Add Flag")
+        deleteButton = PushButton(FluentIcon.DELETE, "Delete")
+        importButton = PushButton(FluentIcon.DOWNLOAD, "Import JSON")
+        saveButton = PrimaryPushButton(FluentIcon.SAVE, "Save")
 
         backButton.clicked.connect(lambda : self.switchTo(self.flagsInterface))
         addButton.clicked.connect(lambda : self.addRow(self.flagTable))
@@ -1064,7 +1074,7 @@ class Window(FluentWindow):
     def initWindow(self):
         print(f"\033[1;36mINFO:\033[0m Current working directory: {os.getcwd()}")
         print(f"\033[1;36mINFO:\033[0m Real path: {os.path.dirname(os.path.realpath(__file__))}")
-        self.resize(900, 700)
+        self.resize(960, 580)
         self.setWindowIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), "logo.png")))
         self.setWindowTitle("Roblox Studio Manager")
         desktop = QApplication.desktop().availableGeometry()
@@ -1119,7 +1129,7 @@ class Window(FluentWindow):
         container = CardWidget()
         container.setFixedHeight(73)
 
-        iconWidget = IconWidget(FIF.FLAG)
+        iconWidget = IconWidget(FluentIcon.FLAG)
         iconWidget.setFixedSize(21, 21)
         titleLabel = BodyLabel("FastFlag Editor", container)
         contentLabel = CaptionLabel("Configure and override Roblox FastFlags for fine-tuned performance and feature control.", container)
