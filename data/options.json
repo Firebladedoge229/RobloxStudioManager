@@ -112,6 +112,12 @@
             "SectionLocation": "Mods"
         },
         {
+            "Title": "Legacy Logo",
+            "Description": "Use the classic logo for a nostalgic or familiar appearance.",
+            "Section": "Mods",
+            "InternetRequired": true
+        },
+        {
             "Title": "Legacy Launch Banner",
             "Description": "Use the classic launch banner for a nostalgic or familiar appearance.",
             "Section": "Mods",
