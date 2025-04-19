@@ -155,7 +155,7 @@
             "Title": "Disable Updates",
             "Description": "Turn off automatic updates to prevent the application from downloading or installing new versions.",
             "Section": "Mods",
-            "InternetRequired": true
+            "InternetRequired": false
         }
     ],
     "Type": [
