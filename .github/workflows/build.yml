@@ -14,6 +14,9 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Create cache directory
+        run: mkdir -p ~/.cache/pip
+      
       - name: Cache Python dependencies
         uses: actions/cache@v4
         with:
