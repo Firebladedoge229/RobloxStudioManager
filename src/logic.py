@@ -426,7 +426,7 @@ def get_product_version(exe_path):
     print(f"\033[1;36mINFO:\033[0m Product Version: {result}")
     return result
 
-def disable_updates(selected_version):
+def disable_updates(disable, selected_version):
     exe_path = os.path.join(selected_version, "RobloxStudioBeta.exe")
     version = get_product_version(exe_path)
 
@@ -447,6 +447,11 @@ def disable_updates(selected_version):
             patch_bytes = bytes.fromhex("".join(format(ord(c), "02X") for c in latest))
 
             with open(exe_path, "r+b") as f:
+                if not disable:
+                    new_result = patch_bytes
+                    new_patch = result_bytes
+                    patch_bytes = new_patch
+                    result_bytes = new_result
                 content = f.read()
                 index = content.find(result_bytes)
 
@@ -455,8 +460,8 @@ def disable_updates(selected_version):
                     f.write(patch_bytes)
                     print("\033[1;32mSUCCESS:\033[0m Version bytes patched.")
                     if os.path.exists(installer):
-                        os.remove(installer)
-                        print("\033[1;32mSUCCESS:\033[0m Installer deleted successfully.")
+                        os.rename(installer, os.path.join(selected_version, "RobloxStudioInstaller-ModManager.exe"))
+                        print("\033[1;32mSUCCESS:\033[0m Installer renamed successfully.")
                 else:
                     print("\033[1;31mERROR:\033[0m Version bytes not found in file.")
         except Exception as exception:
@@ -494,7 +499,19 @@ def apply_settings(settings):
         download_and_apply_font(selected_version)
 
     if settings.get("Disable Updates"):
-        disable_updates(selected_version)
+        disable_updates(True, selected_version)
+    else:
+        disable_updates(False, selected_version)
+
+    if settings.get("Disable Crash Handler"):
+        handler = "https://github.com/Firebladedoge229/Uploads/raw/refs/heads/main/RobloxCrashHandler.exe"
+        try:
+            response = requests.get(handler)
+            with open(os.path.join(selected_version, "RobloxCrashHandler.exe"), "wb") as f:
+                f.write(response.content)
+            print("\033[1;32mSUCCESS:\033[0m Crash Handler disabled.")
+        except Exception as exception:
+            print(f"\033[1;31mERROR:\033[0m Error disabling Crash Handler: {exception}")
 
     if settings.get("Enable Internal"):
         try:
@@ -527,7 +544,11 @@ def launch_studio():
     print("\033[1;36mINFO:\033[0m Launch Studio clicked")
 
 def update_studio():
-    subprocess.Popen([os.path.join(selected_version, "RobloxStudioInstaller.exe")], cwd=selected_version)
+    exe_path = os.path.join(selected_version, "RobloxStudioInstaller.exe")
+    if os.path.exists(exe_path):
+        subprocess.Popen([exe_path], cwd=selected_version)
+    else:
+        subprocess.Popen([os.path.join(selected_version, "RobloxStudioInstaller-ModManager.exe")], cwd=selected_version)
     print("\033[1;36mINFO:\033[0m Update Studio clicked")
     start_time = time()
     while True:
