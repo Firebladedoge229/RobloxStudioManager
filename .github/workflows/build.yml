@@ -52,12 +52,45 @@ jobs:
 
       - name: Build RobloxStudioManager
         run: |
-          nuitka src/main.py --standalone --onefile --windows-disable-console --output-dir=build --output-filename=RobloxStudioManager --windows-icon-from-ico=images/logo.ico --enable-plugin=pyqt5 --include-data-files="src/ui_components.py=ui_components.py" --include-data-files="src/downloader.py=downloader.py" --include-data-files="src/logic.py=logic.py" --include-data-files="data/fastflags.json=fastflags.json" --include-data-files="data/options.json=options.json" --include-data-files="images/logo.png=logo.png" --include-data-files="images/RobloxStudioManager.png=RobloxStudioManager.png" --include-data-files="rcedit.exe=rcedit.exe"
-
+          nuitka src/main.py \
+            --standalone \
+            --onefile \
+            --windows-disable-console \
+            --output-dir=build \
+            --output-filename=RobloxStudioManager \
+            --windows-icon-from-ico=images/logo.ico \
+            --noinclude-default-mode=nofollow \
+            --nofollow-imports \
+            --enable-plugin=pyqt5 \
+            --include-data-files="src/ui_components.py=ui_components.py" \
+            --include-data-files="src/downloader.py=downloader.py" \
+            --include-data-files="src/logic.py=logic.py" \
+            --include-data-files="data/fastflags.json=fastflags.json" \
+            --include-data-files="data/options.json=options.json" \
+            --include-data-files="images/logo.png=logo.png" \
+            --include-data-files="images/RobloxStudioManager.png=RobloxStudioManager.png" \
+            --include-data-files="rcedit.exe=rcedit.exe"
+      
       - name: Build RobloxStudioManagerDebug
         run: |
-          nuitka src/main.py --standalone --onefile --output-dir=build --output-filename=RobloxStudioManagerDebug --windows-icon-from-ico=images/logo.ico --enable-plugin=pyqt5 --include-data-files="src/ui_components.py=ui_components.py" --include-data-files="src/downloader.py=downloader.py" --include-data-files="src/logic.py=logic.py" --include-data-files="data/fastflags.json=fastflags.json" --include-data-files="data/options.json=options.json" --include-data-files="images/logo.png=logo.png" --include-data-files="images/RobloxStudioManager.png=RobloxStudioManager.png" --include-data-files="rcedit.exe=rcedit.exe"
-
+          nuitka src/main.py \
+            --standalone \
+            --onefile \
+            --output-dir=build \
+            --output-filename=RobloxStudioManagerDebug \
+            --windows-icon-from-ico=images/logo.ico \
+            --noinclude-default-mode=nofollow \
+            --nofollow-imports \
+            --enable-plugin=pyqt5 \
+            --include-data-files="src/ui_components.py=ui_components.py" \
+            --include-data-files="src/downloader.py=downloader.py" \
+            --include-data-files="src/logic.py=logic.py" \
+            --include-data-files="data/fastflags.json=fastflags.json" \
+            --include-data-files="data/options.json=options.json" \
+            --include-data-files="images/logo.png=logo.png" \
+            --include-data-files="images/RobloxStudioManager.png=RobloxStudioManager.png" \
+            --include-data-files="rcedit.exe=rcedit.exe"
+            
       - name: Upload Production Artifact
         uses: actions/upload-artifact@v4
         with:
