@@ -1,9 +1,13 @@
 import sys
-import colorama
-colorama.just_fix_windows_console()
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication
 from qfluentwidgets import setTheme, Theme
+try:
+    import ctypes
+    kernel32 = ctypes.windll.kernel32
+    kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+except:
+    pass
 from ui_components import Window
 
 if __name__ == "__main__":
