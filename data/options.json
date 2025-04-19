@@ -80,6 +80,12 @@
             "InternetRequired": false
         },
         {
+            "Title": "Disable Crash Handler",
+            "Description": "Disable the crash handler to prevent automatic reporting of application crashes.",
+            "Section": "Flags",
+            "InternetRequired": true
+        },
+        {
             "Title": "Log Network Requests",
             "Description": "Log all network requests made by the application for debugging and analysis purposes.",
             "Section": "Flags",
