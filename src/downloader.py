@@ -19,10 +19,18 @@ def fetch_version(channel):
     if channel:
         url = f"https://setup.rbxcdn.com/channel/{channel}/versionQTStudio"
     else:
-        url = "https://setup.rbxcdn.com/versionQTStudio"
+        url = "https://setup.rbxcdn.com/DeployHistory.txt"
     response = requests.get(url)
     response.raise_for_status()
-    return response.text.strip()
+    if "DeployHistory" in url:
+        lines = response.text.splitlines()
+        for line in reversed(lines):
+            if "studio" in line.lower():
+                versionGuid = "version-" + line.split("version-")[1].split()[0].strip()
+                return versionGuid.strip()
+                break
+    else:
+        return response.text.strip()
 
 def fetch_manifest(version, channel):
     if channel:
@@ -74,13 +82,13 @@ def capitalize_after_z(channel):
     return new_channel
 
 
-def download_and_extract(version, file_name, file_md5, channel, selected_folder, locations):
+def download_and_extract(version, file_name, file_md5, channel, selected_folder, locations, bypass_extract, ignore_checksum):
     formatted_channel = capitalize_after_z(channel) if channel else ""
     folder_name = f"{formatted_channel}-{version}" if channel else version
     output_path = os.path.join(selected_folder, folder_name, file_name)
     url = f"https://setup.rbxcdn.com/channel/{channel}/{version}-{file_name}" if channel else f"https://setup.rbxcdn.com/{version}-{file_name}"
     download_file(url, output_path)
-    if not validate_md5(output_path, file_md5):
+    if not validate_md5(output_path, file_md5) and not ignore_checksum:
         print(f"\033[1;31mDATA ERROR:\033[0m Checksum Mismatch for {file_name}.")
         return
     else:
@@ -93,8 +101,15 @@ def download_and_extract(version, file_name, file_md5, channel, selected_folder,
         os.remove(output_path)
         print(f"\033[38;2;52;235;143mDATA:\033[0m Deleted Zip File: {output_path}")
     else:
-        print(f"\033[1;31mDATA ERROR:\033[0m No valid location found for {file_name}. Skipping extraction.")
-
+        if bypass_extract:
+            extract_to = os.path.join(selected_folder, folder_name, file_name.removesuffix(".zip"))
+            os.makedirs(extract_to, exist_ok=True)
+            extract_zip(output_path, extract_to)
+            os.remove(output_path)
+            print(f"\033[38;2;52;235;143mDATA:\033[0m Deleted Zip File: {output_path}")
+        else:
+            print(f"\033[1;31mDATA ERROR:\033[0m No valid location found for {file_name}. Skipping extraction.")
+		
 
 def download(selected_folder, channel):
     channel = channel
@@ -104,20 +119,21 @@ def download(selected_folder, channel):
     manifest = fetch_manifest(selected_version, channel)
     formatted_channel = capitalize_after_z(channel) if channel else ""
     folder_name = f"{formatted_channel}-{selected_version}" if channel else selected_version
-    os.makedirs(os.path.join(selected_folder, folder_name), exist_ok=True)
+    os.makedirs(os.path.normpath(os.path.join(selected_folder, folder_name)), exist_ok=True)
     i = 0
     while i < len(manifest):
         file_name = manifest[i].strip()
         if file_name.endswith(".zip"):
             file_md5 = manifest[i + 1].strip() if i + 1 < len(manifest) else ""
             print(f"\033[1;36mINFO:\033[0m Processing {file_name}")
-            download_and_extract(selected_version, file_name, file_md5, channel, selected_folder, locations)
+            download_and_extract(selected_version, file_name, file_md5, channel, selected_folder, locations, False, False)
             i += 4
         else:
             i += 1
+    download_and_extract(selected_version, "RibbonConfig.zip", "", channel, selected_folder, locations, True, True)
     with open(os.path.join(selected_folder, folder_name, "AppSettings.xml"), "w") as f:
         f.write(appSettings)
     print("\033[1;32mSUCCESS\033[0m Download Complete")
     from ui_components import endDownload
     endDownload()
-    subprocess.Popen(["explorer", os.path.join(selected_folder, folder_name)])
+    subprocess.Popen(["explorer", os.path.normpath(os.path.join(selected_folder, folder_name))])
