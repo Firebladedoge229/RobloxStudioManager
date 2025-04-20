@@ -1016,12 +1016,20 @@ class Window(FluentWindow):
             self.updateDeploymentInfo("Unknown", "Unknown")
 
     def fetchVersionInfo(self, channel=None):
-        url = f"https://setup.rbxcdn.com/channel/{channel.lower()}/versionQTStudio" if channel else "https://setup.rbxcdn.com/versionQTStudio"
+        url = f"https://setup.rbxcdn.com/channel/{channel.lower()}/versionQTStudio" if channel else "https://setup.rbxcdn.com/DeployHistory.txt"
         try:
             response = requests.get(url)
-            response.raise_for_status()
-            versionGuid = response.text.strip()
-            self.updateVersionInfo(versionGuid)
+            if "DeployHistory" not in url:
+                response.raise_for_status()
+                versionGuid = response.text.strip()
+                self.updateVersionInfo(versionGuid)
+            else:
+                lines = response.text.splitlines()
+                for line in reversed(lines):
+                    if "studio" in line.lower():
+                        versionGuid = "version-" + line.split("version-")[1].split()[0].strip()
+                        self.updateVersionInfo(versionGuid)
+                        break
         except Exception as exception:
             InfoBar.error(
                 title="Download Manager",
