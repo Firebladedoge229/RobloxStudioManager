@@ -113,31 +113,31 @@
         },
         {
             "Title": "Legacy Logo",
-            "Description": "Use the classic logo for a nostalgic or familiar appearance.",
+            "Description": "Replaces the current logo with the original version used prior to 2025.",
             "Section": "Mods",
             "InternetRequired": true
         },
         {
             "Title": "Legacy Launch Banner",
-            "Description": "Use the classic launch banner for a nostalgic or familiar appearance.",
+            "Description": "Modifies the original launch banner to use the from ROBLOX Studio 2015",
             "Section": "Mods",
             "InternetRequired": true
         },
         {
             "Title": "Legacy Cursor",
-            "Description": "Use the classic cursor style for a nostalgic or familiar appearance.",
+            "Description": "Brings back the cursor style from 2021.",
             "Section": "Mods",
             "InternetRequired": true
         },
         {
             "Title": "Classic Font",
-            "Description": "Restore the classic font style for a nostalgic or familiar appearance.",
+            "Description": "Replaces Arimo and Montserrat with their older counterparts.",
             "Section": "Mods",
             "InternetRequired": true
         },
         {
             "Title": "Classic Death Sound",
-            "Description": "Revert to the original death sound effect for a nostalgic or familiar experience.",
+            "Description": "Revert to the original sound effect played upon character death.",
             "Section": "Mods",
             "InternetRequired": true
         },
