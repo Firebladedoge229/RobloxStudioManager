@@ -249,10 +249,12 @@ class Window(FluentWindow):
             return None
     
     def addColorPickerObject(self, title, description, color : QColor, themeEditorLayout):
+        titleSpace = "".join([f" {c}" if c.isupper() else c for c in title]).strip()
+      
         container = CardWidget()
         container.setFixedHeight(70)
-
-        titleLabel = BodyLabel(title, container)
+      
+        titleLabel = BodyLabel(titleSpace, container)
         contentLabel = CaptionLabel(description, container)
         contentLabel.setTextColor("#606060", "#d2d2d2")
 
@@ -314,6 +316,7 @@ class Window(FluentWindow):
             try:
                 if widget_item.isColorPicker:
                     title = widget_item.findChild(BodyLabel).text()
+                    formatted_title = "".join(word.capitalize() for word in title.split())
                     description = widget_item.findChild(CaptionLabel).text()
                     color_display = widget_item.findChild(PushButton)
                     color_value = color_display.styleSheet().split(": ")[1].split(";")[0]
@@ -321,10 +324,10 @@ class Window(FluentWindow):
                     if color_value.startswith("rgb"):
                         color_value = rgb_to_hex(color_value)
 
-                    if title not in color_groups:
-                        color_groups[title] = {}
+                    if formatted_title not in color_groups:
+                        color_groups[formatted_title] = {}
                     
-                    color_groups[title][description] = color_value
+                    color_groups[formatted_title][description] = color_value
             except AttributeError:
                 continue
         
@@ -406,6 +409,7 @@ class Window(FluentWindow):
     def redownloadDefaultThemes(self, theme, themeEditorLayout):
         download_default_themes()
         self.inheritColors(theme, themeEditorLayout)
+      
     def addPluginToggle(self, pluginName, pluginDirectory, enabled, pluginEditorLayout):
         container = CardWidget()
         container.setFixedHeight(70)
