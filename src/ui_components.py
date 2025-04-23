@@ -16,6 +16,9 @@ import traceback
 
 version = "2.4.3"
 
+def getVersion():
+    return version
+
 global progressBar
 progressBar = None
 
