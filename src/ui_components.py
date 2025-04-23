@@ -16,9 +16,6 @@ import traceback
 
 version = "2.4.3"
 
-def getVersion():
-    return version
-
 global progressBar
 progressBar = None
 
@@ -1091,7 +1088,7 @@ class Window(FluentWindow):
         print(f"\033[1;36mINFO:\033[0m Real path: {os.path.dirname(os.path.realpath(__file__))}")
         self.resize(960, 580)
         self.setWindowIcon(QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), "logo.png")))
-        self.setWindowTitle("Roblox Studio Manager")
+        self.setWindowTitle(f"Roblox Studio Manager v{version}")
         desktop = QApplication.desktop().availableGeometry()
         w, h = desktop.width(), desktop.height()
         self.move(w // 2 - self.width() // 2, h // 2 - self.height() // 2)
