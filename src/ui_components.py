@@ -1081,6 +1081,7 @@ class Window(FluentWindow):
         cleaned_body = re.sub(r">.*\n", "", body)  
         cleaned_body = re.sub(r"!\[.*?\]\(.*?\)", "", cleaned_body)  
         cleaned_body = re.sub(r"\[.*?\]\(.*?\)", "", cleaned_body)  
+        cleaned_body = re.sub(r"(\|.*\n)+(\|[-| ]*\n)+", "", cleaned_body)
         return cleaned_body.strip()  
 
     def initWindow(self):
