@@ -115,27 +115,16 @@ def patch_banner(exe_path, inverse):
     except Exception as exception:
             print(f"\033[1;31mERROR:\033[0m Error fetching legacy banner: {exception}")
 
-def fetch_internal_patch_data():
-    try:
-        response = requests.get("https://raw.githubusercontent.com/7ap/internal-studio-patcher/refs/heads/main/src/main.rs")
-        matches = re.findall(r"0x([0-9A-Fa-f]{2})", response.text)
-        if len(matches) >= 24:
-            return (b"".join(bytes.fromhex(s) for s in matches[:12]), b"".join(bytes.fromhex(p) for p in matches[12:24]))
-        else:
-            print("\033[1;31mERROR:\033[0m Not enough matches found in the response.")
-            return None
-    except Exception as e:
-        print(f"\033[1;31mERROR:\033[0m Error fetching signature backups: {e}")
-        return None
-
-def apply_patch(enable_internal, selected_version, internal_signature, internal_patch, internal_signature_backup, internal_patch_backup):
+def apply_patch(enable_internal, selected_version, internal_signature, internal_patch):
     exe_path = os.path.join(selected_version, "RobloxStudioBeta.exe")
     if enable_internal:
-        if patch_exe(exe_path, internal_signature, internal_patch):
-            patch_exe(exe_path, internal_signature_backup, internal_patch_backup)
+        try:
+            patcher = os.path.join(os.path.dirname(os.path.realpath(__file__)), "internal-studio-patcher.exe")
+            subprocess.run([patcher, exe_path])
+        except Exception as exception:
+            print(f"\033[1;31mERROR:\033[0m Error while patching Roblox Studio: {exception}")
     else:
-        if patch_exe(exe_path, internal_patch, internal_signature):
-            patch_exe(exe_path, internal_patch_backup, internal_signature_backup)
+        patch_exe(exe_path, internal_patch, internal_signature)
 
 def save_settings(settings):
     if getattr(sys, "frozen", False):
@@ -517,14 +506,13 @@ def apply_settings(settings):
 
     if settings.get("Enable Internal"):
         try:
-            if internal_signature:
-                apply_patch(True, selected_version, internal_signature, internal_patch, internal_signature_backup, internal_patch_backup)
+            apply_patch(True, selected_version, "", "")
         except Exception as exception:
-                print(f"\033[1;31mERROR:\033[0m Error applying internal patch: {exception}")
+            print(f"\033[1;31mERROR:\033[0m Error applying internal patch: {exception}")
     else:
         try:
             if internal_signature:
-                apply_patch(False, selected_version, internal_signature, internal_patch, internal_signature_backup, internal_patch_backup)
+                apply_patch(False, selected_version, bytes([0x48, 0x81, 0xEC, 0x40, 0x03, 0x00, 0x00, 0x84, 0xD2, 0x74, 0x05, 0xE8]), bytes([0x48, 0x81, 0xEC, 0x40, 0x03, 0x00, 0x00, 0x84, 0xD2, 0x90, 0x90, 0xE8]))
         except Exception as exception:
                 print(f"\033[1;31mERROR:\033[0m Error applying internal patch: {exception}")
 
@@ -799,10 +787,3 @@ def get_builtin_plugins():
 
     sorted_files = sorted(file_info.values(), key=lambda x: x["name"])
     return sorted_files
-
-fetch = fetch_internal_patch_data()
-try:
-    internal_signature, internal_patch = fetch
-    internal_signature_backup, internal_patch_backup = fetch
-except Exception as exception:
-    print(f"\033[1;31mERROR:\033[0m Error fetching internal patch data: {exception}")
