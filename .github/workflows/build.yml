@@ -52,11 +52,7 @@ jobs:
       - name: Download RCEdit
         run: |
           Invoke-WebRequest -Uri "https://github.com/electron/rcedit/releases/download/v0.1.0/rcedit.exe" -OutFile "rcedit.exe"
-          
-      - name: Download Roblox Internal Patcher
-        run: |
-          Invoke-WebRequest -Uri "https://github.com/7ap/internal-studio-patcher/releases/download/0.1.5/internal-studio-patcher.exe" -OutFile "internal-studio-patcher.exe"
-
+        
       - name: Build RobloxStudioManager
         run: |
           nuitka src/main.py `
