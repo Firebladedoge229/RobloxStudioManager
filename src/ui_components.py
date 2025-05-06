@@ -957,7 +957,10 @@ class Window(FluentWindow):
             progressBar.start()
 
             self.worker = DownloadWorker(self.selectedFolderPath, self.selectedChannel.lower())
-            self.worker.start()  
+            self.worker.start()
+            downloadChannel = self.selectedChannel
+            if not downloadChannel:
+                downloadChannel = "LIVE"
             InfoBar.success(
                 title="Download Manager",
                 content=f"Started worker process for Roblox Studio on channel {self.selectedChannel}.",
