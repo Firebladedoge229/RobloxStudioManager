@@ -93,6 +93,13 @@ jobs:
             --include-data-files="images/logo.png=logo.png" `
             --include-data-files="images/RobloxStudioManager.png=RobloxStudioManager.png" `
             --include-data-files="rcedit.exe=rcedit.exe"
+
+      - name: Print SHA256 hashes
+        run: |
+          Write-Output "Encryption for RobloxStudioManager:"
+          Get-FileHash -Algorithm SHA256 build\RobloxStudioManager.exe
+          Write-Output "Encryption for RobloxStudioManagerDebug:"
+          Get-FileHash -Algorithm SHA256 build\RobloxStudioManagerDebug.exe
             
       - name: Upload Production Artifact
         uses: actions/upload-artifact@v4
