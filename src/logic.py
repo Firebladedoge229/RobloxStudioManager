@@ -59,21 +59,26 @@ def rgb_to_hex(rgb_str):
     return f"#{r:02X}{g:02X}{b:02X}"
 
 def find_latest_version(base_dir):
-    selected_version = None
-    max_files_count = 0
-    os.makedirs(base_dir, exist_ok=True)
-    for version in os.listdir(base_dir):
-        version_dir = os.path.join(base_dir, version)
-        exe_path = os.path.join(version_dir, "RobloxStudioBeta.exe")
-        if os.path.exists(exe_path):
-            num_files = len(os.listdir(version_dir))
-            if num_files > max_files_count:
-                max_files_count = num_files
-                selected_version = version_dir
-    return selected_version
+    if not "applications" in base_dir.lower():
+        selected_version = None
+        max_files_count = 0
+        os.makedirs(base_dir, exist_ok=True)
+        for version in os.listdir(base_dir):
+            version_dir = os.path.join(base_dir, version)
+            exe_path = os.path.join(version_dir, "RobloxStudioBeta.exe")
+            if os.path.exists(exe_path):
+                num_files = len(os.listdir(version_dir))
+                if num_files > max_files_count:
+                    max_files_count = num_files
+                    selected_version = version_dir
+        return selected_version
+    else:
+        return base_dir
 
 def patch_exe(exe_path, signature, patch):
     try:
+        if ".app" in exe_path.lower():
+            exe_path = "/" + os.path.join(selected_version, "Contents", "MacOS", "RobloxStudio")
         with open(exe_path, "r+b") as f:
             content = f.read()
             content = content.replace(signature, patch)
@@ -82,8 +87,8 @@ def patch_exe(exe_path, signature, patch):
             f.truncate()
             print(f"\033[1;32mSUCCESS:\033[0m Patching {exe_path} completed.")
             return True
-    except Exception as e:
-        print(f"\033[1;31mERROR:\033[0m Error patching {exe_path}: {e}")
+    except Exception as exception:
+        print(f"\033[1;31mERROR:\033[0m Error patching {exe_path}: {exception}")
         return False
     
 def replace_data_in_exe(exe_data, old_data, new_data):
@@ -91,6 +96,8 @@ def replace_data_in_exe(exe_data, old_data, new_data):
 
 def patch_banner(exe_path, inverse):
     try:
+        if ".app" in exe_path.lower():
+            exe_path = "/" + os.path.join(selected_version, "Contents", "MacOS", "RobloxStudio")
         small_data = requests.get(smallURL).content
         small_replacement_data = requests.get(smallReplacementURL).content
         medium_data = requests.get(mediumURL).content
@@ -171,8 +178,8 @@ def get_custom_flags():
         with open(settings_file, "r") as f:
             print(f"\033[38;2;52;235;143mDATA:\033[0m FFlag Settings sent from {settings_file}")
             return json.load(f)
-    except Exception as e:
-        print(f"\033[1;31mERROR:\033[0m Error getting custom settings: {e}")
+    except Exception as exception:
+        print(f"\033[1;31mERROR:\033[0m Error getting custom settings: {exception}. Have you modified any FastFlags?")
         return {}
 
 def save_custom_flags(settings):
@@ -198,22 +205,36 @@ def check_if_integer(value):
         return False  
 
 def get_flags():
-    clientAppSettings = os.path.join(selected_version, "ClientSettings", "ClientAppSettings.json")
+    if os.name == "nt":
+        clientAppSettings = os.path.join(selected_version, "ClientSettings", "ClientAppSettings.json")
+    elif os.name == "posix":
+        clientAppSettings = os.path.join(os.environ["HOME"], "Library", "Roblox", "StudioAppSettings.json")
     with open(clientAppSettings) as file: content = file.read()
     return json.loads(content)
 
 def handle_flags(settings):
     json_file_path = os.path.join(os.getcwd(), "fastflags.json")
     if not os.path.exists(json_file_path):
-        print("\033[1;31mERROR:\033[0m fastflags.json file not found.")
-        return
+        print("\033[1;31mERROR:\033[0m fastflags.json file not found. Downloading..")
+        try:
+            response = requests.get("https://raw.githubusercontent.com/Firebladedoge229/RobloxStudioManager/refs/heads/main/data/fastflags.json")
+            if response:
+                with open("fastflags.json", "w") as file:
+                    file.write(response.text)
+                print("\033[1;32mSUCCESS:\033[0m fastflags.json downloaded successfully.")
+        except Exception as exception:
+            print(f"\033[1;31mDATA ERROR:\033[0m Error while downloading fastflags.json: {exception}")
+            return
 
     with open(json_file_path, "r") as f:
         flags_data = json.load(f)
 
     applied_flags = {}
 
-    clientAppSettings = os.path.join(selected_version, "ClientSettings", "ClientAppSettings.json")
+    if os.name == "nt":
+        clientAppSettings = os.path.join(selected_version, "ClientSettings", "ClientAppSettings.json")
+    elif os.name == "posix":
+        clientAppSettings = os.path.join(os.environ["HOME"], "Library", "Roblox", "StudioAppSettings.json")
 
     os.makedirs(os.path.dirname(clientAppSettings), exist_ok=True)
 
@@ -327,11 +348,21 @@ def handle_flags(settings):
             applied_flags["FStringDebugShowFlagState"] = flag_list[:-1]
 
         if settings["Legacy Launch Banner"] == True:
-            patch_banner(os.path.join(selected_version, "RobloxStudioBeta.exe"), False)
+            if not ".app" in selected_version.lower():
+                patch_banner(os.path.join(selected_version, "RobloxStudioBeta.exe"), False)
+            else:
+                patch_banner(os.path.join(selected_version), False)
         else:
-            patch_banner(os.path.join(selected_version, "RobloxStudioBeta.exe"), True)
-
-    tree = ET.parse(os.path.join(os.path.join(os.environ["LOCALAPPDATA"], "Roblox"), "GlobalBasicSettings_13_Studio.xml"))
+            if not ".app" in selected_version.lower():
+                patch_banner(os.path.join(selected_version, "RobloxStudioBeta.exe"), True)
+            else:
+                patch_banner(os.path.join(selected_version), True)
+            
+    if os.name == "nt":
+        treePath = os.path.join(os.environ["LOCALAPPDATA"], "Roblox", "GlobalBasicSettings_13_Studio.xml")
+    elif os.name == "posix":
+        treePath = "/" + os.path.join(os.environ["HOME"], "Library", "Roblox", "GlobalBasicSettings_13_Studio.xml")
+    tree = ET.parse(treePath)        
     root = tree.getroot()
 
     if check_if_integer(settings["CoreGUI Transparency"]):
@@ -350,49 +381,57 @@ def handle_flags(settings):
                     print(f"\033[1;36mINFO:\033[0m CoreGUI Transparency set to default")
                     break
 
-        tree.write(os.path.join(os.path.join(os.environ["LOCALAPPDATA"], "Roblox"), "GlobalBasicSettings_13_Studio.xml"), encoding="utf-8", xml_declaration=True)
+    tree.write(treePath, encoding="utf-8", xml_declaration=True)
 
     if settings["Classic Death Sound"] == True:
         try:
-            legacyOuchData = requests.get(legacyOuchURL).content
-
-            with open(os.path.join(selected_version, "content", "sounds", "ouch.ogg"), "wb") as f:
-                f.write(legacyOuchData)
-        except Exception as exception:
-            print(f"\033[1;31mERROR:\033[0m Error while replacing death sound: {exception}")
+            ouchData = requests.get(legacyOuchURL).content
+        except:
+            pass
     else:
         try:
             ouchData = requests.get(ouchURL).content
+        except:
+            pass
 
-            with open(os.path.join(selected_version, "content", "sounds", "ouch.ogg"), "wb") as f:
-                f.write(ouchData)
-        except Exception as exception:
-            print(f"\033[1;31mERROR:\033[0m Error while replacing death sound: {exception}")
+    try:
+        if os.name == "nt":
+            defaultLocation = os.path.join(selected_version, "content", "sounds", "ouch.ogg")
+        elif os.name == "posix":
+            defaultLocation = "/" + os.path.join(selected_version, "Contents", "Resources", "content", "sounds", "ouch.ogg")
+
+        with open(defaultLocation, "wb") as file:
+            file.write(ouchData)
+    except Exception as exception:
+        print(f"\033[1;31mERROR:\033[0m Error while replacing death sound: {exception}")
 
     if settings["Legacy Cursor"] == True:
         try:
-            legacyCursorData = requests.get(legacyCursorURL).content
-            legacyCursorFarData = requests.get(legacyCursorFarURL).content
-
-            with open(os.path.join(selected_version, "content", "textures", "Cursors", "KeyboardMouse", "ArrowCursor.png"), "wb") as f:
-                f.write(legacyCursorData)
-
-            with open(os.path.join(selected_version, "content", "textures", "Cursors", "KeyboardMouse", "ArrowFarCursor.png"), "wb") as f:
-                f.write(legacyCursorFarData)
-        except Exception as exception:
-            print(f"\033[1;31mERROR:\033[0m Error while replacing cursor: {exception}")
+            cursorData = requests.get(legacyCursorURL).content
+            cursorFarData = requests.get(legacyCursorFarURL).content
+        except:
+            pass
     else:
         try:
             cursorData = requests.get(cursorURL).content
             cursorFarData = requests.get(cursorFarURL).content
+        except:
+            pass
 
-            with open(os.path.join(selected_version, "content", "textures", "Cursors", "KeyboardMouse", "ArrowCursor.png"), "wb") as f:
-                f.write(cursorData)
+    try:
+        if os.name == "nt":
+            defaultLocation = os.path.join(selected_version, "content", "textures", "Cursors", "KeyboardMouse")
+        elif os.name == "posix":
+            defaultLocation = "/" + os.path.join(selected_version, "Contents", "Resources", "content", "textures", "Cursors", "KeyboardMouse")
 
-            with open(os.path.join(selected_version, "content", "textures", "Cursors", "KeyboardMouse", "ArrowFarCursor.png"), "wb") as f:
-                f.write(cursorFarData)
-        except Exception as exception:
-            print(f"\033[1;31mERROR:\033[0m Error while replacing cursor: {exception}")
+        with open(defaultLocation + os.path.sep + "ArrowCursor.png", "wb") as file:
+            file.write(cursorData)
+
+        with open(defaultLocation + os.path.sep + "ArrowFarCursor.png", "wb") as file:
+            file.write(cursorFarData)
+
+    except Exception as exception:
+        print(f"\033[1;31mERROR:\033[0m Error while replacing cursor: {exception}")
 
     os.makedirs(os.path.dirname(clientAppSettings), exist_ok=True)
 
@@ -405,7 +444,11 @@ def handle_flags(settings):
     print(f"\033[1;32mSUCCESS:\033[0m Flags have been set in {clientAppSettings}")
 
 def download_and_apply_font(selected_version):
-    zip_path = os.path.join(selected_version, "content", "fonts", "GothamFont.zip")
+    if os.name == "nt":
+        zip_path = os.path.join(selected_version, "content", "fonts", "GothamFont.zip")
+    elif os.name == "posix":
+        zip_path = "/" + os.path.join(selected_version, "Contents", "Resources", "content", "fonts", "GothamFont.zip")
+
     try:
         response = requests.get("https://github.com/Firebladedoge229/GothamFont/archive/refs/heads/main.zip", stream=True)
         with open(zip_path, "wb") as output:
@@ -416,7 +459,10 @@ def download_and_apply_font(selected_version):
             if target_dir:
                 for file_info in zip_ref.infolist():
                     if file_info.filename.startswith(target_dir) and file_info.filename.endswith((".ttf", ".otf")):
-                        dest_path = os.path.join(selected_version, "content", "fonts", os.path.basename(file_info.filename))
+                        if os.name == "nt":
+                            dest_path = os.path.join(selected_version, "content", "fonts", os.path.basename(file_info.filename))
+                        elif os.name == "posix":
+                            dest_path = "/" + os.path.join(selected_version, "Contents", "Resources", "content", "fonts", os.path.basename(file_info.filename))
                         with zip_ref.open(file_info) as source, open(dest_path, "wb") as target:
                             target.write(source.read())
 
@@ -425,21 +471,35 @@ def download_and_apply_font(selected_version):
         print(f"\033[1;31mERROR:\033[0m Error Downloading and Applying Font: {exception}")
 
 def get_product_version(exe_path):
-    command = [
-        "powershell",
-        "-Command",
-        f"(Get-Item '{exe_path}').VersionInfo.ProductVersion"
-    ]
-    result = subprocess.run(command, capture_output=True, text=True)
-    result = result.stdout.strip().replace(", ", ".")
+    if os.name == "nt":
+        command = [
+            "powershell",
+            "-Command",
+            f"(Get-Item '{exe_path}').VersionInfo.ProductVersion"
+        ]
+        result = subprocess.run(command, capture_output=True, text=True)
+        result = result.stdout.strip().replace(", ", ".")
+    elif os.name == "posix":
+        regex = re.compile(r"engineversion=.(\d)\.(\d{2,})\.(\d)\.(\d{2,}).")
+        executable = "/" + os.path.join(selected_version, "Contents", "MacOS", "RobloxStudio")
+        with open(executable, "rb") as file:
+            data = file.read()
+        data = data.decode("utf-8", errors = "ignore")
+        match = regex.search(data)
+        if match:
+            result = match.group().strip()[15:]
     print(f"\033[1;36mINFO:\033[0m Product Version: {result}")
     return result
 
 def disable_updates(disable, selected_version):
-    exe_path = os.path.join(selected_version, "RobloxStudioBeta.exe")
-    version = get_product_version(exe_path)
+    if os.name == "nt":
+        exe_path = os.path.join(selected_version, "RobloxStudioBeta.exe")
+        installer = os.path.join(selected_version, "RobloxStudioInstaller.exe")
+    elif os.name == "posix":
+        exe_path = "/" + os.path.join(selected_version, "Contents", "MacOS", "RobloxStudio")
+        installer = "/" + os.path.join(selected_version, "Contents", "MacOS", "RobloxStudioInstaller")
 
-    installer = os.path.join(selected_version, "RobloxStudioInstaller.exe")
+    version = get_product_version(exe_path)
 
     if not version:
         print("\033[1;31mERROR:\033[0m Unable to get version information.")
@@ -469,7 +529,10 @@ def disable_updates(disable, selected_version):
                     f.write(patch_bytes)
                     print("\033[1;32mSUCCESS:\033[0m Version bytes patched.")
                     if os.path.exists(installer):
-                        os.rename(installer, os.path.join(selected_version, "RobloxStudioInstaller-ModManager.exe"))
+                        if os.name == "nt":
+                            os.rename(installer, os.path.join(selected_version, "RobloxStudioInstaller-ModManager.exe"))
+                        elif os.name == "posix":
+                            os.rename(installer, os.path.join(selected_version, "Contents", "MacOS", "RobloxStudioInstaller-ModManager"))
                         print("\033[1;32mSUCCESS:\033[0m Installer renamed successfully.")
                 else:
                     print("\033[1;31mERROR:\033[0m Version bytes not found in file.")
@@ -552,14 +615,21 @@ def apply_settings(settings):
         except Exception as exception:
             print(f"\033[1;31mERROR:\033[0m Error while downloading logo: {exception}")
     
-    try:
-        rcedit = os.path.join(os.path.dirname(os.path.realpath(__file__)), "rcedit.exe")
-        subprocess.run([rcedit, os.path.join(selected_version, "RobloxStudioBeta.exe"), "--set-icon", os.path.join(selected_version, "IDI_ICON1.ico")])
-    except Exception as exception:
-        print(f"\033[1;31mERROR:\033[0m Error while replacing logo: {exception}")
+    if os.name == "nt":
+        try:
+            rcedit = os.path.join(os.path.dirname(os.path.realpath(__file__)), "rcedit.exe")
+            subprocess.run([rcedit, os.path.join(selected_version, "RobloxStudioBeta.exe"), "--set-icon", os.path.join(selected_version, "IDI_ICON1.ico")])
+        except Exception as exception:
+            print(f"\033[1;31mERROR:\033[0m Error while replacing logo: {exception}")
+
+def open_browser(url):
+    subprocess.Popen(["open", "-u", url])
 
 def reset_configuration():
-    clientPath = os.path.join(selected_version, "ClientSettings", "ClientAppSettings.json")
+    if os.name == "nt":
+        clientPath = os.path.join(selected_version, "ClientSettings", "ClientAppSettings.json")
+    elif os.name == "posix":
+        clientPath = os.path.join(os.environ["HOME"], "Library", "Roblox", "StudioAppSettings.json")
     if os.path.exists(clientPath):
         os.remove(clientPath)
         print("\033[1;36mINFO:\033[0m Configuration reset")
@@ -568,15 +638,24 @@ def reset_configuration():
     print("\033[1;36mINFO:\033[0m Reset Configuration clicked")
 
 def open_installation_folder():
-    subprocess.Popen(["explorer", selected_version])
+    if os.name == "nt":
+        subprocess.Popen(["explorer", selected_version])
+    elif os.name == "posix":
+        subprocess.Popen(["open", "/" + selected_version + "/Contents"])
     print("\033[1;36mINFO:\033[0m Installation Folder clicked")
 
 def launch_studio():
-    subprocess.Popen([os.path.join(selected_version, "RobloxStudioBeta.exe")], cwd=selected_version)
+    if os.name == "nt":
+        subprocess.Popen([os.path.join(selected_version, "RobloxStudioBeta.exe")], cwd=selected_version)
+    elif os.name == "posix":
+        subprocess.Popen(["open", "/" + selected_version], cwd=selected_version)
     print("\033[1;36mINFO:\033[0m Launch Studio clicked")
 
 def update_studio():
-    exe_path = os.path.join(selected_version, "RobloxStudioInstaller.exe")
+    if os.name == "nt":
+        exe_path = os.path.join(selected_version, "RobloxStudioInstaller.exe")
+    elif os.name == "posix":
+        exe_path = os.path.join("/" + selected_version, "Contents", "MacOS", "RobloxStudioInstaller.app")
     if os.path.exists(exe_path):
         subprocess.Popen([exe_path], cwd=selected_version)
     else:
@@ -598,15 +677,25 @@ def update_studio():
             return
         sleep(0.1)
 
-selected_version = find_latest_version(os.path.join(os.environ["LOCALAPPDATA"], "Roblox", "Versions"))
-if not selected_version:
-    selected_version = find_latest_version(os.path.join(os.environ["PROGRAMFILES(X86)"], "Roblox", "Versions"))
+if os.name == "nt":
+    selected_version = find_latest_version(os.path.join(os.environ["LOCALAPPDATA"], "Roblox", "Versions"))
+    if not selected_version:
+        selected_version = find_latest_version(os.path.join(os.environ["PROGRAMFILES(X86)"], "Roblox", "Versions"))
+elif os.name == "posix":
+    selected_version = find_latest_version(os.path.join("Applications", "RobloxStudio.app"))
+    if not selected_version:
+        selected_version = find_latest_version(os.path.join(os.environ["HOME"], "Applications", "RobloxStudio.app"))
+    if selected_version:
+        os.makedirs(os.path.join(selected_version, "Contents", "MacOS"), exist_ok=True)
 
 print(f"\033[1;36mINFO:\033[0m Selected Version: {selected_version}" if selected_version else "\033[1;31mERROR:\033[0m No valid version found.")
 
 def patch_studio_for_themes():
     def patch_studio():
-        file_path = os.path.join(selected_version, "RobloxStudioBeta.exe")
+        if os.name == "nt":
+            file_path = os.path.join(selected_version, "RobloxStudioBeta.exe")
+        elif os.name == "posix":
+            file_path = "/" + os.path.join(selected_version, "Contents", "MacOS", "RobloxStudio")
 
         with open(file_path, "rb") as f:
             file_data = f.read()
@@ -633,7 +722,11 @@ def patch_studio_for_themes():
 try:
     target_dir = selected_version
     platform_path = os.path.join(target_dir, "Platform")
-    base_path = os.path.join(platform_path, "Base", "QtUI", "themes")
+    if os.name == "nt":
+        base_path = os.path.join(platform_path, "Base", "QtUI", "themes")
+    elif os.name == "posix":
+        base_path = "/" + os.path.join(target_dir, "Contents", "Resources", "Platform", "Base", "QtUI", "themes")
+        response = subprocess.Popen(f"mkdir -p {base_path}", shell=True)
     base_path = os.path.normpath(base_path)
     os.makedirs(platform_path, exist_ok=True)
     os.makedirs(base_path, exist_ok=True)
@@ -664,6 +757,7 @@ def download_default_themes():
         download_file(light_theme_url, light_theme_path)
         download_file(foundation_dark_theme_url, foundation_dark_theme_path)
         download_file(foundation_light_theme_url, foundation_light_theme_path)
+        print(foundation_light_theme_path)
         print("\033[1;32mSUCCESS:\033[0m Theme files downloaded successfully.")
     except Exception as exception:
         print(f"\033[1;31mERROR:\033[0m Failed to download theme files: {exception}")
@@ -672,6 +766,9 @@ if not os.path.exists(dark_theme_path):
     download_default_themes()
 
 def get_theme_colors(selection = "LightTheme"):
+    if os.name == "posix":
+        if not os.path.exists(base_path):
+            subprocess.Popen(["mkdir", "-p", base_path])
     with open(os.path.join(base_path, f"{selection}.json"), "r") as file:
         json_data = json.load(file)
     return json_data
@@ -704,13 +801,15 @@ def apply_custom_theme(themeJSON):
         except Exception as exception:
             print(f"\033[1;31mERROR:\033[0m An error occurred while parsing {theme_path}: {exception}")
 
-disabledPlugins = os.path.join(selected_version, "DisabledPlugins", "Optimized_Embedded_Signature")
+if os.name == "nt":
+    disabledPlugins = os.path.join(selected_version, "DisabledPlugins", "Optimized_Embedded_Signature")
+elif os.name == "posix":
+    disabledPlugins = "/" + os.path.join(selected_version, "Contents", "Resources", "DisabledPlugins", "Optimized_Embedded_Signature")
 
 def get_disabled_plugins():
     file_info = []
-    folder_path = os.path.join(selected_version, "DisabledPlugins", "Optimized_Embedded_Signature")
-    if os.path.isdir(folder_path):
-        for root, _, files in os.walk(folder_path):
+    if os.path.isdir(disabledPlugins):
+        for root, _, files in os.walk(disabledPlugins):
             for file in files:
                 if file.endswith(".rbxm"):
                     name, _ = os.path.splitext(file)
@@ -719,7 +818,12 @@ def get_disabled_plugins():
                     folder = split[1]
                     file_info.append(f"{folder}/{name}")
     else:
-        print(f"\033[1;31mERROR:\033[0m Folder {folder_path} does not exist.")
+        print(f"\033[1;31mERROR:\033[0m Folder {disabledPlugins} does not exist.")
+        subprocess.Popen(["mkdir", "-p", disabledPlugins])
+        try:
+            os.makedirs(disabledPlugins, exist_ok = True)
+        except Exception as exception:
+            print(f"\033[1;31mERROR:\033[0m An error occured when creating {disabledPlugins}: {exception}")
 
     file_info.sort()
     return file_info
@@ -786,8 +890,11 @@ def get_builtin_plugins():
     file_info = {}
 
     for folder in pluginFolders:
-        folder_path = os.path.join(selected_version, folder, "Optimized_Embedded_Signature")
-        folder_path = os.path.normpath(folder_path)
+        if os.name == "nt":
+            folder_path = os.path.join(selected_version, folder, "Optimized_Embedded_Signature")
+            folder_path = os.path.normpath(folder_path)
+        elif os.name == "posix":
+            folder_path = "/" + os.path.join(selected_version, "Contents", "Resources", folder, "Optimized_Embedded_Signature")
         if os.path.isdir(folder_path):
             for root, _, files in os.walk(folder_path):
                 for file in files:
@@ -797,12 +904,17 @@ def get_builtin_plugins():
                             split = name.split("-", 2)
                             name = split[0]
                             folder = split[1]
-                            duplicateFile = os.path.join(selected_version, folder, "Optimized_Embedded_Signature", name) + ".rbxm"
+                            duplicateFile = os.path.join(folder_path, name) + ".rbxm"
                             if os.path.isfile(duplicateFile):
                                 os.remove(duplicateFile)
                         file_info[file] = {"name": name, "base_folder": folder, "enabled": os.path.split(os.path.split(root)[0])[1] != "DisabledPlugins"}
         else:
             print(f"\033[1;31mERROR:\033[0m Folder {folder_path} does not exist.")
+            try:
+                os.makedirs(folder_path, exist_ok = True)
+                subprocess.Popen(["mkdir", "-p", folder_path])
+            except Exception as exception:
+                print(f"\033[1;31mERROR:\033[0m An error occured when creating {folder_path}: {exception}")
 
     sorted_files = sorted(file_info.values(), key=lambda x: x["name"])
     return sorted_files
