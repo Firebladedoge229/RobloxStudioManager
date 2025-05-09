@@ -8,13 +8,17 @@ from PyQt5.QtGui import QIcon, QPixmap, QIntValidator, QColor
 from PyQt5.QtWidgets import QApplication, QFrame, QVBoxLayout, QHBoxLayout, QSpacerItem, QSizePolicy, QLabel, QWidget, QFileDialog, QHeaderView, QTableWidgetItem
 from qfluentwidgets import (NavigationItemPosition, FluentWindow, SubtitleLabel, TitleLabel, LineEdit, SingleDirectionScrollArea, ExpandGroupSettingCard, MessageBoxBase, SettingCard, ToolButton, IndeterminateProgressBar,
                             BodyLabel, ComboBox, IconWidget, CardWidget, CaptionLabel, SwitchButton, Dialog, MessageBox, ColorDialog, SearchLineEdit, TableWidget, InfoBar, InfoBarPosition, PrimaryPushButton, PushButton, FluentIcon)
-from logic import (apply_settings, reset_configuration, open_installation_folder, launch_studio, update_studio, rgb_to_hex, get_custom_flags, save_custom_flags, get_builtin_plugins, download_default_themes, patch_studio_for_themes, get_theme_colors, apply_custom_theme, toggle_plugin_enabled)
+from logic import (apply_settings, reset_configuration, open_installation_folder, launch_studio, update_studio, rgb_to_hex, get_custom_flags, save_custom_flags, get_builtin_plugins, download_default_themes, patch_studio_for_themes, get_theme_colors, apply_custom_theme, toggle_plugin_enabled, open_browser)
 from downloader import download
 import re
-import win32cred
 import traceback
 
+if os.name == "nt":
+    import win32cred
+
 version = "2.4.4"
+
+win32cred = os
 
 global progressBar
 progressBar = None
@@ -49,7 +53,11 @@ def handle_exception(exc_type, exc_value, exc_traceback):
         sys.exit(1)
     else:
         error_msg = re.sub(r"(?<=\\Users\\)[a-zA-Z0-9]+(?=\\)", r"%USERNAME%", error_msg)
-        os.startfile(f"https://github.com/Firebladedoge229/RobloxStudioManager/issues/new?title=Unhandled%20Exception&body={requests.utils.quote(error_msg)}")
+        error_msg = re.sub(r"(?<=\/Users\/)[a-zA-Z0-9]+(?=\/)", r"%USERNAME%", error_msg)
+        if os.name == "nt":
+            os.startfile(f"https://github.com/Firebladedoge229/RobloxStudioManager/issues/new?title=Unhandled%20Exception&body={requests.utils.quote(error_msg)}")
+        elif os.name == "posix":
+            open_browser(f"https://github.com/Firebladedoge229/RobloxStudioManager/issues/new?title=Unhandled%20Exception&body={requests.utils.quote(error_msg)}")
         sys.exit(1)
 
 sys.excepthook = handle_exception
@@ -701,6 +709,9 @@ class Window(FluentWindow):
         contentLabel = CaptionLabel("Clear stored Roblox credentials in the Windows Credentials Manager to resolve login issues in Roblox Studio.", container)
         contentLabel.setTextColor("#606060", "#d2d2d2")
 
+        if os.name != "nt":
+            container.setDisabled(True)
+
         self.clearButton = PushButton(container)
         self.clearButton.setText("Clear Credentials")
         self.clearButton.clicked.connect(self.deleteCredentials)
@@ -1084,7 +1095,7 @@ class Window(FluentWindow):
         cleaned_body = re.sub(r">.*\n", "", body)  
         cleaned_body = re.sub(r"!\[.*?\]\(.*?\)", "", cleaned_body)  
         cleaned_body = re.sub(r"\[.*?\]\(.*?\)", "", cleaned_body)  
-        cleaned_body = re.sub(r"(\|.*\n)+(\|[-| ]*\n)+", "", cleaned_body)
+        cleaned_body = cleaned_body.split("|")[0]
         return cleaned_body.strip()  
 
     def initWindow(self):
@@ -1118,22 +1129,35 @@ class Window(FluentWindow):
                     if "SectionTitle" in toggle:
                         self.addSectionHeader(toggle["SectionTitle"], toggle["SectionLocation"])
                     else:
-                        self.addToggle(toggle["Title"], toggle["Description"], toggle["Section"], toggle["InternetRequired"])
+                        try:
+                            _ = toggle["WindowsOnly"]
+                        except:
+                            toggle["WindowsOnly"] = False
+                        self.addToggle(toggle["Title"], toggle["Description"], toggle["Section"], toggle["InternetRequired"], toggle["WindowsOnly"])
 
                 for type_option in options["Type"]:  
                     self.addTypeOption(type_option["Title"], type_option["Description"], type_option["Section"], type_option["Accept"], type_option["InternetRequired"])
 
         except FileNotFoundError:
-            InfoBar.error(
-                title="Roblox Studio Manager",
-                content="Error while fetching options.json: File not found!",
-                orient=Qt.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP_RIGHT,
-                duration=2000,
-                parent=self
-            )
-            print("\033[1;31mDATA ERROR:\033[0m options.json not found!")
+            print("\033[1;31mDATA ERROR:\033[0m options.json not found! Downloading..")
+            try:
+                response = requests.get("https://raw.githubusercontent.com/Firebladedoge229/RobloxStudioManager/refs/heads/main/data/options.json")
+                if response:
+                    with open("options.json", "w") as file:
+                        file.write(response.text)
+                    print("\033[1;32mSUCCESS:\033[0m options.json downloaded successfully.")
+                    self.loadOptions()
+            except Exception as exception:
+                print(f"\033[1;31mDATA ERROR:\033[0m Error while downloading options.json: {exception}")
+                InfoBar.error(
+                    title="Roblox Studio Manager",
+                    content="Error while fetching options.json: File not found!",
+                    orient=Qt.Horizontal,
+                    isClosable=True,
+                    position=InfoBarPosition.TOP_RIGHT,
+                    duration=2000,
+                    parent=self
+                )
 
         bottomSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.modsInterface.widget().vBoxLayout.addItem(bottomSpacer)
@@ -1268,7 +1292,7 @@ class Window(FluentWindow):
         elif section.lower() == "settings":
             self.settingInterface.widget().vBoxLayout.addWidget(container)
 
-    def addToggle(self, labelText, description, section, internetRequired):
+    def addToggle(self, labelText, description, section, internetRequired, windowsOnly):
         container = CardWidget(self)
         container.setFixedHeight(73)
 
@@ -1282,6 +1306,9 @@ class Window(FluentWindow):
         toggleButton.setOffText("")
 
         if internetRequired and not internet:
+            toggleButton.setEnabled(False)
+        
+        if windowsOnly and os.name != "nt":
             toggleButton.setEnabled(False)
 
         self.toggle_widgets[labelText] = toggleButton
