@@ -53,7 +53,7 @@ jobs:
         run: |
           Invoke-WebRequest -Uri "https://github.com/electron/rcedit/releases/download/v0.1.0/rcedit.exe" -OutFile "rcedit.exe"
         
-      - name: Build RobloxStudioManager (Windows)
+      - name: Build RobloxStudioManager [Windows]
         run: |
           nuitka src/main.py `
             --standalone `
