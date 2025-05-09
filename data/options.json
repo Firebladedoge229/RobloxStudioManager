@@ -115,7 +115,8 @@
             "Title": "Legacy Logo",
             "Description": "Replaces the current logo with the original version used prior to 2025.",
             "Section": "Mods",
-            "InternetRequired": true
+            "InternetRequired": true,
+            "WindowsOnly" : true
         },
         {
             "Title": "Legacy Launch Banner",
