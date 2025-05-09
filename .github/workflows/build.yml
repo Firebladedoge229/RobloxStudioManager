@@ -7,7 +7,7 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  build-windows:
     runs-on: windows-latest
 
     steps:
@@ -53,7 +53,7 @@ jobs:
         run: |
           Invoke-WebRequest -Uri "https://github.com/electron/rcedit/releases/download/v0.1.0/rcedit.exe" -OutFile "rcedit.exe"
         
-      - name: Build RobloxStudioManager
+      - name: Build RobloxStudioManager (Windows)
         run: |
           nuitka src/main.py `
             --standalone `
@@ -73,7 +73,7 @@ jobs:
             --include-data-files="images/logo.png=logo.png" `
             --include-data-files="images/RobloxStudioManager.png=RobloxStudioManager.png" `
             --include-data-files="rcedit.exe=rcedit.exe"
-      
+
       - name: Build RobloxStudioManagerDebug
         run: |
           nuitka src/main.py `
@@ -93,7 +93,7 @@ jobs:
             --include-data-files="images/logo.png=logo.png" `
             --include-data-files="images/RobloxStudioManager.png=RobloxStudioManager.png" `
             --include-data-files="rcedit.exe=rcedit.exe"
-
+      
       - name: Print SHA256 hashes
         run: |
           Write-Output "Encryption for RobloxStudioManager:"
@@ -101,14 +101,73 @@ jobs:
           Write-Output "Encryption for RobloxStudioManagerDebug:"
           Get-FileHash -Algorithm SHA256 build\RobloxStudioManagerDebug.exe
             
-      - name: Upload Production Artifact
+      - name: Upload Windows Production Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: RobloxStudioManager
+          name: RobloxStudioManager-Windows
           path: "build/RobloxStudioManager.exe"
 
-      - name: Upload Development Artifact
+      - name: Upload Windows Development Artifact
         uses: actions/upload-artifact@v4
         with:
           name: RobloxStudioManagerDebug
           path: "build/RobloxStudioManagerDebug.exe"
+
+  build-macos:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install nuitka
+
+      - name: Modify FluentWidgets
+        run: |
+          QFLUENT_PATH=$(python -c "import qfluentwidgets; print(qfluentwidgets.__path__[0])")
+          curl -o "$QFLUENT_PATH/common/config.py" "https://raw.githubusercontent.com/Firebladedoge229/PyQt-Fluent-Widgets/refs/heads/master/qfluentwidgets/common/config.py"
+
+      - name: Build RobloxStudioManager [macOS]
+        run: |
+          nuitka src/main.py \
+            --standalone \
+            --macos-create-app-bundle \
+            --macos-app-name=RobloxStudioManager \
+            --output-dir=build \
+            --output-filename=RobloxStudioManager \
+            --enable-plugin=pyqt5 \
+            --include-data-files="src/ui_components.py=ui_components.py" \
+            --include-data-files="src/downloader.py=downloader.py" \
+            --include-data-files="src/logic.py=logic.py" \
+            --include-data-files="data/fastflags.json=fastflags.json" \
+            --include-data-files="data/options.json=options.json" \
+            --include-data-files="images/logo.png=logo.png" \
+            --include-data-files="images/RobloxStudioManager.png=RobloxStudioManager.png"
+
+      - name: Print SHA256 hash [macOS]
+        run: |
+          echo "SHA256 for RobloxStudioManager.app binary:"
+          shasum -a 256 build/RobloxStudioManager.app/Contents/MacOS/RobloxStudioManager
+
+      - name: Upload macOS Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: RobloxStudioManager-macOS
+          path: build/RobloxStudioManager.app
