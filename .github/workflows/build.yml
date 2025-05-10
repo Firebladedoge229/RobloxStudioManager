@@ -125,7 +125,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.x"
+          python-version: "3.9"
 
       - name: Cache Python dependencies
         uses: actions/cache@v4
@@ -138,6 +138,7 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
+          pip install PyQt5==5.15.9
           pip install -r requirements.txt
           pip install nuitka
 
@@ -145,12 +146,6 @@ jobs:
         run: |
           QFLUENT_PATH=$(python -c "import sys; sys.stdout = open('nul', 'w'); import qfluentwidgets; sys.stdout = sys.__stdout__;  print(qfluentwidgets.__path__[0])")
           curl -o "$QFLUENT_PATH/common/config.py" "https://raw.githubusercontent.com/Firebladedoge229/PyQt-Fluent-Widgets/refs/heads/master/qfluentwidgets/common/config.py"
-
-      - name: Download and set up CCache
-        run: |
-          curl -L -o ccache.tar.gz "https://github.com/ccache/ccache/releases/download/v4.11.3/ccache-4.11.3-darwin.tar.gz"
-          mkdir -p "/Users/runner/Library/Caches/Nuitka/downloads/ccache/v4.2.1"
-          tar -xzf ccache.tar.gz -C "/Users/runner/Library/Caches/Nuitka/downloads/ccache/v4.2.1"
 
       - name: Build RobloxStudioManager [macOS]
         env:
