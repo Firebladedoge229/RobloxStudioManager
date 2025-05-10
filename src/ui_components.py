@@ -639,7 +639,7 @@ class Window(FluentWindow):
         releaseLabel.setAlignment(Qt.AlignCenter)
         releaseLabel.setWordWrap(True)
 
-        releaseDescriptionLabel = SubtitleLabel(f"{release_info['body'].split("**Differences**")[0]}")
+        releaseDescriptionLabel = SubtitleLabel(f'{release_info["body"].split("**Differences**")[0]}')
         releaseDescriptionLabel.setAlignment(Qt.AlignCenter)
         releaseDescriptionLabel.setWordWrap(True)
 
