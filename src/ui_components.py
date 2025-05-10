@@ -213,7 +213,7 @@ class Window(FluentWindow):
             for cred in creds:
                 if "roblox" in cred["TargetName"].lower():
                     win32cred.CredDelete(cred["TargetName"], 1)
-                    print(f"\033[1;36mINFO:\033[0m Deleted credential: {cred["TargetName"]}")
+                    print(f"\033[1;36mINFO:\033[0m Deleted credential: {cred['TargetName']}")
             InfoBar.success(
                 title="Roblox Credentials",
                 content="Successfully deleted all of the Roblox-related credentials.",
@@ -635,11 +635,11 @@ class Window(FluentWindow):
         releaseLayout = QVBoxLayout()
         releaseLayout.setAlignment(Qt.AlignTop)
 
-        releaseLabel = TitleLabel(f"Latest Release: {release_info["tag_name"]}")
+        releaseLabel = TitleLabel(f"Latest Release: {release_info['tag_name']}")
         releaseLabel.setAlignment(Qt.AlignCenter)
         releaseLabel.setWordWrap(True)
 
-        releaseDescriptionLabel = SubtitleLabel(f"{release_info["body"].split("**Differences**")[0]}")
+        releaseDescriptionLabel = SubtitleLabel(f"{release_info['body'].split("**Differences**")[0]}")
         releaseDescriptionLabel.setAlignment(Qt.AlignCenter)
         releaseDescriptionLabel.setWordWrap(True)
 
