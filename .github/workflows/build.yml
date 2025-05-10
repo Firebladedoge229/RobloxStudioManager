@@ -150,7 +150,7 @@ jobs:
           mkdir -p "/Users/runner/Library/Caches/Nuitka/downloads/ccache/v4.2.1"
           tar -xzf ccache.tar.gz -C "/Users/runner/Library/Caches/Nuitka/downloads/ccache/v4.2.1"
 
-      - name: Build RobloxStudioManager [macOS]
+      - name: Build RobloxStudioManager [Intel] [macOS]
         run: |
           nuitka src/main.py \
             --standalone \
@@ -158,7 +158,25 @@ jobs:
             --macos-app-name=RobloxStudioManager \
             --output-dir=build \
             --output-filename=RobloxStudioManager \
-            --macos-target-arch="universal" \
+            --macos-target-arch="x86_64" \
+            --enable-plugin=pyqt5 \
+            --include-data-files="src/ui_components.py=ui_components.py" \
+            --include-data-files="src/downloader.py=downloader.py" \
+            --include-data-files="src/logic.py=logic.py" \
+            --include-data-files="data/fastflags.json=fastflags.json" \
+            --include-data-files="data/options.json=options.json" \
+            --include-data-files="images/logo.png=logo.png" \
+            --include-data-files="images/RobloxStudioManager.png=RobloxStudioManager.png"
+
+      - name: Build RobloxStudioManager [Silicon] [macOS]
+        run: |
+          nuitka src/main.py \
+            --standalone \
+            --macos-create-app-bundle \
+            --macos-app-name=RobloxStudioManager \
+            --output-dir=build \
+            --output-filename=RobloxStudioManager \
+            --macos-target-arch="arm64" \
             --enable-plugin=pyqt5 \
             --include-data-files="src/ui_components.py=ui_components.py" \
             --include-data-files="src/downloader.py=downloader.py" \
