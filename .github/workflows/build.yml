@@ -146,6 +146,9 @@ jobs:
           QFLUENT_PATH=$(python -c "import sys; sys.stdout = open('nul', 'w'); import qfluentwidgets; sys.stdout = sys.__stdout__;  print(qfluentwidgets.__path__[0])")
           curl -o "$QFLUENT_PATH/common/config.py" "https://raw.githubusercontent.com/Firebladedoge229/PyQt-Fluent-Widgets/refs/heads/master/qfluentwidgets/common/config.py"
 
+      - name: Install UPX
+        run: brew install upx
+
       - name: Build RobloxStudioManager [macOS]
         run: |
           pyinstaller src/main.py \
@@ -155,6 +158,12 @@ jobs:
             --name RobloxStudioManager \
             --distpath dist \
             --icon=images/logo.icns \
+            --upx-dir=/opt/homebrew/bin \
+            --exclude-module=tkinter \
+            --exclude-module=unittest \
+            --exclude-module=test \
+            --exclude-module=asyncio \
+            --exclude-module=PyQt5.QtWebEngineWidgets \
             --add-data "src/ui_components.py:." \
             --add-data "src/downloader.py:." \
             --add-data "src/logic.py:." \
