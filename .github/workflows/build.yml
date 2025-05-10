@@ -154,9 +154,6 @@ jobs:
         run: |
           QFLUENT_PATH=$(python -c "import sys; sys.stdout = open('nul', 'w'); import qfluentwidgets; sys.stdout = sys.__stdout__;  print(qfluentwidgets.__path__[0])")
           curl -o "$QFLUENT_PATH/common/config.py" "https://raw.githubusercontent.com/Firebladedoge229/PyQt-Fluent-Widgets/refs/heads/master/qfluentwidgets/common/config.py"
-          
-      - name: Install UPX
-        run: brew install upx
 
       - name: Compress JSON Files
         run: for file in ./data/*.json; do jq -c . "$file" > temp.json && mv temp.json "$file"; done
@@ -182,9 +179,6 @@ jobs:
             --add-data "data/options.json:." \
             --add-data "images/logo.png:." \
             --add-data "images/RobloxStudioManager.png:."
-
-      - name: Compress with UPX
-        run: upx --best --ultra-brute --force-macos dist/RobloxStudioManager.app/Contents/MacOS/RobloxStudioManager
 
       - name: List build directory contents
         run: ls -lR dist/
