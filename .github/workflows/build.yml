@@ -65,6 +65,7 @@ jobs:
             --noinclude-default-mode=nofollow `
             --nofollow-imports `
             --enable-plugin=pyqt5 `
+            --enable-plugin=anti-bloat `
             --include-data-files="src/ui_components.py=ui_components.py" `
             --include-data-files="src/downloader.py=downloader.py" `
             --include-data-files="src/logic.py=logic.py" `
@@ -85,6 +86,7 @@ jobs:
             --noinclude-default-mode=nofollow `
             --nofollow-imports `
             --enable-plugin=pyqt5 `
+            --enable-plugin=anti-bloat `
             --include-data-files="src/ui_components.py=ui_components.py" `
             --include-data-files="src/downloader.py=downloader.py" `
             --include-data-files="src/logic.py=logic.py" `
@@ -163,6 +165,8 @@ jobs:
             --output-filename=RobloxStudioManager \
             --macos-target-arch="arm64" \
             --enable-plugin=pyqt5 \
+            --enable-plugin=anti-bloat \
+            --macos-app-icon=images/logo.icns \
             --include-data-files="src/ui_components.py=ui_components.py" \
             --include-data-files="src/downloader.py=downloader.py" \
             --include-data-files="src/logic.py=logic.py" \
@@ -174,7 +178,7 @@ jobs:
       - name: Print SHA256 hash [macOS]
         run: |
           echo "SHA256 for RobloxStudioManager.app binary:"
-          shasum -a 256 build/RobloxStudioManager.app/Contents/MacOS/RobloxStudioManager
+          shasum -a 256 build/main.app/Contents/MacOS/RobloxStudioManager
 
       - name: Upload macOS Artifact
         uses: actions/upload-artifact@v4
