@@ -52,6 +52,15 @@ jobs:
       - name: Download RCEdit
         run: |
           Invoke-WebRequest -Uri "https://github.com/electron/rcedit/releases/download/v0.1.0/rcedit.exe" -OutFile "rcedit.exe"
+
+      - name: Compress JSON Files
+        run: |
+          $folderPath = "C:\path\to\data"  # Change this to your actual folder path
+          Get-ChildItem -Path $folderPath -Filter "*.json" | ForEach-Object {
+              $jsonContent = Get-Content $_.FullName -Raw
+              $minifiedJson = $jsonContent | ConvertFrom-Json | ConvertTo-Json -Compress
+              $minifiedJson | Set-Content $_.FullName
+          }
         
       - name: Build RobloxStudioManager [Windows]
         run: |
@@ -146,9 +155,15 @@ jobs:
           QFLUENT_PATH=$(python -c "import sys; sys.stdout = open('nul', 'w'); import qfluentwidgets; sys.stdout = sys.__stdout__;  print(qfluentwidgets.__path__[0])")
           curl -o "$QFLUENT_PATH/common/config.py" "https://raw.githubusercontent.com/Firebladedoge229/PyQt-Fluent-Widgets/refs/heads/master/qfluentwidgets/common/config.py"
 
+      - name: Install JQ
+        run: brew install jq
+
       - name: Install UPX
         run: brew install upx
 
+      - name: Compress JSON Files
+        run: for file in ./data/*.json; do jq -c . "$file" > temp.json && mv temp.json "$file"; done
+       
       - name: Build RobloxStudioManager [macOS]
         run: |
           pyinstaller src/main.py \
