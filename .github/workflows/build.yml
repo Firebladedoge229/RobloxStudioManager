@@ -55,7 +55,7 @@ jobs:
 
       - name: Compress JSON Files
         run: |
-          $folderPath = "C:\path\to\data"  # Change this to your actual folder path
+          $folderPath = "data/"
           Get-ChildItem -Path $folderPath -Filter "*.json" | ForEach-Object {
               $jsonContent = Get-Content $_.FullName -Raw
               $minifiedJson = $jsonContent | ConvertFrom-Json | ConvertTo-Json -Compress
