@@ -153,7 +153,7 @@ jobs:
             --noconsole \
             --windowed \
             --name RobloxStudioManager \
-            --distpath build \
+            --distpath dist \
             --icon=images/logo.icns \
             --add-data "src/ui_components.py:." \
             --add-data "src/downloader.py:." \
@@ -169,10 +169,10 @@ jobs:
           shasum -a 256 build/RobloxStudioManager.app/Contents/MacOS/RobloxStudioManager
       
       - name: List build directory contents
-        run: ls -lR build/
+        run: ls -lR dist/
       
       - name: Upload macOS Artifact
         uses: actions/upload-artifact@v4
         with:
           name: RobloxStudioManager-macOS
-          path: build/RobloxStudioManager.app
+          path: dist
