@@ -175,16 +175,16 @@ jobs:
             --include-data-files="images/logo.png=logo.png" \
             --include-data-files="images/RobloxStudioManager.png=RobloxStudioManager.png"
 
-      - name: Rename RobloxStudioManager
-        run: mv build/main.app build/RobloxStudioManager.app
-
       - name: Print SHA256 hash [macOS]
         run: |
           echo "SHA256 for RobloxStudioManager.app binary:"
-          shasum -a 256 build/RobloxStudioManager.app/Contents/MacOS/RobloxStudioManager
+          shasum -a 256 build/main.app/Contents/MacOS/RobloxStudioManager
+
+      - name: List build directory contents
+        run: ls -lR build/
 
       - name: Upload macOS Artifact
         uses: actions/upload-artifact@v4
         with:
           name: RobloxStudioManager-macOS
-          path: build/RobloxStudioManager.app
+          path: build/main.app
