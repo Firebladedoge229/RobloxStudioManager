@@ -15,10 +15,10 @@ import traceback
 
 if os.name == "nt":
     import win32cred
+elif os.name == "posix":
+    win32cred = os
 
-version = "2.4.4"
-
-win32cred = os
+version = "2.4.5"
 
 global progressBar
 progressBar = None
