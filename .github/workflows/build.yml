@@ -169,7 +169,7 @@ jobs:
       - name: Print SHA256 hash [macOS]
         run: |
           echo "SHA256 for RobloxStudioManager.app binary:"
-          shasum -a 256 build/RobloxStudioManager.app/Contents/MacOS/RobloxStudioManager
+          shasum -a 256 dist/RobloxStudioManager.app/Contents/MacOS/RobloxStudioManager
       
       - name: Upload macOS Artifact
         uses: actions/upload-artifact@v4
