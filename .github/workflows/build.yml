@@ -158,7 +158,6 @@ jobs:
             --name RobloxStudioManager \
             --distpath dist \
             --icon=images/logo.icns \
-            --upx-dir=/opt/homebrew/Cellar/upx/4.2.4/bin
             --exclude-module=tkinter \
             --exclude-module=unittest \
             --exclude-module=test \
@@ -171,6 +170,9 @@ jobs:
             --add-data "data/options.json:." \
             --add-data "images/logo.png:." \
             --add-data "images/RobloxStudioManager.png:."
+
+      - name: Compress with UPX
+        run: upx --best --ultra-brute dist/RobloxStudioManager.app/Contents/MacOS/RobloxStudioManager
 
       - name: List build directory contents
         run: ls -lR dist/
