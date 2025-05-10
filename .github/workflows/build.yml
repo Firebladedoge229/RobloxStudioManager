@@ -172,7 +172,7 @@ jobs:
             --add-data "images/RobloxStudioManager.png:."
 
       - name: Compress with UPX
-        run: upx --best --ultra-brute dist/RobloxStudioManager.app/Contents/MacOS/RobloxStudioManager
+        run: upx --best --ultra-brute --force-macos dist/RobloxStudioManager.app/Contents/MacOS/RobloxStudioManager
 
       - name: List build directory contents
         run: ls -lR dist/
