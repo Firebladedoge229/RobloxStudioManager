@@ -159,7 +159,6 @@ jobs:
             --output-dir=build \
             --output-filename=RobloxStudioManager \
             --macos-target-arch="universal" \
-            --no-cache \
             --enable-plugin=pyqt5 \
             --include-data-files="src/ui_components.py=ui_components.py" \
             --include-data-files="src/downloader.py=downloader.py" \
