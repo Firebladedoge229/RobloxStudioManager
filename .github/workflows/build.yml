@@ -125,7 +125,7 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Cache pip
+      - name: Cache Python dependencies
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
@@ -155,9 +155,9 @@ jobs:
           nuitka src/main.py \
             --standalone \
             --macos-create-app-bundle \
-            --macos-app-name=RobloxStudioManager \
+            --macos-app-name=RobloxStudioManagerIntel \
             --output-dir=build \
-            --output-filename=RobloxStudioManager \
+            --output-filename=RobloxStudioManagerIntel \
             --macos-target-arch="x86_64" \
             --enable-plugin=pyqt5 \
             --include-data-files="src/ui_components.py=ui_components.py" \
@@ -173,9 +173,9 @@ jobs:
           nuitka src/main.py \
             --standalone \
             --macos-create-app-bundle \
-            --macos-app-name=RobloxStudioManager \
+            --macos-app-name=RobloxStudioManagerSilicon \
             --output-dir=build \
-            --output-filename=RobloxStudioManager \
+            --output-filename=RobloxStudioManagerSilicon \
             --macos-target-arch="arm64" \
             --enable-plugin=pyqt5 \
             --include-data-files="src/ui_components.py=ui_components.py" \
@@ -186,10 +186,12 @@ jobs:
             --include-data-files="images/logo.png=logo.png" \
             --include-data-files="images/RobloxStudioManager.png=RobloxStudioManager.png"
 
-      - name: Print SHA256 hash [macOS]
+      - name: Print SHA256 hashes [macOS]
         run: |
-          echo "SHA256 for RobloxStudioManager.app binary:"
-          shasum -a 256 build/RobloxStudioManager.app/Contents/MacOS/RobloxStudioManager
+          echo "SHA256 for RobloxStudioManagerIntel.app binary:"
+          shasum -a 256 build/RobloxStudioManagerIntel.app/Contents/MacOS/RobloxStudioManagerIntel
+          echo "SHA256 for RobloxStudioManagerSilicon.app binary:"
+          shasum -a 256 build/RobloxStudioManagerSilicon.app/Contents/MacOS/RobloxStudioManagerSilicon
 
       - name: Upload macOS Artifact
         uses: actions/upload-artifact@v4
