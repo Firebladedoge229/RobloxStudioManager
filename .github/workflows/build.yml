@@ -151,6 +151,9 @@ jobs:
           tar -xzf ccache.tar.gz -C "/Users/runner/Library/Caches/Nuitka/downloads/ccache/v4.2.1"
 
       - name: Build RobloxStudioManager [Intel] [macOS]
+        env:
+            NUITKA_AUTO_DOWNLOADS: "yes"
+            NUITKA_CCACHE_BINARY: "none"
         run: |
           nuitka src/main.py \
             --standalone \
@@ -169,6 +172,9 @@ jobs:
             --include-data-files="images/RobloxStudioManager.png=RobloxStudioManager.png"
 
       - name: Build RobloxStudioManager [Silicon] [macOS]
+        env:
+            NUITKA_AUTO_DOWNLOADS: "yes"
+            NUITKA_CCACHE_BINARY: "none"
         run: |
           nuitka src/main.py \
             --standalone \
