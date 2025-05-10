@@ -115,7 +115,7 @@ jobs:
       - name: Upload Windows Production Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: RobloxStudioManager-Windows
+          name: RobloxStudioManager
           path: "build/RobloxStudioManager.exe"
 
       - name: Upload Windows Development Artifact
