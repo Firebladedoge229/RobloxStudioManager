@@ -162,14 +162,14 @@ jobs:
             --add-data "data/options.json:." \
             --add-data "images/logo.png:." \
             --add-data "images/RobloxStudioManager.png:."
+
+      - name: List build directory contents
+        run: ls -lR dist/
       
       - name: Print SHA256 hash [macOS]
         run: |
           echo "SHA256 for RobloxStudioManager.app binary:"
           shasum -a 256 build/RobloxStudioManager.app/Contents/MacOS/RobloxStudioManager
-      
-      - name: List build directory contents
-        run: ls -lR dist/
       
       - name: Upload macOS Artifact
         uses: actions/upload-artifact@v4
