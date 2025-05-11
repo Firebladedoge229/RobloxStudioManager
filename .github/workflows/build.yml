@@ -52,15 +52,6 @@ jobs:
       - name: Download RCEdit
         run: |
           Invoke-WebRequest -Uri "https://github.com/electron/rcedit/releases/download/v0.1.0/rcedit.exe" -OutFile "rcedit.exe"
-
-      - name: Compress JSON Files
-        run: |
-          $folderPath = "data/"
-          Get-ChildItem -Path $folderPath -Filter "*.json" | ForEach-Object {
-              $jsonContent = Get-Content $_.FullName -Raw
-              $minifiedJson = $jsonContent | ConvertFrom-Json | ConvertTo-Json -Compress
-              $minifiedJson | Set-Content $_.FullName
-          }
         
       - name: Build RobloxStudioManager [Windows]
         run: |
@@ -149,9 +140,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pyinstaller
-
-      - name: Compress JSON Files
-        run: for file in ./data/*.json; do jq -c . "$file" > temp.json && mv temp.json "$file"; done
 
       - name: Modify FluentWidgets
         run: |
