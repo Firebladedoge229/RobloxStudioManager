@@ -48,7 +48,7 @@ def handle_exception(exc_type, exc_value, exc_traceback):
         dialog = Dialog("Unhandled Exception", f"```{error_msg}```", main_window)
         dialog.contentLabel.setStyleSheet("font-family: Consolas;")
         dialog.yesButton.setText("Exit")
-        dialog.cancelButton.setText("Report on Github")
+        dialog.cancelButton.setText("Report on GitHub")
     
         if dialog.exec_():
             sys.exit(1)
