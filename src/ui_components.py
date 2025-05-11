@@ -42,23 +42,24 @@ def handle_exception(exc_type, exc_value, exc_traceback):
         return
 
     error_msg = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
-    print("Caught an unhandled exception:", error_msg)
+    if not "windowMask" in error_msg:
+        print("Caught an unhandled exception:", error_msg)
 
-    dialog = Dialog("Unhandled Exception", f"```{error_msg}```", main_window)
-    dialog.contentLabel.setStyleSheet("font-family: Consolas;")
-    dialog.yesButton.setText("Exit")
-    dialog.cancelButton.setText("Report on Github")
+        dialog = Dialog("Unhandled Exception", f"```{error_msg}```", main_window)
+        dialog.contentLabel.setStyleSheet("font-family: Consolas;")
+        dialog.yesButton.setText("Exit")
+        dialog.cancelButton.setText("Report on Github")
     
-    if dialog.exec_():
-        sys.exit(1)
-    else:
-        error_msg = re.sub(r"(?<=\\Users\\)[a-zA-Z0-9]+(?=\\)", r"%USERNAME%", error_msg)
-        error_msg = re.sub(r"(?<=\/Users\/)[a-zA-Z0-9]+(?=\/)", r"%USERNAME%", error_msg)
-        if os.name == "nt":
-            os.startfile(f"https://github.com/Firebladedoge229/RobloxStudioManager/issues/new?title=Unhandled%20Exception&body={requests.utils.quote(error_msg)}")
-        elif os.name == "posix":
-            open_browser(f"https://github.com/Firebladedoge229/RobloxStudioManager/issues/new?title=Unhandled%20Exception&body={requests.utils.quote(error_msg)}")
-        sys.exit(1)
+        if dialog.exec_():
+            sys.exit(1)
+        else:
+            error_msg = re.sub(r"(?<=\\Users\\)[a-zA-Z0-9]+(?=\\)", r"%USERNAME%", error_msg)
+            error_msg = re.sub(r"(?<=\/Users\/)[a-zA-Z0-9]+(?=\/)", r"%USERNAME%", error_msg)
+            if os.name == "nt":
+                os.startfile(f"https://github.com/Firebladedoge229/RobloxStudioManager/issues/new?title=Unhandled%20Exception&body={requests.utils.quote(error_msg)}")
+            elif os.name == "posix":
+                open_browser(f"https://github.com/Firebladedoge229/RobloxStudioManager/issues/new?title=Unhandled%20Exception&body={requests.utils.quote(error_msg)}")
+            sys.exit(1)
 
 sys.excepthook = handle_exception
 
