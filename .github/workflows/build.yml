@@ -49,9 +49,13 @@ jobs:
           Invoke-WebRequest -Uri "https://dependencywalker.com/depends22_x64.zip" -OutFile "depends.zip"
           Expand-Archive depends.zip -DestinationPath "$env:LOCALAPPDATA\Nuitka\Nuitka\Cache\downloads\depends\x86_64"
 
-      - name: Download RCEdit
+      - name: Download and Compress Resource Hacker
         run: |
-          Invoke-WebRequest -Uri "https://github.com/electron/rcedit/releases/download/v0.1.0/rcedit.exe" -OutFile "rcedit.exe"
+          Invoke-WebRequest -Uri "https://github.com/upx/upx/releases/download/v5.0.1/upx-5.0.1-win64.zip" -OutFile "upx.zip"
+          Invoke-WebRequest -Uri "https://web.archive.org/web/20250513235047im_/https://www.angusj.com/resourcehacker/resource_hacker.zip" -OutFile "resource_hacker.zip"
+          Expand-Archive upx.zip -DestinationPath "build\"
+          Expand-Archive resource_hacker.zip -DestinationPath "build\" 
+          build\upx-5.0.1-win64\upx.exe --best --lzma build\ResourceHacker.exe
         
       - name: Build RobloxStudioManager [Windows]
         run: |
@@ -73,7 +77,7 @@ jobs:
             --include-data-files="data/options.json=options.json" `
             --include-data-files="images/logo.png=logo.png" `
             --include-data-files="images/RobloxStudioManager.png=RobloxStudioManager.png" `
-            --include-data-files="rcedit.exe=rcedit.exe"
+            --include-data-files="build/ResourceHacker.exe=ResourceHacker.exe"
 
       - name: Build RobloxStudioManagerDebug
         run: |
