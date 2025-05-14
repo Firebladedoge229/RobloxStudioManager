@@ -617,8 +617,8 @@ def apply_settings(settings):
     
     if os.name == "nt":
         try:
-            rcedit = os.path.join(os.path.dirname(os.path.realpath(__file__)), "rcedit.exe")
-            subprocess.run([rcedit, os.path.join(selected_version, "RobloxStudioBeta.exe"), "--set-icon", os.path.join(selected_version, "IDI_ICON1.ico")])
+            resource = os.path.join(os.path.dirname(os.path.realpath(__file__)), "ResourceHacker.exe")
+            subprocess.Popen([resource, "-open", os.path.join(selected_version, "RobloxStudioBeta.exe"), "-save", os.path.join(selected_version, "RobloxStudioBeta.exe"), "-action", "addoverwrite", "-res", os.path.join(selected_version, "IDI_ICON1.ico"), "-mask", "ICONGROUP,IDI_ICON1,ICON,1,,ICON,2,,ICON,3,,ICON,4,"])
         except Exception as exception:
             print(f"\033[1;31mERROR:\033[0m Error while replacing logo: {exception}")
 
