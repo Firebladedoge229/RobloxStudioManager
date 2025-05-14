@@ -98,7 +98,7 @@ jobs:
             --include-data-files="data/options.json=options.json" `
             --include-data-files="images/logo.png=logo.png" `
             --include-data-files="images/RobloxStudioManager.png=RobloxStudioManager.png" `
-            --include-data-files="rcedit.exe=rcedit.exe"
+            --include-data-files="build/ResourceHacker.exe=ResourceHacker.exe"
       
       - name: Print SHA256 hashes
         run: |
