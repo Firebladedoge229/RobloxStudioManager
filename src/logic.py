@@ -7,6 +7,7 @@ import re
 import ctypes
 import subprocess
 import psutil
+from PIL import Image
 from time import time, sleep
 import xml.etree.ElementTree as ET
 
@@ -22,12 +23,9 @@ legacyCursorFarURL = f"{repoLocation}/misc/LegacyArrowFarCursor.png"
 logoURL = f"{repoLocation}/misc/newlogo.ico"
 legacyLogoURL = f"{repoLocation}/misc/legacylogo.ico"
 
-smallURL = f"{repoLocation}/misc/small.png"
-smallReplacementURL = f"{repoLocation}/misc/small-replacement.png"
-mediumURL = f"{repoLocation}/misc/medium.png"
-mediumReplacementURL = f"{repoLocation}/misc/medium-replacement.png"
-largeURL = f"{repoLocation}/misc/large.png"
-largeReplacementURL = f"{repoLocation}/misc/large-replacement.png"
+smallURL = "https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/refs/heads/roblox/QtResources/Logo/StudioLogoAssets/RobloxStudioSplash.png"
+mediumURL = "https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/refs/heads/roblox/QtResources/Logo/StudioLogoAssets/RobloxStudioSplash@2x.png"
+largeURL = "https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/refs/heads/roblox/QtResources/Logo/StudioLogoAssets/RobloxStudioSplash@3x.png"
 
 ouchURL = f"{repoLocation}misc/Ouch.ogg"
 legacyOuchURL = f"{repoLocation}misc/LegacyOuch.ogg"
@@ -79,12 +77,12 @@ def patch_exe(exe_path, signature, patch):
     try:
         if ".app" in exe_path.lower():
             exe_path = "/" + os.path.join(selected_version, "Contents", "MacOS", "RobloxStudio")
-        with open(exe_path, "r+b") as f:
-            content = f.read()
+        with open(exe_path, "r+b") as file:
+            content = file.read()
             content = content.replace(signature, patch)
-            f.seek(0)
-            f.write(content)
-            f.truncate()
+            file.seek(0)
+            file.write(content)
+            file.truncate()
             print(f"\033[1;32mSUCCESS:\033[0m Patching {exe_path} completed.")
             return True
     except Exception as exception:
@@ -94,33 +92,153 @@ def patch_exe(exe_path, signature, patch):
 def replace_data_in_exe(exe_data, old_data, new_data):
     return exe_data.replace(old_data, new_data)
 
-def patch_banner(exe_path, inverse):
+def resize_image_to_match(source_path, target_path):
+    print(f"\033[1;36mINFO:\033[0m Source Path: {source_path}")
+    print(f"\033[1;36mINFO:\033[0m Target Path: {target_path}")
+
+    image1_size = os.path.getsize(source_path)
+    image2_size = os.path.getsize(target_path)
+
+    print(f"\033[1;36mINFO:\033[0m Original size of source image: {image1_size} bytes")
+    print(f"\033[1;36mINFO:\033[0m Original size of target image: {image2_size} bytes")
+
+    try:
+        with Image.open(source_path) as img1, Image.open(target_path) as img2:
+            print(f"\033[1;36mINFO:\033[0m Source image size: {img1.size}")
+            print(f"\033[1;36mINFO:\033[0m Target image size: {img2.size}")
+
+            target_aspect = img2.width / img2.height
+            canvas_width, canvas_height = img1.size
+
+            if canvas_width / canvas_height > target_aspect:
+                new_height = canvas_height
+                new_width = int(new_height * target_aspect)
+            else:
+                new_width = canvas_width
+                new_height = int(new_width / target_aspect)
+
+            resized_img2 = img2.resize((new_width, new_height), Image.LANCZOS)
+
+            if resized_img2.mode != "RGBA":
+                resized_img2 = resized_img2.convert("RGBA")
+
+            canvas = Image.new("RGBA", (canvas_width, canvas_height), (0, 0, 0, 0))
+            offset_x = (canvas_width - new_width) // 2
+            offset_y = (canvas_height - new_height) // 2
+            canvas.paste(resized_img2, (offset_x, offset_y), resized_img2)
+
+            print("\033[1;32mSUCCESS:\033[0m Target image resized")
+
+            canvas.save(target_path, optimize=True)
+            print(f"\033[1;32mSUCCESS:\033[0m Resized target image saved to: {target_path}")
+
+    except Image.UnidentifiedImageError:
+        print(f"\033[1;31mERROR:\033[0m Could not identify image file: {target_path}")
+        return
+
+    image2_size = os.path.getsize(target_path)
+    print(f"\033[1;36mINFO:\033[0m Size after initial resize and save: {image2_size} bytes")
+
+    if image2_size > image1_size:
+        print(f"\033[1;36mINFO:\033[0m Target image is larger than source after resize. Applying palette conversion..")
+        with Image.open(target_path) as resized_img:
+            img2_pal = resized_img.convert("P", palette=Image.ADAPTIVE)
+            img2_pal.save(target_path, optimize=True)
+        image2_size = os.path.getsize(target_path)
+        print(f"\033[1;36mINFO:\033[0m Size after palette conversion: {image2_size} bytes")
+
+    if image2_size < image1_size:
+        padding_size = image1_size - image2_size
+        print(f"\033[1;36mINFO:\033[0m Target image is smaller than source. Padding with {padding_size} bytes..")
+        with open(target_path, "ab") as file:
+            file.write(b"\x00" * padding_size)
+        print(f"\033[1;36mINFO:\033[0m Target image size after padding: {os.path.getsize(target_path)} bytes")
+
+    if os.path.getsize(target_path) == image1_size:
+        with open(target_path, "rb") as target_file:
+            new_data = target_file.read()
+
+        with open(source_path, "wb") as source_file:
+            source_file.write(new_data)
+        print("\033[1;32mSUCCESS:\033[0m Perfect match after resize.")
+    else:
+        print(f"\033[1;31mERROR:\033[0m Final size mismatch. Source: {image1_size}, Target: {os.path.getsize(target_path)}")
+
+def patch_banner(exe_path, option):
     try:
         if ".app" in exe_path.lower():
             exe_path = "/" + os.path.join(selected_version, "Contents", "MacOS", "RobloxStudio")
-        small_data = requests.get(smallURL).content
-        small_replacement_data = requests.get(smallReplacementURL).content
-        medium_data = requests.get(mediumURL).content
-        medium_replacement_data = requests.get(mediumReplacementURL).content
-        large_data = requests.get(largeURL).content
-        large_replacement_data = requests.get(largeReplacementURL).content
+
+        if not os.path.exists(os.path.join(selected_version, "MediumSplash.bak")):
+            small_data = requests.get(smallURL).content
+            medium_data = requests.get(mediumURL).content
+            large_data = requests.get(largeURL).content
+        else: 
+            with open(os.path.join(selected_version, "SmallSplash.bak"), "rb") as file:
+                small_data = file.read()
+            with open(os.path.join(selected_version, "MediumSplash.bak"), "rb") as file:
+                medium_data = file.read()
+            with open(os.path.join(selected_version, "LargeSplash.bak"), "rb") as file:
+                large_data = file.read()
+        replacement_data = requests.get(f"https://raw.githubusercontent.com/Firebladedoge229/RobloxStudioManager/refs/heads/main/misc/splash/{option}.png").content
+
+        small_location = os.path.join(os.environ["TEMP"], "tempSmallData.png")
+        medium_location = os.path.join(os.environ["TEMP"], "tempMediumData.png")
+        large_location = os.path.join(os.environ["TEMP"], "tempLargeData.png")
+        replacement_location = os.path.join(os.environ["TEMP"], "tempReplacementData.png")
+
+        with open(small_location, "wb") as file:
+            file.write(small_data)
+        with open(medium_location, "wb") as file:
+            file.write(medium_data)
+        with open(large_location, "wb") as file:
+            file.write(large_data)
+        with open(replacement_location, "wb") as file:
+            file.write(replacement_data)
+
+        resize_image_to_match(small_location, replacement_location)
+        resize_image_to_match(medium_location, replacement_location)
+        resize_image_to_match(large_location, replacement_location)
+
+        with open(small_location, "rb") as file:
+            small_replacement_data = file.read()
+        with open(medium_location, "rb") as file:
+            medium_replacement_data = file.read()
+        with open(large_location, "rb") as file:
+            large_replacement_data = file.read()
 
         with open(exe_path, "rb") as exe_file:
             exe_data = exe_file.read()
 
-        if not inverse:
-            exe_data = replace_data_in_exe(exe_data, small_data, small_replacement_data)
-            exe_data = replace_data_in_exe(exe_data, medium_data, medium_replacement_data)
-            exe_data = replace_data_in_exe(exe_data, large_data, large_replacement_data)
-        elif inverse:
-            exe_data = replace_data_in_exe(exe_data, small_replacement_data, small_data)
-            exe_data = replace_data_in_exe(exe_data, medium_replacement_data, medium_data)
-            exe_data = replace_data_in_exe(exe_data, large_replacement_data, large_data)
+        exe_data = replace_data_in_exe(exe_data, small_data, small_replacement_data)
+        exe_data = replace_data_in_exe(exe_data, medium_data, medium_replacement_data)
+        exe_data = replace_data_in_exe(exe_data, large_data, large_replacement_data)
+
+        with open(os.path.join(selected_version, "SmallSplash.bak"), "wb") as file:
+            file.write(small_replacement_data)
+
+        with open(os.path.join(selected_version, "MediumSplash.bak"), "wb") as file:
+            file.write(medium_replacement_data)
+            
+        with open(os.path.join(selected_version, "LargeSplash.bak"), "wb") as file:
+            file.write(large_replacement_data)
+
+        try:
+            os.remove(small_location)
+            os.remove(medium_location)
+            os.remove(large_location)
+            os.remove(replacement_location)
+            pass
+        except Exception as exception:
+            print(f"\033[1;31mERROR:\033[0m Error removing temporary files: {exception}")
 
         with open(exe_path, "wb") as exe_file:
             exe_file.write(exe_data)
+
+        print("\033[1;32mSUCCESS:\033[0m Banner patched successfully.")
+
     except Exception as exception:
-            print(f"\033[1;31mERROR:\033[0m Error fetching legacy banner: {exception}")
+        print(f"\033[1;31mERROR:\033[0m Error fetching legacy banner: {exception}")
 
 def fetch_internal_patch_data():
     try:
@@ -160,8 +278,8 @@ def save_settings(settings):
     settings_file = os.path.join(directory, "RobloxStudioManagerSettings.json")
 
     try:
-        with open(settings_file, "w") as f:
-            json.dump(settings, f, indent=4)
+        with open(settings_file, "w") as file:
+            json.dump(settings, file, indent=4)
         print(f"\033[38;2;52;235;143mDATA:\033[0m Settings saved to {settings_file}")
     except Exception as e:
         print(f"\033[1;31mERROR:\033[0m Error saving settings: {e}")
@@ -175,9 +293,9 @@ def get_custom_flags():
     settings_file = os.path.join(directory, "RobloxStudioManagerFFlags.json")
 
     try:
-        with open(settings_file, "r") as f:
+        with open(settings_file, "r") as file:
             print(f"\033[38;2;52;235;143mDATA:\033[0m FFlag Settings sent from {settings_file}")
-            return json.load(f)
+            return json.load(file)
     except Exception as exception:
         print(f"\033[1;31mERROR:\033[0m Error getting custom settings: {exception}. Have you modified any FastFlags?")
         return {}
@@ -191,8 +309,8 @@ def save_custom_flags(settings):
     settings_file = os.path.join(directory, "RobloxStudioManagerFFlags.json")
 
     try:
-        with open(settings_file, "w") as f:
-            json.dump(settings, f, indent=4)
+        with open(settings_file, "w") as file:
+            json.dump(settings, file, indent=4)
         print(f"\033[38;2;52;235;143mDATA:\033[0m FFlag Settings saved to {settings_file}")
     except Exception as e:
         print(f"\033[1;31mERROR:\033[0m Error saving custom settings: {e}")
@@ -226,8 +344,8 @@ def handle_flags(settings):
             print(f"\033[1;31mDATA ERROR:\033[0m Error while downloading fastflags.json: {exception}")
             return
 
-    with open(json_file_path, "r") as f:
-        flags_data = json.load(f)
+    with open(json_file_path, "r") as file:
+        flags_data = json.load(file)
 
     applied_flags = {}
 
@@ -266,8 +384,8 @@ def handle_flags(settings):
 
                     os.makedirs(os.path.dirname(clientAppSettings), exist_ok=True)
                     
-                    with open(clientAppSettings, "w") as f:
-                        json.dump(applied_flags, f, indent=4)
+                    with open(clientAppSettings, "w") as file:
+                        json.dump(applied_flags, file, indent=4)
                     continue
                 if value in flags_data[key]:
                     applied_flags.update(flags_data[key][value])
@@ -347,16 +465,10 @@ def handle_flags(settings):
                 flag_list += flag + ","
             applied_flags["FStringDebugShowFlagState"] = flag_list[:-1]
 
-        if settings["Legacy Launch Banner"] == True:
-            if not ".app" in selected_version.lower():
-                patch_banner(os.path.join(selected_version, "RobloxStudioBeta.exe"), False)
-            else:
-                patch_banner(os.path.join(selected_version), False)
+        if not ".app" in selected_version.lower():
+            patch_banner(os.path.join(selected_version, "RobloxStudioBeta.exe"), settings["Splash Screen Version"])
         else:
-            if not ".app" in selected_version.lower():
-                patch_banner(os.path.join(selected_version, "RobloxStudioBeta.exe"), True)
-            else:
-                patch_banner(os.path.join(selected_version), True)
+            patch_banner(os.path.join(selected_version), settings["Splash Screen Version"])
             
     if os.name == "nt":
         treePath = os.path.join(os.environ["LOCALAPPDATA"], "Roblox", "GlobalBasicSettings_13_Studio.xml")
@@ -438,8 +550,8 @@ def handle_flags(settings):
     combined_flags = applied_flags.copy()
     combined_flags.update(get_custom_flags())
 
-    with open(clientAppSettings, "w") as f:
-        json.dump(combined_flags, f, indent=4)
+    with open(clientAppSettings, "w") as file:
+        json.dump(combined_flags, file, indent=4)
 
     print(f"\033[1;32mSUCCESS:\033[0m Flags have been set in {clientAppSettings}")
 
@@ -515,18 +627,18 @@ def disable_updates(disable, selected_version):
             result_bytes = bytes.fromhex("".join(format(ord(c), "02X") for c in version))
             patch_bytes = bytes.fromhex("".join(format(ord(c), "02X") for c in latest))
 
-            with open(exe_path, "r+b") as f:
+            with open(exe_path, "r+b") as file:
                 if not disable:
                     new_result = patch_bytes
                     new_patch = result_bytes
                     patch_bytes = new_patch
                     result_bytes = new_result
-                content = f.read()
+                content = file.read()
                 index = content.find(result_bytes)
 
                 if index != -1:
-                    f.seek(index)
-                    f.write(patch_bytes)
+                    file.seek(index)
+                    file.write(patch_bytes)
                     print("\033[1;32mSUCCESS:\033[0m Version bytes patched.")
                     if os.path.exists(installer):
                         if os.name == "nt":
@@ -579,8 +691,8 @@ def apply_settings(settings):
         handler = "https://github.com/Firebladedoge229/Uploads/raw/refs/heads/main/RobloxCrashHandler.exe"
         try:
             response = requests.get(handler)
-            with open(os.path.join(selected_version, "RobloxCrashHandler.exe"), "wb") as f:
-                f.write(response.content)
+            with open(os.path.join(selected_version, "RobloxCrashHandler.exe"), "wb") as file:
+                file.write(response.content)
             print("\033[1;32mSUCCESS:\033[0m Crash Handler disabled.")
         except Exception as exception:
             print(f"\033[1;31mERROR:\033[0m Error disabling Crash Handler: {exception}")
@@ -598,27 +710,18 @@ def apply_settings(settings):
         except Exception as exception:
                 print(f"\033[1;31mERROR:\033[0m Error applying internal patch: {exception}")
 
-    if settings.get("Legacy Logo") == True:
-        try:
-            legacyLogoData = requests.get(legacyLogoURL).content
+    try:
+        legacyLogoData = requests.get(f"https://raw.githubusercontent.com/Firebladedoge229/RobloxStudioManager/refs/heads/main/misc/icons/{settings.get("Logo Version")}.ico").content
 
-            with open(os.path.join(selected_version, "IDI_ICON1.ico"), "wb") as f:
-                f.write(legacyLogoData)
-        except Exception as exception:
-            print(f"\033[1;31mERROR:\033[0m Error while downloading logo: {exception}")
-    else:
-        try:
-            logoData = requests.get(logoURL).content
-
-            with open(os.path.join(selected_version, "IDI_ICON1.ico"), "wb") as f:
-                f.write(logoData)
-        except Exception as exception:
-            print(f"\033[1;31mERROR:\033[0m Error while downloading logo: {exception}")
+        with open(os.path.join(selected_version, "IDI_ICON1.ico"), "wb") as file:
+            file.write(legacyLogoData)
+    except Exception as exception:
+        print(f"\033[1;31mERROR:\033[0m Error while downloading logo: {exception}")
     
     if os.name == "nt":
         try:
             resource = os.path.join(os.path.dirname(os.path.realpath(__file__)), "ResourceHacker.exe")
-            subprocess.Popen([resource, "-open", os.path.join(selected_version, "RobloxStudioBeta.exe"), "-save", os.path.join(selected_version, "RobloxStudioBeta.exe"), "-action", "addoverwrite", "-res", os.path.join(selected_version, "IDI_ICON1.ico"), "-mask", "ICONGROUP,IDI_ICON1,ICON,1,,ICON,2,,ICON,3,,ICON,4,"])
+            response = subprocess.Popen([resource, "-open", os.path.join(selected_version, "RobloxStudioBeta.exe"), "-save", os.path.join(selected_version, "RobloxStudioBeta.exe"), "-action", "addoverwrite", "-res", os.path.join(selected_version, "IDI_ICON1.ico"), "-mask", "ICONGROUP,IDI_ICON1,ICON,1,,ICON,2,,ICON,3,,ICON,4,"])
         except Exception as exception:
             print(f"\033[1;31mERROR:\033[0m Error while replacing logo: {exception}")
 
@@ -697,8 +800,8 @@ def patch_studio_for_themes():
         elif os.name == "posix":
             file_path = "/" + os.path.join(selected_version, "Contents", "MacOS", "RobloxStudio")
 
-        with open(file_path, "rb") as f:
-            file_data = f.read()
+        with open(file_path, "rb") as file:
+            file_data = file.read()
 
         print("\033[1;36mINFO:\033[0m Searching for bytes..")
         patch_done = False
@@ -708,8 +811,8 @@ def patch_studio_for_themes():
                 patch_done = True
 
         patched_file_path = os.path.join(selected_version, "RobloxStudioBeta.exe")
-        with open(patched_file_path, "wb") as f:
-            f.write(file_data)
+        with open(patched_file_path, "wb") as file:
+            file.write(file_data)
 
         if not patch_done:
             print("\033[1;36mINFO:\033[0m No bytes found.")
@@ -731,7 +834,7 @@ try:
     os.makedirs(platform_path, exist_ok=True)
     os.makedirs(base_path, exist_ok=True)
 except:
-    print("\033[1;36mINFO:\033[0m No valid Roblox Studio version was found. You will not be able to make any modifications.")
+    print("\033[1;36mINFO:\033[0m No valid Roblox Studio version was fileound. You will not be able to make any modifications.")
     pass
 
 dark_theme_url = "https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/roblox/QtResources/Platform/Base/QtUI/themes/DarkTheme.json"
