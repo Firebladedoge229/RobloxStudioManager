@@ -38,6 +38,52 @@
                 "MP4"
             ],
             "InternetRequired": false
+        },
+        {
+            "SectionTitle": "Misc",
+            "SectionLocation": "Mods"
+        },
+        {
+            "Title": "Logo Version",
+            "Description": "Replaces the current logo with the currently selected version.",
+            "Section": "Mods",
+            "Options": [
+                "2006",
+                "2011",
+                "2013",
+                "2015",
+                "2017",
+                "2021",
+                "2022",
+                "2025"
+            ],
+            "InternetRequired": true,
+            "WindowsOnly" : true
+        },
+        {
+            "Title": "Splash Screen Version",
+            "Description": "Modifies the original splash screen to match the selected version.",
+            "Section": "Mods",
+            "Options": [
+                "Think. Build. Create.",
+                "Bricks",
+                "Blueprint",
+                "City",
+                "Fusion",
+                "Happy Home in Robloxia",
+                "Breakthrough",
+                "Handcrafted Legacy",
+                "Handcrafted",
+                "Assembly",
+                "Roblox Studio 2.0",
+                "Castle",
+                "Marketplace",
+                "Character",
+                "Default v1",
+                "Default v2",
+                "Default v3"
+            ],
+            "InternetRequired": true
         }
     ],
     "Toggles": [
@@ -106,23 +152,6 @@
             "Description": "Display a list of all enabled flags for debugging and configuration monitoring.",
             "Section": "Flags",
             "InternetRequired": false
-        },
-        {
-            "SectionTitle": "Misc",
-            "SectionLocation": "Mods"
-        },
-        {
-            "Title": "Legacy Logo",
-            "Description": "Replaces the current logo with the original version used prior to 2025.",
-            "Section": "Mods",
-            "InternetRequired": true,
-            "WindowsOnly" : true
-        },
-        {
-            "Title": "Legacy Launch Banner",
-            "Description": "Modifies the original launch banner to use the from ROBLOX Studio 2015",
-            "Section": "Mods",
-            "InternetRequired": true
         },
         {
             "Title": "Legacy Cursor",
