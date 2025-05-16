@@ -1,4 +1,5 @@
 requests
 psutil
+pillow
 PyQt5
 PyQt-Fluent-Widgets==1.7.0
