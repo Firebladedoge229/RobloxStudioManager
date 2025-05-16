@@ -584,13 +584,14 @@ def download_and_apply_font(selected_version):
 
 def get_product_version(exe_path):
     if os.name == "nt":
-        command = [
+       command = [
             "powershell",
             "-Command",
             f"(Get-Item '{exe_path}').VersionInfo.ProductVersion"
         ]
-        result = subprocess.run(command, capture_output=True, text=True)
-        result = result.stdout.strip().replace(", ", ".")
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        stdout, stderr = process.communicate()
+        result = stdout.strip().replace(", ", ".")
     elif os.name == "posix":
         regex = re.compile(r"engineversion=.(\d)\.(\d{2,})\.(\d)\.(\d{2,}).")
         executable = "/" + os.path.join(selected_version, "Contents", "MacOS", "RobloxStudio")
