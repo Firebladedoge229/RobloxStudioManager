@@ -180,7 +180,7 @@ def patch_banner(exe_path, option):
                 medium_data = file.read()
             with open(os.path.join(selected_version, "LargeSplash.bak"), "rb") as file:
                 large_data = file.read()
-        replacement_data = requests.get(f"https://raw.githubusercontent.com/Firebladedoge229/RobloxStudioManager/refs/heads/main/misc/splash/{option}.png").content
+        replacement_data = requests.get(f"https://raw.githubusercontent.com/Firebladedoge229/RobloxStudioManager/refs/heads/main/misc/splash/{requests.utils.quote(option)}.png").content
 
         small_location = os.path.join(os.environ["TEMP"], "tempSmallData.png")
         medium_location = os.path.join(os.environ["TEMP"], "tempMediumData.png")
