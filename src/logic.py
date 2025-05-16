@@ -584,7 +584,7 @@ def download_and_apply_font(selected_version):
 
 def get_product_version(exe_path):
     if os.name == "nt":
-       command = [
+        command = [
             "powershell",
             "-Command",
             f"(Get-Item '{exe_path}').VersionInfo.ProductVersion"
