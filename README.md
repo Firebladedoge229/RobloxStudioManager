@@ -15,7 +15,7 @@ A simple, easy-to-use program that contains many useful tools for customizing an
 
 **Q: Is this a malicious program?**
 
-  **A:** No, this program does not have any malicious intent. It is packaged into an executable using PyInstaller, which can occasionally cause **false positives** in antivirus software. If you are concerned about the legitimacy of this program, feel free to check out the source code located in the [/src/](https://github.com/Firebladedoge229/RobloxStudioManager/tree/main/src) directory.
+  **A:** No, this program does not have any malicious intent. It is packaged into an executable using Nuitka, which can occasionally cause **false positives** in antivirus software. If you are concerned about the legitimacy of this program, feel free to check out the source code located in the [/src/](https://github.com/Firebladedoge229/RobloxStudioManager/tree/main/src) directory.
 
 **Q: Could using this program result in a ban?**
 
@@ -53,11 +53,11 @@ If you are suspicious, feel free to compile the [code](https://github.com/Firebl
 ### Build Command
 #### Nuitka
 ```py
-nuitka src/main.py --standalone --onefile --windows-disable-console --output-dir=build --output-filename=RobloxStudioManager --windows-icon-from-ico=images/logo.ico --enable-plugin=pyqt5 --include-data-files="src/ui_components.py=ui_components.py" --include-data-files="src/downloader.py=downloader.py" --include-data-files="src/logic.py=logic.py" --include-data-files="data/fastflags.json=fastflags.json" --include-data-files="data/options.json=options.json" --include-data-files="images/logo.png=logo.png" --include-data-files="images/RobloxStudioManager.png=RobloxStudioManager.png"
+nuitka src/main.py --standalone --onefile --windows-disable-console --output-dir=build --output-filename=RobloxStudioManager --windows-icon-from-ico=images/logo.ico --noinclude-default-mode=nofollow --nofollow-imports --enable-plugin=pyqt5 --enable-plugin=anti-bloat --include-data-files="src/ui_components.py=ui_components.py" --include-data-files="src/downloader.py=downloader.py" --include-data-files="src/logic.py=logic.py" --include-data-files="data/fastflags.json=fastflags.json" --include-data-files="data/options.json=options.json" --include-data-files="images/logo.png=logo.png" --include-data-files="images/RobloxStudioManager.png=RobloxStudioManager.png" --include-data-files="build/ResourceHacker.exe=ResourceHacker.exe"
 ```
 #### PyInstaller
 ```py
-pyinstaller --onefile --noconsole --icon=images/logo.ico --add-data="src/ui_components.py:." --add-data="src/downloader.py:." --add-data="src/logic.py:." --add-data="data:." --add-data="images/logo.png:." --add-data="images/RobloxStudioManager.png:." src/main.py
+pyinstaller src/main.py --onefile --noconsole --icon=images/logo.ico --name=RobloxStudioManager --add-data="src/ui_components.py:." --add-data="src/downloader.py:." --add-data="src/logic.py:." --add-data="data/fastflags.json:data" --add-data="data/options.json:data" --add-data="images/logo.png:images" --add-data="images/RobloxStudioManager.png:images" --add-data="build/ResourceHacker.exe:build"
 ```
 
 ## Author
