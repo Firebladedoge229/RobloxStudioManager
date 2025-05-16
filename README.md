@@ -66,4 +66,8 @@ pyinstaller src/main.py --onefile --noconsole --icon=images/logo.ico --name=Robl
 
 ## Credits 
 
-[ROBLOX Corporation](https://web.archive.org/web/20190123202500if_/https://assets.contentstack.io/v3/assets/bltc2ad39afa86662c8/blt2387a75699f139aa/5c004be20df41c16214e0b69/Roblox_2.0_Brand_Guidelines_Nov_2018.pdf?disposition=inline) - Roblox Studio
+<ul style="list-style-type: square;">
+  <li><a href="https://www.angusj.com/resourcehacker/">Resource Hacker</a> - Logo Replacement</li>
+  <li><a href="https://web.archive.org/web/20190123202500im_/https://assets.contentstack.io/v3/assets/bltc2ad39afa86662c8/blt2387a75699f139aa/5c004be20df41c16214e0b69/Roblox_2.0_Brand_Guidelines_Nov_2018.pdf?disposition=inline">ROBLOX Corporation</a> - Roblox Studio</li>
+  <li><a href="https://github.com/7ap/internal-studio-patcher">ROBLOX Internal Patcher</a> - Internal Features</li>
+</ul>
