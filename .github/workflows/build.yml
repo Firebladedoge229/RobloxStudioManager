@@ -153,7 +153,6 @@ jobs:
       - name: Build RobloxStudioManager [macOS]
         run: |
           pyinstaller src/main.py \
-            --standalone \
             --noconfirm \
             --noconsole \
             --windowed \
