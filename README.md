@@ -3,7 +3,7 @@
 # Roblox Studio Manager
 
 > [!NOTE]  
-> For an LGPL version of Roblox Studio Manager, please visit [here](https://github.com/Fireblade-Software/RobloxStudioManager-LGPL).
+> For a MIT version of Roblox Studio Manager, please visit [here](https://github.com/Fireblade-Software/RobloxStudioManager-MIT).
 
 A fork of [Roblox Studio Patcher](https://github.com/Firebladedoge229/RobloxStudioPatcher) with additional UI features.
 
