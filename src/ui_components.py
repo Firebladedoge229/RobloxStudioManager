@@ -53,8 +53,8 @@ def handle_exception(exc_type, exc_value, exc_traceback):
         if dialog.exec_():
             sys.exit(1)
         else:
-            error_msg = re.sub(r"(?<=\\Users\\)[a-zA-Z0-9]+(?=\\)", r"%USERNAME%", error_msg)
-            error_msg = re.sub(r"(?<=\/Users\/)[a-zA-Z0-9]+(?=\/)", r"%USERNAME%", error_msg)
+            error_msg = re.sub(r"(?<=\\Users\\)[^\\/'\s]+(?=[\\/']|$)", r"%USERNAME%", error_msg)
+            error_msg = re.sub(r"(?<=/Users/)[^/']+(?=[/']|$)", r"%USERNAME%", error_msg)
             if os.name == "nt":
                 os.startfile(f"https://github.com/Firebladedoge229/RobloxStudioManager/issues/new?title=Unhandled%20Exception&body={requests.utils.quote(error_msg)}")
             elif os.name == "posix":
