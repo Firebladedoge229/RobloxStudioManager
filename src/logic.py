@@ -866,10 +866,12 @@ def download_default_themes():
     except Exception as exception:
         print(f"\033[1;31mERROR:\033[0m Failed to download theme files: {exception}")
 
-if not os.path.exists(dark_theme_path):
+if not os.path.exists(light_theme_path) and not os.path.exists(dark_theme_path):
     download_default_themes()
 
 def get_theme_colors(selection = "LightTheme"):
+    if not os.path.exists(light_theme_path) and not os.path.exists(dark_theme_path):
+        download_default_themes()
     if os.name == "posix":
         if not os.path.exists(base_path):
             subprocess.Popen(["mkdir", "-p", base_path])
