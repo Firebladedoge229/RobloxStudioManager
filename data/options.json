@@ -110,6 +110,12 @@
             "SectionLocation": "Flags"
         },
         {
+            "Title": "Enable Legacy Explorer",
+            "Description": "Replaces the new Luau-based explorer with the native Qt version.",
+            "Section": "Flags",
+            "InternetRequired": false
+        },
+        {
             "Title": "Enable Beta Features",
             "Description": "Unlocks and activates all experimental and beta features within Roblox Studio.",
             "Section": "Flags",
