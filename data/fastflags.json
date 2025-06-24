@@ -79,6 +79,14 @@
             "FFlagStudioMenuRedesign5": false
         }
     },
+    "Enable Legacy Explorer": {
+        "True": {
+            "FFlagKillOldExplorer3": false
+        },
+        "False": {
+            "FFlagKillOldExplorer3": true
+        }
+    },
     "Force High Graphics": {
         "True": {
             "DFFlagDisableDPIScale": true,
