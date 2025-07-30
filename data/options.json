@@ -122,6 +122,16 @@
             "InternetRequired": true
         },
         {
+            "SectionTitle": "Terminology",
+            "SectionLocation": "Flags"
+        },
+        {
+            "Title": "Rename Friends to Connections",
+            "Description": "Replaces all instances of the term 'Friends' with 'Connections' throughout Roblox Studio.",
+            "Section": "Flags",
+            "InternetRequired": true
+        },
+        {
             "SectionTitle": "Logging",
             "SectionLocation": "Flags"
         },

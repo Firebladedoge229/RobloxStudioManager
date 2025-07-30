@@ -459,6 +459,20 @@ def handle_flags(settings):
                     if "flag" in lowerKey and "betafeature" in lowerKey:
                         applied_flags[key] = True
         
+        if settings["Rename Friends to Connections"] == False:
+            if clientSettingsSuccess:
+                for key, _ in clientAppSettingsURL.items():
+                    lowerKey = key.lower()
+                    if "rename" in lowerKey and "friend" in lowerKey and "connection" in lowerKey:
+                        applied_flags[key] = False
+                        
+            if fVariablesSuccess: 
+                for line in fvariablesURL.splitlines():
+                    key = re.sub(r"\[[^\]]*\]\s*", "", line.strip())
+                    lowerKey = key.lower()
+                    if "rename" in lowerKey and "friend" in lowerKey and "connection" in lowerKey:
+                        applied_flags[key] = false
+
         if settings["Show Flags"] == True:
             flag_list = ""
             for flag in applied_flags:
