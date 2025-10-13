@@ -79,6 +79,16 @@
             "FFlagStudioMenuRedesign5": false
         }
     },
+    "Enable Next-Gen Studio Interface": {
+        "True": {
+            "FFlagNextGenStudioBetaFeature": true,
+            "DFFlagWebViewRedesignDesktop": true
+        },
+        "False": {
+            "FFlagNextGenStudioBetaFeature": false,
+            "DFFlagWebViewRedesignDesktop": false
+        }
+    },
     "Enable Legacy Explorer": {
         "True": {
             "FFlagKillOldExplorer3": false
