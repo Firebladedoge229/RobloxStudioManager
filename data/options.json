@@ -94,6 +94,11 @@
             "InternetRequired": false
         },
         {
+            "Title": "Enable Next-Gen Studio Interface",
+            "Description": "Enable the new next-gen Studio interface introduced in July 2024.",
+            "Section": "Flags",
+            "InternetRequired": false
+        {
             "Title": "Force High Graphics",
             "Description": "Enable high-quality graphics, improving visual fidelity but potentially lowering performance.",
             "Section": "Flags",
