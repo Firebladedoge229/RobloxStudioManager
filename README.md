@@ -2,8 +2,9 @@
 
 # Roblox Studio Manager
 
-> [!NOTE]  
-> For a MIT version of Roblox Studio Manager, please visit [here](https://github.com/Fireblade-Software/RobloxStudioManager-MIT).
+> [!CAUTION]
+> RobloxStudioManager has the ability to modify core Roblox Studio files, which may be detected as unauthorized.  
+> Neither I nor any contributors are responsible for account bans or other consequences from its use.
 
 A fork of [Roblox Studio Patcher](https://github.com/Firebladedoge229/RobloxStudioPatcher) with additional UI features.
 
