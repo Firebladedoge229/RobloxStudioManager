@@ -1,16 +1,16 @@
 {
     "MSAA Level": {
         "Off": {
-            "DebugForceMSAASamples": 1
+            "FIntDebugForceMSAASamples": 1
         },
         "2x": {
-            "DebugForceMSAASamples": 2
+            "FIntDebugForceMSAASamples": 2
         },
         "4x": {
-            "DebugForceMSAASamples": 4
+            "FIntDebugForceMSAASamples": 4
         },
         "8x": {
-            "DebugForceMSAASamples": 8
+            "FIntDebugForceMSAASamples": 8
         }
     },
     "Graphics Renderer": {
@@ -71,14 +71,6 @@
             "FFlagEnableMp4RecorderForAllWindows": true   
         }
     },
-    "Studio Menu Redesign": {
-        "True": {
-            "FFlagStudioMenuRedesign5": true
-        },
-        "False": {
-            "FFlagStudioMenuRedesign5": false
-        }
-    },
     "Enable Next-Gen Studio Interface": {
         "True": {
             "FFlagNextGenStudioBetaFeature": true,
@@ -132,11 +124,11 @@
     "Occulusion Culling": {
         "True": {
             "DFFlagUseVisBugChecks": true,
-            "FFlagEnableVisBugChecks27": true
+            "FFlagEnableVisBugChecks28": true
         },
         "False": {
             "DFFlagUseVisBugChecks": false,
-            "FFlagEnableVisBugChecks27": false
+            "FFlagEnableVisBugChecks28": false
         }
     },
     "Telemetry [UNSTABLE]": {
@@ -157,18 +149,14 @@
     },
     "Enable Internal": {
         "True": {
-            "FFlagInternalDebugWidgetSleepButton": true
+            "FFlagDebugAlwaysEnableStudioInternalDebugWidget": true,
+            "FFlagStudioAddInternalDebugWidgetToSystemMenu": true,
+            "FLogStudioInternalDebugWidget": true
         },
         "False": {
-            "FFlagInternalDebugWidgetSleepButton": false
-        }
-    },
-    "Faster Menu": {
-        "True": {
-            "FFlagInGameMenuV1FadeBackgroundAnimation": true
-        },
-        "False": {
-            "FFlagInGameMenuV1FadeBackgroundAnimation": false
+            "FFlagDebugAlwaysEnableStudioInternalDebugWidget": false,
+            "FFlagStudioAddInternalDebugWidgetToSystemMenu": false,
+            "FLogStudioInternalDebugWidget": false
         }
     },
     "Max FPS": {
