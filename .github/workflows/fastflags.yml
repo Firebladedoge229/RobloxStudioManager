@@ -54,7 +54,7 @@ jobs:
                           flags.append(k)
               return flags
 
-          all_flags = collect_flags(fastflags)
+          all_flags = list(set(collect_flags(fastflags)))
 
           missing_flags = []
 
