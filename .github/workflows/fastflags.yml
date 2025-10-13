@@ -1,0 +1,77 @@
+name: Check Roblox FastFlags
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check-fastflags:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      - name: Check FastFlags
+        run: |
+          python3 << 'EOF'
+          import requests
+          import sys
+
+          fastflags_url = "https://raw.githubusercontent.com/Firebladedoge229/RobloxStudioManager/refs/heads/main/data/fastflags.json"
+          fvariables_url = "https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/refs/heads/roblox/FVariables.txt"
+          client_settings_url = "https://clientsettingscdn.roblox.com/v2/settings/application/PCDesktopClient"
+
+          ff_resp = requests.get(fastflags_url)
+          ff_resp.raise_for_status()
+          fastflags = ff_resp.json()
+
+          fv_resp = requests.get(fvariables_url)
+          fv_resp.raise_for_status()
+          fvariables = set(line.strip().split()[-1] for line in fv_resp.text.splitlines() if line.strip())
+
+          cs_resp = requests.get(client_settings_url)
+          cs_resp.raise_for_status()
+          client_flags = set(cs_resp.json().get("applicationSettings", {}).keys())
+
+          def collect_flags(d):
+              flags = []
+              if isinstance(d, dict):
+                  for k, v in d.items():
+                      if isinstance(v, dict):
+                          flags.extend(collect_flags(v))
+                      else:
+                          flags.append(k)
+              return flags
+
+          all_flags = collect_flags(fastflags)
+
+          missing_flags = []
+
+          for flag in all_flags:
+              if flag in fvariables:
+                  print(f"✅ {flag} found in FVariables")
+              elif flag in client_flags:
+                  print(f"✅ {flag} found in Client Settings")
+              else:
+                  print(f"⚠️ {flag} not found in either source")
+                  missing_flags.append(flag)
+
+          if missing_flags:
+              print(f"\n❌ Missing flags: {len(missing_flags)}")
+              for f in missing_flags:
+                  print(f"  - {f}")
+              sys.exit(1)
+          else:
+              print("\nAll flags verified successfully ✅")
+          EOF
