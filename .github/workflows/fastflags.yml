@@ -44,33 +44,34 @@ jobs:
           cs_resp.raise_for_status()
           client_flags = set(cs_resp.json().get("applicationSettings", {}).keys())
 
-          def collect_flags(d):
+          def collect_flags(d, path=""):
               flags = []
               if isinstance(d, dict):
                   for k, v in d.items():
+                      new_path = f"{path} > {k}" if path else k
                       if isinstance(v, dict):
-                          flags.extend(collect_flags(v))
+                          flags.extend(collect_flags(v, new_path))
                       else:
-                          flags.append(k)
+                          flags.append((k, path))
               return flags
 
           all_flags = list(set(collect_flags(fastflags)))
 
           missing_flags = []
 
-          for flag in all_flags:
+          for flag, path in all_flags:
               if flag in fvariables:
-                  print(f"✅ {flag} found in FVariables")
+                  print(f"✅ {flag} found in FVariables [{path}]")
               elif flag in client_flags:
-                  print(f"✅ {flag} found in Client Settings")
+                  print(f"✅ {flag} found in Client Settings [{path}]")
               else:
-                  print(f"⚠️ {flag} not found in either source")
-                  missing_flags.append(flag)
+                  print(f"⚠️ {flag} not found in either source [{path}]")
+                  missing_flags.append((flag, path))
 
           if missing_flags:
               print(f"\n❌ Missing flags: {len(missing_flags)}")
-              for f in missing_flags:
-                  print(f"  - {f}")
+              for f, path in missing_flags:
+                  print(f"  - {f} [{path}]")
               sys.exit(1)
           else:
               print("\nAll flags verified successfully ✅")
