@@ -249,7 +249,11 @@ def fetch_internal_patch_data():
         if len(hex_bytes) >= 8:
             original = b"".join(bytes.fromhex(b) for b in hex_bytes[:8])
 
-            hex_bytes[3:5] = ["90", "90"]
+            for i in range(len(hex_bytes) - 1):
+                if hex_bytes[i:i+2] == ["74", "05"]:
+                    hex_bytes[i:i+2] = ["90", "90"]
+                    break
+
             patch = b"".join(bytes.fromhex(b) for b in hex_bytes[:8])
 
             return (original, patch)
