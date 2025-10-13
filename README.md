@@ -36,6 +36,18 @@ A simple, easy-to-use program that contains many useful tools for customizing an
 - Plugin Editor: Manage the status of Built-In plugins by enabling or disabling them with ease.
 - Advanced Options: Unlock more powerful features, such as enabling ROBLOX Studio's internal settings or pausing updates.
 
+## Themes
+
+> [!WARNING]
+> Roblox has been rolling out a new interface in Roblox Studio that reduces UI customizability.\
+> Disable the "Next-Gen Studio Interface" option in the Flags menu if you plan to modify your theme.
+
+Roblox Studio Manager lets you customize themes easily:  
+
+- Access **Settings > Theme Manager** to modify themes.  
+- Patching Roblox Studio is required to use custom themes.  
+- Community-created themes are available in the [Discussions](https://github.com/Firebladedoge229/RobloxStudioManager/discussions) tab.
+
 ## Installation
 
 Simply run the executable found at the [Releases](https://github.com/Firebladedoge229/RobloxStudioManager/releases/latest/download/RobloxStudioManager.exe) page.
