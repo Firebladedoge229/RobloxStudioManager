@@ -81,7 +81,7 @@
             "DFFlagWebViewRedesignDesktop": false
         }
     },
-    "Enable Artifical Intelligence Features" {
+    "Enable Artifical Intelligence Features": {
         "True": {
             "FFlagAddExplainCodetoMCPAssistant": true,
             "FFlagAssistantLabBetaFeature": true,
