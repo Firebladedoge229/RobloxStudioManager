@@ -768,7 +768,21 @@ def open_installation_folder():
 
 def launch_studio():
     if os.name == "nt":
-        subprocess.Popen([os.path.join(selected_version, "RobloxStudioBeta.exe")], cwd=selected_version)
+        try:
+            subprocess.Popen([os.path.join(selected_version, "RobloxStudioBeta.exe")], cwd=selected_version)
+        except PermissionError as exception:
+            if "used by another process" in str(exception):
+                response = ctypes.windll.user32.MessageBoxW(0, "Roblox studio appears to be in use by another process. Do you want to force close it in order to perform this action?", "Roblox Studio Manager", 0x04)
+                if response == 6:          
+                    for proc in psutil.process_iter(["pid", "name"]):
+                        if proc.info["name"] == "RobloxStudioBeta.exe":
+                            proc.terminate()
+                            print("\033[1;36mINFO:\033[0m Roblox Studio has been forcefully terminated.")
+                            break
+                     subprocess.Popen([os.path.join(selected_version, "RobloxStudioBeta.exe")], cwd=selected_version)
+        except Exception as exception:
+            print(f"\033[1;31mERROR:\033[0m Good luck fixing this error: {exception}")
+            
     elif os.name == "posix":
         subprocess.Popen(["open", "/" + selected_version], cwd=selected_version)
     print("\033[1;36mINFO:\033[0m Launch Studio clicked")
