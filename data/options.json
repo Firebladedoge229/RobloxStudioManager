@@ -110,6 +110,12 @@
             "SectionLocation": "Flags"
         },
         {
+            "Title": "Enable Artifical Intelligence Features",
+            "Description": "Enable Artifical Intelligence featuers (e.g. Studio Assistant) within Roblox Studio",
+            "Section": "Flags",
+            "InternetRequired": false
+        },
+        {
             "Title": "Enable Legacy Explorer",
             "Description": "Replaces the new Luau-based explorer with the native Qt version.",
             "Section": "Flags",
