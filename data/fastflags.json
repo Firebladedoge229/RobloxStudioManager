@@ -81,6 +81,42 @@
             "DFFlagWebViewRedesignDesktop": false
         }
     },
+    "Enable Artifical Intelligence Features" {
+        "True": {
+            "FFlagAddExplainCodetoMCPAssistant": true,
+            "FFlagAssistantLabBetaFeature": true,
+            "FIntAssistantLabBetaFeatureRolloutPercent": 100,
+            "FFlagAssistantMeshGenBetaFeature": true,
+            "FIntAssistantMeshGenBetaFeatureRolloutPercent": 100,
+            "FIntAssistantSyntaxHighlightingLimit": 1800,
+            "FFlagDockAssistantRightSide": true,
+            "FFlagEnableAssistantImageUpload": true,
+            "FFlagEnableIXPForNewAssistant3": true,
+            "FFlagEnableNewAssistant2": true,
+            "FFlagForceNewAssistant3": true,
+            "FFlagAICODefaultEnableCodeAssistStreaming": true,
+            "FIntAICOInputCommentDebounceTimeMs": 299,
+            "FIntAICORelatedScriptMaxScriptSize": 100000,
+            "FIntAICORequestAbortDebouncePercentage": 0
+        },
+        "False": {
+            "FFlagAddExplainCodetoMCPAssistant": false,
+            "FFlagAssistantLabBetaFeature": false,
+            "FIntAssistantLabBetaFeatureRolloutPercent": 0,
+            "FFlagAssistantMeshGenBetaFeature": false,
+            "FIntAssistantMeshGenBetaFeatureRolloutPercent": 0,
+            "FIntAssistantSyntaxHighlightingLimit": 0,
+            "FFlagDockAssistantRightSide": false,
+            "FFlagEnableAssistantImageUpload": false,
+            "FFlagEnableIXPForNewAssistant3": false,
+            "FFlagEnableNewAssistant2": false,
+            "FFlagForceNewAssistant3": false,
+            "FFlagAICODefaultEnableCodeAssistStreaming": false,
+            "FIntAICOInputCommentDebounceTimeMs": 2147483648,
+            "FIntAICORelatedScriptMaxScriptSize": 0,
+            "FIntAICORequestAbortDebouncePercentage": 100
+        }
+    },
     "Enable Legacy Explorer": {
         "True": {
             "FFlagKillOldExplorer3": false
