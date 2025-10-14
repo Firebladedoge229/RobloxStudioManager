@@ -779,7 +779,7 @@ def launch_studio():
                             proc.terminate()
                             print("\033[1;36mINFO:\033[0m Roblox Studio has been forcefully terminated.")
                             break
-                     subprocess.Popen([os.path.join(selected_version, "RobloxStudioBeta.exe")], cwd=selected_version)
+                    subprocess.Popen([os.path.join(selected_version, "RobloxStudioBeta.exe")], cwd=selected_version)
         except Exception as exception:
             print(f"\033[1;31mERROR:\033[0m Good luck fixing this error: {exception}")
             
