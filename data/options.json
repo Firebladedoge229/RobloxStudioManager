@@ -88,12 +88,6 @@
     ],
     "Toggles": [
         {
-            "Title": "Studio Menu Redesign",
-            "Description": "Enable the new Studio menu design for a compact, linux-like look.",
-            "Section": "Flags",
-            "InternetRequired": false
-        },
-        {
             "Title": "Enable Next-Gen Studio Interface",
             "Description": "Enable the new next-gen Studio interface introduced in July 2024.",
             "Section": "Flags",
@@ -191,12 +185,6 @@
             "Description": "Revert to the original sound effect played upon character death.",
             "Section": "Mods",
             "InternetRequired": true
-        },
-        {
-            "Title": "Faster Menu",
-            "Description": "Increase the speed of menu animations for a quicker, snappier experience.",
-            "Section": "Flags",
-            "InternetRequired": false
         },
         {
             "SectionTitle": "Advanced",
