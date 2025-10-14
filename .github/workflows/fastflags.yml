@@ -2,7 +2,11 @@ name: Check Roblox FastFlags
 
 on:
   push:
+    paths:
+      - "data/fastflags.json"
   pull_request:
+    paths:
+      - "data/fastflags.json"
 
 jobs:
   check-fastflags:
