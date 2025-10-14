@@ -79,6 +79,12 @@ jobs:
             --include-data-files="images/RobloxStudioManager.png=RobloxStudioManager.png" `
             --include-data-files="build/ResourceHacker.exe=ResourceHacker.exe"
 
+      - name: Upload Windows Production Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: RobloxStudioManager
+          path: "build/RobloxStudioManager.exe"
+
       - name: Build RobloxStudioManagerDebug
         run: |
           nuitka src/main.py `
@@ -99,6 +105,12 @@ jobs:
             --include-data-files="images/logo.png=logo.png" `
             --include-data-files="images/RobloxStudioManager.png=RobloxStudioManager.png" `
             --include-data-files="build/ResourceHacker.exe=ResourceHacker.exe"
+
+      - name: Upload Windows Development Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: RobloxStudioManagerDebug
+          path: "build/RobloxStudioManagerDebug.exe"
       
       - name: Print SHA256 hashes
         run: |
@@ -107,18 +119,6 @@ jobs:
           Write-Output "Encryption for RobloxStudioManagerDebug:"
           Get-FileHash -Algorithm SHA256 build\RobloxStudioManagerDebug.exe
             
-      - name: Upload Windows Production Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: RobloxStudioManager
-          path: "build/RobloxStudioManager.exe"
-
-      - name: Upload Windows Development Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: RobloxStudioManagerDebug
-          path: "build/RobloxStudioManagerDebug.exe"
-
   build-macos:
     runs-on: macos-latest
 
