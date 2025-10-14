@@ -30,7 +30,7 @@ jobs:
 
           fastflags_url = "https://raw.githubusercontent.com/Firebladedoge229/RobloxStudioManager/refs/heads/main/data/fastflags.json"
           fvariables_url = "https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/refs/heads/roblox/FVariables.txt"
-          client_settings_url = "https://clientsettingscdn.roblox.com/v2/settings/application/PCDesktopClient"
+          client_settings_url = "https://clientsettingscdn.roblox.com/v2/settings/application/PCStudioApp"
 
           ff_resp = requests.get(fastflags_url)
           ff_resp.raise_for_status()
