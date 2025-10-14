@@ -691,7 +691,6 @@ def apply_settings(settings):
                 if proc.info["name"] == "RobloxStudioBeta.exe":
                     proc.terminate()
                     print("\033[1;36mINFO:\033[0m Roblox Studio has been forcefully terminated.")
-                    break
         else:
             print("\033[1;36mINFO:\033[0m User chose not to force quit Roblox Studio.")
             return
@@ -778,7 +777,6 @@ def launch_studio():
                         if proc.info["name"] == "RobloxStudioBeta.exe":
                             proc.terminate()
                             print("\033[1;36mINFO:\033[0m Roblox Studio has been forcefully terminated.")
-                            break
                     subprocess.Popen([os.path.join(selected_version, "RobloxStudioBeta.exe")], cwd=selected_version)
         except Exception as exception:
             print(f"\033[1;31mERROR:\033[0m Good luck fixing this error: {exception}")
