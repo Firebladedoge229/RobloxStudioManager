@@ -119,10 +119,16 @@
     },
     "Enable Legacy Explorer": {
         "True": {
-            "FFlagKillOldExplorer3": false
+            "FFlagKillOldExplorer3": false,
+            "FFlagCollab6803LuaExplorer": false,
+            "FFlagNewExplorer": false,
+            "FFlagLuaExplorerBetaFeature": false
         },
         "False": {
-            "FFlagKillOldExplorer3": true
+            "FFlagKillOldExplorer3": true,
+            "FFlagCollab6803LuaExplorer": true,
+            "FFlagNewExplorer": true,
+            "FFlagLuaExplorerBetaFeature": true
         }
     },
     "Force High Graphics": {
