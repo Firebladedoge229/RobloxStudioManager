@@ -453,7 +453,7 @@ def handle_flags(settings):
             if clientSettingsSuccess:
                 for key, _ in clientAppSettingsURL.items():
                     lowerKey = key.lower()
-                    if "flag" in lowerKey and "betafeature" in lowerKey and "nextgen" not in lowerKey and "assistant" not in lowerKey:
+                    if "flag" in lowerKey and "betafeature" in lowerKey and "nextgen" not in lowerKey and "assistant" not in lowerKey and not "luaexplorer" in lowerKey:
                         applied_flags[key] = True
                         
             if fVariablesSuccess: 
