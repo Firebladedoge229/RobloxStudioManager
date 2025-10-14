@@ -8,6 +8,9 @@ on:
     paths:
       - "data/fastflags.json"
 
+permissions:
+  contents: read
+
 jobs:
   check-fastflags:
     runs-on: ubuntu-latest
