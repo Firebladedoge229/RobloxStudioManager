@@ -33,6 +33,13 @@ legacyOuchURL = f"{repoLocation}misc/LegacyOuch.ogg"
 clientSettingsSuccess = False
 fVariablesSuccess = False
 
+disclaimer_patch_before = "53 74 75 64 69 6F 2E 41 70 70 2E 41 62 6F 75 74 53 74 75 64 69 6F 44 69 61 6C 6F 67 2E 41 6D 6F 6E 67 52 65 67 69 73 74 65 72 65 64 54 72 61 64 65 6D 61 72 6B 73 2C 2C 2C 22 3C 69 3E 52 6F 62 6C 6F 78 3C 2F 69 3E 2C 20 74 68 65 20 52 6F 62 6C 6F 78 20 3C 69 3E 6C 6F 67 6F 3C 2F 69 3E 20 61 6E 64 20 3C 69 3E 50 6F 77 65 72 69 6E 67 20 49 6D 61 67 69 6E 61 74 69 6F 6E 3C 2F 69 3E 20 61 72 65 20 61 6D 6F 6E 67 20 6F 75 72 20 72 65 67 69 73 74 65 72 65 64 20 61 6E 64 20 75 6E 72 65 67 69 73 74 65 72 65 64 20 74 72 61 64 65 6D 61 72 6B 73 20 69 6E 20 74 68 65 20 55 2E 53 2E 20 61 6E 64 20 6F 74 68 65 72 20 63 6F 75 6E 74 72 69 65 73 2E 22 2C 22 3C 69 3E 52 6F 62 6C 6F 78 3C 2F 69 3E 2C 20 74 68 65 20 52 6F 62 6C 6F 78 20 3C 69 3E 6C 6F 67 6F 3C 2F 69 3E 20 61 6E 64 20 3C 69 3E 50 6F 77 65 72 69 6E 67 20 49 6D 61 67 69 6E 61 74 69 6F 6E 3C 2F 69 3E 20 61 72 65 20 61 6D 6F 6E 67 20 6F 75 72 20 72 65 67 69 73 74 65 72 65 64 20 61 6E 64 20 75 6E 72 65 67 69 73 74 65 72 65 64 20 74 72 61 64 65 6D 61 72 6B 73 20 69 6E 20 74 68 65 20 55 2E 53 2E 20 61 6E 64 20 6F 74 68 65 72 20 63 6F 75 6E 74 72 69 65 73 2E"
+
+disclaimer_patch_after = "53 74 75 64 69 6F 2E 41 70 70 2E 41 62 6F 75 74 53 74 75 64 69 6F 44 69 61 6C 6F 67 2E 41 6D 6F 6E 67 52 65 67 69 73 74 65 72 65 64 54 72 61 64 65 6D 61 72 6B 73 2C 2C 2C 22 3C 69 3E 52 6F 62 6C 6F 78 3C 2F 69 3E 2C 20 74 68 65 20 52 6F 62 6C 6F 78 20 3C 69 3E 6C 6F 67 6F 3C 2F 69 3E 20 61 6E 64 20 3C 69 3E 50 6F 77 65 72 69 6E 67 20 49 6D 61 67 69 6E 61 74 69 6F 6E 3C 2F 69 3E 2E 20 52 6F 62 6C 6F 78 20 53 74 75 64 69 6F 20 6D 6F 64 69 66 69 65 64 20 62 79 20 52 6F 62 6C 6F 78 20 53 74 75 64 69 6F 20 4D 61 6E 61 67 65 72 2C 20 61 6E 20 6F 70 65 6E 2D 73 6F 75 72 63 65 20 70 72 6F 6A 65 63 74 20 6F 6E 20 47 69 74 48 75 62 2E 20 20 22 2C 22 3C 69 3E 52 6F 62 6C 6F 78 3C 2F 69 3E 2C 20 74 68 65 20 52 6F 62 6C 6F 78 20 3C 69 3E 6C 6F 67 6F 3C 2F 69 3E 20 61 6E 64 20 3C 69 3E 50 6F 77 65 72 69 6E 67 20 49 6D 61 67 69 6E 61 74 69 6F 6E 3C 2F 69 3E 2E 20 52 6F 62 6C 6F 78 20 53 74 75 64 69 6F 20 6D 6F 64 69 66 69 65 64 20 62 79 20 52 6F 62 6C 6F 78 20 53 74 75 64 69 6F 20 4D 61 6E 61 67 65 72 2C 20 61 6E 20 6F 70 65 6E 2D 73 6F 75 72 63 65 20 70 72 6F 6A 65 63 74 20 6F 6E 20 47 69 74 48 75 62 2E 20 20"
+
+disclaimer_patch_before_bytes = bytes.fromhex(disclaimer_patch_before.replace(" ", ""))
+disclaimer_patch_after_bytes = bytes.fromhex(disclaimer_patch_after.replace(" ", ""))
+
 try:
     clientAppSettingsURL = requests.get(clientAppSettingsURL).json()
     clientSettingsSuccess = True
@@ -695,6 +702,21 @@ def apply_settings(settings):
             print("\033[1;36mINFO:\033[0m User chose not to force quit Roblox Studio.")
             return
 
+    exe_path = os.path.join(selected_version, "RobloxStudioBeta.exe")
+    
+    try:
+        if ".app" in exe_path.lower():
+            exe_path = "/" + os.path.join(selected_version, "Contents", "MacOS", "RobloxStudio")
+        with open(exe_path, "r+b") as file:
+            content = file.read()
+            content = content.replace(disclaimer_patch_before, disclaimer_patch_after)
+            file.seek(0)
+            file.write(content)
+            file.truncate()
+            print(f"\033[1;32mSUCCESS:\033[0m Patching {exe_path} completed.")
+    except Exception as exception:
+        print(f"\033[1;31mERROR:\033[0m Error patching {exe_path}: {exception}")  
+    
     handle_flags(settings)
 
     if settings.get("Classic Font"):
