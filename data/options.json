@@ -58,7 +58,7 @@
                 "2025"
             ],
             "InternetRequired": true,
-            "WindowsOnly" : true
+            "WindowsOnly": true
         },
         {
             "Title": "Splash Screen Version",
@@ -151,7 +151,8 @@
             "Title": "Disable Crash Handler",
             "Description": "Disable the crash handler to prevent automatic reporting of application crashes.",
             "Section": "Flags",
-            "InternetRequired": true
+            "InternetRequired": true,
+            "WindowsOnly": true
         },
         {
             "Title": "Log Network Requests",
