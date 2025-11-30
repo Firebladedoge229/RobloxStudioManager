@@ -79,7 +79,8 @@
             "FFlagCollab6803LuaExplorer": true,
             "FFlagNewExplorer": true,
             "FFlagLuaExplorerBetaFeature": true,
-            "FFlagToolboxContentManagementCombineTabs2": true
+            "FFlagToolboxContentManagementCombineTabs2": true,
+            "FFlagToolboxEnableAssetRows6": true
         },
         "False": {
             "FFlagNextGenStudioBetaFeature": false,
@@ -88,7 +89,8 @@
             "FFlagCollab6803LuaExplorer": false,
             "FFlagNewExplorer": false,
             "FFlagLuaExplorerBetaFeature": false,
-            "FFlagToolboxContentManagementCombineTabs2": false
+            "FFlagToolboxContentManagementCombineTabs2": false,
+            "FFlagToolboxEnableAssetRows6": false
         }
     },
     "Enable Artifical Intelligence Features": {
