@@ -74,11 +74,21 @@
     "Enable Next-Gen Studio Interface": {
         "True": {
             "FFlagNextGenStudioBetaFeature": true,
-            "DFFlagWebViewRedesignDesktop": true
+            "DFFlagWebViewRedesignDesktop": true,
+            "FFlagKillOldExplorer3": true,
+            "FFlagCollab6803LuaExplorer": true,
+            "FFlagNewExplorer": true,
+            "FFlagLuaExplorerBetaFeature": true,
+            "FFlagToolboxContentManagementCombineTabs2": true
         },
         "False": {
             "FFlagNextGenStudioBetaFeature": false,
-            "DFFlagWebViewRedesignDesktop": false
+            "DFFlagWebViewRedesignDesktop": false,
+            "FFlagKillOldExplorer3": false,
+            "FFlagCollab6803LuaExplorer": false,
+            "FFlagNewExplorer": false,
+            "FFlagLuaExplorerBetaFeature": false,
+            "FFlagToolboxContentManagementCombineTabs2": false
         }
     },
     "Enable Artifical Intelligence Features": {
@@ -115,20 +125,6 @@
             "FIntAICOInputCommentDebounceTimeMs": 2147483648,
             "FIntAICORelatedScriptMaxScriptSize": 0,
             "FIntAICORequestAbortDebouncePercentage": 100
-        }
-    },
-    "Enable Legacy Explorer": {
-        "True": {
-            "FFlagKillOldExplorer3": false,
-            "FFlagCollab6803LuaExplorer": false,
-            "FFlagNewExplorer": false,
-            "FFlagLuaExplorerBetaFeature": false
-        },
-        "False": {
-            "FFlagKillOldExplorer3": true,
-            "FFlagCollab6803LuaExplorer": true,
-            "FFlagNewExplorer": true,
-            "FFlagLuaExplorerBetaFeature": true
         }
     },
     "Force High Graphics": {
