@@ -462,13 +462,17 @@ def handle_flags(settings):
                     lowerKey = key.lower()
                     if "flag" in lowerKey and "betafeature" in lowerKey and "nextgen" not in lowerKey and "assistant" not in lowerKey and not "luaexplorer" in lowerKey:
                         applied_flags[key] = True
+                    if "fint" in lowerKey and "rolloutpercent" in lowerKey and "betafeature" in lowerKey and "nextgen" not in lowerKey and "assistant" not in lowerKey and not "luaexplorer" in lowerKey:
+                        applied_flags[key] = 100
                         
             if fVariablesSuccess: 
                 for line in fvariablesURL.splitlines():
                     key = re.sub(r"\[[^\]]*\]\s*", "", line.strip())
                     lowerKey = key.lower()
-                    if "flag" in lowerKey and "betafeature" in lowerKey:
+                    if "flag" in lowerKey and "betafeature" in lowerKey and "nextgen" not in lowerKey and "assistant" not in lowerKey and not "luaexplorer" in lowerKey:
                         applied_flags[key] = True
+                    if "fint" in lowerKey and "rolloutpercent" in lowerKey and "betafeature" in lowerKey and "nextgen" not in lowerKey and "assistant" not in lowerKey and not "luaexplorer" in lowerKey:
+                        applied_flags[key] = 100
         
         if settings["Rename Friends to Connections"] == False:
             if clientSettingsSuccess:
