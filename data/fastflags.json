@@ -73,6 +73,7 @@
     },
     "Enable Next-Gen Studio Interface": {
         "True": {
+            "FFlagNextGenStudioOptOut": false,
             "FFlagNextGenStudioBetaFeature": true,
             "DFFlagWebViewRedesignDesktop": true,
             "FFlagKillOldExplorer3": true,
@@ -95,6 +96,7 @@
             "FIntRevampedAssetManagerReleaseBetaFeatureRolloutPercent": 100
         },
         "False": {
+            "FFlagNextGenStudioOptOut": true,
             "FFlagNextGenStudioBetaFeature": false,
             "DFFlagWebViewRedesignDesktop": false,
             "FFlagKillOldExplorer3": false,
