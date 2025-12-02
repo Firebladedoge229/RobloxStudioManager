@@ -80,7 +80,11 @@
             "FFlagNewExplorer": true,
             "FFlagLuaExplorerBetaFeature": true,
             "FFlagToolboxContentManagementCombineTabs2": true,
-            "FFlagToolboxEnableAssetRows6": true
+            "FFlagToolboxEnableAssetRows6": true,
+            "FFlagKillOldProperties2": true,
+            "FFlagLuaPropertiesBetaFeature": true,
+            "FFlagNewProperties_Dev": true
+            
         },
         "False": {
             "FFlagNextGenStudioBetaFeature": false,
@@ -90,7 +94,10 @@
             "FFlagNewExplorer": false,
             "FFlagLuaExplorerBetaFeature": false,
             "FFlagToolboxContentManagementCombineTabs2": false,
-            "FFlagToolboxEnableAssetRows6": false
+            "FFlagToolboxEnableAssetRows6": false,
+            "FFlagKillOldProperties2": false,
+            "FFlagLuaPropertiesBetaFeature": false,
+            "FFlagNewProperties_Dev": false
         }
     },
     "Enable Artifical Intelligence Features": {
