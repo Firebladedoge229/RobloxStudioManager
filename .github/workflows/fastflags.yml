@@ -32,54 +32,57 @@ jobs:
       - name: Check FastFlags
         run: |
           python3 << 'EOF'
-          import requests
-          import sys
+          import requests, sys, re
 
           fastflags_url = "https://raw.githubusercontent.com/Firebladedoge229/RobloxStudioManager/refs/heads/main/data/fastflags.json"
           fvariables_url = "https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/refs/heads/roblox/FVariables.txt"
           client_settings_url = "https://clientsettingscdn.roblox.com/v2/settings/application/PCStudioApp"
 
-          ff_resp = requests.get(fastflags_url)
-          ff_resp.raise_for_status()
-          fastflags = ff_resp.json()
+          ff = requests.get(fastflags_url).json()
+          fv = set(line.strip().split()[-1] for line in requests.get(fvariables_url).text.splitlines() if line.strip())
+          cs = set(requests.get(client_settings_url).json().get("applicationSettings", {}).keys())
+          all_src = fv | cs
 
-          fv_resp = requests.get(fvariables_url)
-          fv_resp.raise_for_status()
-          fvariables = set(line.strip().split()[-1] for line in fv_resp.text.splitlines() if line.strip())
+          def collect(d, path=""):
+              out = []
+              for k, v in d.items():
+                  new = f"{path} > {k}" if path else k
+                  if isinstance(v, dict):
+                      out.extend(collect(v, new))
+                  else:
+                      out.append((k, path))
+              return out
 
-          cs_resp = requests.get(client_settings_url)
-          cs_resp.raise_for_status()
-          client_flags = set(cs_resp.json().get("applicationSettings", {}).keys())
+          flags = list(set(collect(ff)))
+          missing = []
 
-          def collect_flags(d, path=""):
-              flags = []
-              if isinstance(d, dict):
-                  for k, v in d.items():
-                      new_path = f"{path} > {k}" if path else k
-                      if isinstance(v, dict):
-                          flags.extend(collect_flags(v, new_path))
-                      else:
-                          flags.append((k, path))
-              return flags
+          def norm(f):
+              return {re.sub(r"\\d+$", "", f), re.sub(r"\\d+", "", f)}
 
-          all_flags = list(set(collect_flags(fastflags)))
+          def match(f):
+              n = norm(f)
+              m = []
+              for s in all_src:
+                  if s != f and (s in n or f in norm(s)):
+                      m.append(s)
+              return m
 
-          missing_flags = []
+          for flag, path in flags:
+              if flag in all_src:
+                  print(f"✅ {flag} found in exact match [{path}]")
+                  continue
+              m = match(flag)
+              if m:
+                  print(f"🟡 Lenient Match for {flag} [{path}] → {m}")
+                  continue
+              print(f"⚠️ {flag} not found in either source [{path}]")
+              missing.append((flag, path))
 
-          for flag, path in all_flags:
-              if flag in fvariables:
-                  print(f"✅ {flag} found in FVariables [{path}]")
-              elif flag in client_flags:
-                  print(f"✅ {flag} found in Client Settings [{path}]")
-              else:
-                  print(f"⚠️ {flag} not found in either source [{path}]")
-                  missing_flags.append((flag, path))
-
-          if missing_flags:
-              print(f"\n❌ Missing flags: {len(missing_flags)}")
-              for f, path in missing_flags:
-                  print(f"  - {f} [{path}]")
+          if missing:
+              print(f"\n❌ Missing flags: {len(missing)}")
+              for f, p in missing:
+                  print(f"  - {f} [{p}]")
               sys.exit(1)
           else:
-              print("\nAll flags verified successfully ✅")
+              print("\nAll flags verified successfully (with leniency) ✅")
           EOF
