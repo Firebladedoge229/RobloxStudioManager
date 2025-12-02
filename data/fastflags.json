@@ -86,7 +86,13 @@
             "FFlagNewProperties_Dev": true,
             "FFlagExplorerPropertiesUseRDLColors": true,
             "FFlagEnableFindReplaceAll2": true,
-            "FFlagNewFindReplaceTasker4": true
+            "FFlagNewFindReplaceTasker4": true,
+            "FFlagAdvancedCommandBar6": true,
+            "FFlagAdvancedCommandBarBetaFeature": true,
+            "FIntAdvancedCommandBarBetaFeatureRolloutPercent": 100,
+            "FFlagEnableAssetManager2": true,
+            "FFlagRevampedAssetManagerReleaseBetaFeature": true,
+            "FFlagRevampedAssetManagerReleaseBetaFeatureRolloutPercent": 100
         },
         "False": {
             "FFlagNextGenStudioBetaFeature": false,
@@ -102,7 +108,13 @@
             "FFlagNewProperties_Dev": false,
             "FFlagExplorerPropertiesUseRDLColors": false,
             "FFlagEnableFindReplaceAll2": false,
-            "FFlagNewFindReplaceTasker4": false
+            "FFlagNewFindReplaceTasker4": false,
+            "FFlagAdvancedCommandBar6": false,
+            "FFlagAdvancedCommandBarBetaFeature": false,
+            "FIntAdvancedCommandBarBetaFeatureRolloutPercent": 0,
+            "FFlagEnableAssetManager2": false,
+            "FFlagRevampedAssetManagerReleaseBetaFeature": false,
+            "FFlagRevampedAssetManagerReleaseBetaFeatureRolloutPercent": 0
         }
     },
     "Enable Artifical Intelligence Features": {
