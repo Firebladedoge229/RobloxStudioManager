@@ -737,6 +737,15 @@ def apply_settings(settings):
         except Exception as exception:
             print(f"\033[1;31mERROR:\033[0m Error disabling Crash Handler: {exception}")
 
+    try:
+        if settings.get("Enable Artifical Intelligence Features"):    
+            toggle_plugin_enabled("DisabledPlugins/Assistant-BuiltInStandalonePlugins", True)
+        else:
+            toggle_plugin_enabled("BuiltInStandalonePlugins/Assistant", False)
+            
+    except Exception as exception:
+        print(f"\033[1;36mINFO:\033[0m ROBLOX Studio Assistant could not be disabled due to an error: {exception}")
+        
     if settings.get("Enable Internal"):
         try:
             if internal_signature:
