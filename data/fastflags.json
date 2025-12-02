@@ -84,7 +84,9 @@
             "FFlagKillOldProperties2": true,
             "FFlagLuaPropertiesBetaFeature": true,
             "FFlagNewProperties_Dev": true,
-            "FFlagExplorerPropertiesUseRDLColors": true
+            "FFlagExplorerPropertiesUseRDLColors": true,
+            "FFlagEnableFindReplaceAll2": true,
+            "FFlagNewFindReplaceTasker4": true
         },
         "False": {
             "FFlagNextGenStudioBetaFeature": false,
@@ -98,7 +100,9 @@
             "FFlagKillOldProperties2": false,
             "FFlagLuaPropertiesBetaFeature": false,
             "FFlagNewProperties_Dev": false,
-            "FFlagExplorerPropertiesUseRDLColors": false
+            "FFlagExplorerPropertiesUseRDLColors": false,
+            "FFlagEnableFindReplaceAll2": false,
+            "FFlagNewFindReplaceTasker4": false
         }
     },
     "Enable Artifical Intelligence Features": {
