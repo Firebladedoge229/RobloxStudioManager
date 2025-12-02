@@ -83,8 +83,8 @@
             "FFlagToolboxEnableAssetRows6": true,
             "FFlagKillOldProperties2": true,
             "FFlagLuaPropertiesBetaFeature": true,
-            "FFlagNewProperties_Dev": true
-            
+            "FFlagNewProperties_Dev": true,
+            "FFlagExplorerPropertiesUseRDLColors": true
         },
         "False": {
             "FFlagNextGenStudioBetaFeature": false,
@@ -97,7 +97,8 @@
             "FFlagToolboxEnableAssetRows6": false,
             "FFlagKillOldProperties2": false,
             "FFlagLuaPropertiesBetaFeature": false,
-            "FFlagNewProperties_Dev": false
+            "FFlagNewProperties_Dev": false,
+            "FFlagExplorerPropertiesUseRDLColors": false
         }
     },
     "Enable Artifical Intelligence Features": {
