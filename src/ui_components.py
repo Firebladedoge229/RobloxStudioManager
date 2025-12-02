@@ -18,7 +18,7 @@ if os.name == "nt":
 elif os.name == "posix":
     win32cred = os
 
-version = "2.5.0"
+version = "2.5.6"
 
 global progressBar
 progressBar = None
