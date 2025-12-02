@@ -135,7 +135,8 @@
             "FFlagAICODefaultEnableCodeAssistStreaming": true,
             "FIntAICOInputCommentDebounceTimeMs": 299,
             "FIntAICORelatedScriptMaxScriptSize": 100000,
-            "FIntAICORequestAbortDebouncePercentage": 0
+            "FIntAICORequestAbortDebouncePercentage": 0,
+            "FFlagConvAIMenu_Enable": true
         },
         "False": {
             "FFlagAddExplainCodetoMCPAssistant": false,
@@ -152,7 +153,8 @@
             "FFlagAICODefaultEnableCodeAssistStreaming": false,
             "FIntAICOInputCommentDebounceTimeMs": 2147483648,
             "FIntAICORelatedScriptMaxScriptSize": 0,
-            "FIntAICORequestAbortDebouncePercentage": 100
+            "FIntAICORequestAbortDebouncePercentage": 100,
+            "FFlagConvAIMenu_Enable": false
         }
     },
     "Force High Graphics": {
