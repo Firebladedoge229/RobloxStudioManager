@@ -92,7 +92,7 @@
             "FIntAdvancedCommandBarBetaFeatureRolloutPercent": 100,
             "FFlagEnableAssetManager2": true,
             "FFlagRevampedAssetManagerReleaseBetaFeature": true,
-            "FFlagRevampedAssetManagerReleaseBetaFeatureRolloutPercent": 100
+            "FIntRevampedAssetManagerReleaseBetaFeatureRolloutPercent": 100
         },
         "False": {
             "FFlagNextGenStudioBetaFeature": false,
@@ -114,7 +114,7 @@
             "FIntAdvancedCommandBarBetaFeatureRolloutPercent": 0,
             "FFlagEnableAssetManager2": false,
             "FFlagRevampedAssetManagerReleaseBetaFeature": false,
-            "FFlagRevampedAssetManagerReleaseBetaFeatureRolloutPercent": 0
+            "FIntRevampedAssetManagerReleaseBetaFeatureRolloutPercent": 0
         }
     },
     "Enable Artifical Intelligence Features": {
