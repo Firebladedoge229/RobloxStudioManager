@@ -1,6 +1,7 @@
 name: Check Roblox FastFlags
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - "data/fastflags.json"
