@@ -183,12 +183,6 @@
             "InternetRequired": true
         },
         {
-            "Title": "Classic Death Sound",
-            "Description": "Revert to the original sound effect played upon character death.",
-            "Section": "Mods",
-            "InternetRequired": true
-        },
-        {
             "SectionTitle": "Advanced",
             "SectionLocation": "Mods"
         },
