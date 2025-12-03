@@ -27,9 +27,6 @@ smallURL = "https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/
 mediumURL = "https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/refs/heads/roblox/QtResources/Logo/StudioLogoAssets/RobloxStudioSplash@2x.png"
 largeURL = "https://raw.githubusercontent.com/MaximumADHD/Roblox-Client-Tracker/refs/heads/roblox/QtResources/Logo/StudioLogoAssets/RobloxStudioSplash@3x.png"
 
-ouchURL = f"{repoLocation}misc/Ouch.ogg"
-legacyOuchURL = f"{repoLocation}misc/LegacyOuch.ogg"
-
 clientSettingsSuccess = False
 fVariablesSuccess = False
 
@@ -523,28 +520,6 @@ def handle_flags(settings):
                     break
 
     tree.write(treePath, encoding="utf-8", xml_declaration=True)
-
-    if settings["Classic Death Sound"] == True:
-        try:
-            ouchData = requests.get(legacyOuchURL).content
-        except:
-            pass
-    else:
-        try:
-            ouchData = requests.get(ouchURL).content
-        except:
-            pass
-
-    try:
-        if os.name == "nt":
-            defaultLocation = os.path.join(selected_version, "content", "sounds", "ouch.ogg")
-        elif os.name == "posix":
-            defaultLocation = "/" + os.path.join(selected_version, "Contents", "Resources", "content", "sounds", "ouch.ogg")
-
-        with open(defaultLocation, "wb") as file:
-            file.write(ouchData)
-    except Exception as exception:
-        print(f"\033[1;31mERROR:\033[0m Error while replacing death sound: {exception}")
 
     if settings["Legacy Cursor"] == True:
         try:
