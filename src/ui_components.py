@@ -121,10 +121,14 @@ class Window(FluentWindow):
         self.initNavigation()
         self.loadAutoSettings()  
         latest_version = self.fetchLatestReleaseInfo()["tag_name"]
-        modified_version = [int(x) for x in version.split(".")]
-        modified_latest_version = [int(x) for x in latest_version.lstrip("v").split(".")]
-        if modified_latest_version > modified_version:
-            self.showUpdateDialog()
+        if latest_version != "N/A":
+            try:
+                modified_version = [int(x) for x in version.split(".")]
+                modified_latest_version = [int(x) for x in latest_version.lstrip("v").split(".")]
+                if modified_latest_version > modified_version:
+                    self.showUpdateDialog()
+            except (ValueError, AttributeError) as e:
+                print(f"\033[38;5;214mWARNING:\033[0m Unable to parse version numbers: {e}")
 
     def initNavigation(self):
         self.homeInterface = ScrollableWidget(Widget(self, "homeInterface"))
