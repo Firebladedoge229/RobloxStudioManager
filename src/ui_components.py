@@ -121,14 +121,10 @@ class Window(FluentWindow):
         self.initNavigation()
         self.loadAutoSettings()  
         latest_version = self.fetchLatestReleaseInfo()["tag_name"]
-        if latest_version != "N/A":
-            try:
-                modified_version = [int(x) for x in version.split(".")]
-                modified_latest_version = [int(x) for x in latest_version.lstrip("v").split(".")]
-                if modified_latest_version > modified_version:
-                    self.showUpdateDialog()
-            except (ValueError, AttributeError) as e:
-                print(f"\033[38;5;214mWARNING:\033[0m Unable to parse version numbers: {e}")
+        modified_version = [int(x) for x in version.split(".")]
+        modified_latest_version = [int(x) for x in latest_version.lstrip("v").split(".")]
+        if modified_latest_version > modified_version:
+            self.showUpdateDialog()
 
     def initNavigation(self):
         self.homeInterface = ScrollableWidget(Widget(self, "homeInterface"))
@@ -296,6 +292,10 @@ class Window(FluentWindow):
 
     def inheritColors(self, theme, themeEditorLayout : QVBoxLayout):
         json_data = get_theme_colors(theme)
+        
+        if not json_data:
+            print(f"\033[38;5;214mWARNING:\033[0m Unable to load theme colors for {theme}. Theme editor will be empty.")
+            return
 
         for i in reversed(range(themeEditorLayout.count())): 
             widget_item = themeEditorLayout.itemAt(i).widget()

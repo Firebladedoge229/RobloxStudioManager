@@ -915,7 +915,14 @@ def get_theme_colors(selection = "LightTheme"):
     if os.name == "posix":
         if not os.path.exists(base_path):
             subprocess.Popen(["mkdir", "-p", base_path])
-    with open(os.path.join(base_path, f"{selection}.json"), "r") as file:
+    
+    theme_file_path = os.path.join(base_path, f"{selection}.json")
+    if not os.path.exists(theme_file_path):
+        print(f"\033[1;31mERROR:\033[0m Theme file not found: {theme_file_path}")
+        print("\033[1;36mINFO:\033[0m Returning empty theme data. Theme customization will not be available.")
+        return {}
+    
+    with open(theme_file_path, "r") as file:
         json_data = json.load(file)
     return json_data
 
