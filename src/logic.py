@@ -910,11 +910,11 @@ if not os.path.exists(light_theme_path) and not os.path.exists(dark_theme_path):
     download_default_themes()
 
 def check_internet_connectivity():
-    """Check if internet connection is available"""
+    """Check if internet connection is available. Returns True if connected, False otherwise."""
     try:
-        requests.get("https://8.8.8.8", timeout=3)
+        requests.get("http://8.8.8.8", timeout=3)
         return True
-    except:
+    except Exception:
         return False
 
 def get_theme_colors(selection = "LightTheme"):
