@@ -292,6 +292,10 @@ class Window(FluentWindow):
 
     def inheritColors(self, theme, themeEditorLayout : QVBoxLayout):
         json_data = get_theme_colors(theme)
+        
+        if not json_data:
+            print(f"\033[38;5;214mWARNING:\033[0m Unable to load theme colors for {theme}. Theme editor will be empty.")
+            return
 
         for i in reversed(range(themeEditorLayout.count())): 
             widget_item = themeEditorLayout.itemAt(i).widget()

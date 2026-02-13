@@ -909,13 +909,46 @@ def download_default_themes():
 if not os.path.exists(light_theme_path) and not os.path.exists(dark_theme_path):
     download_default_themes()
 
+def check_internet_connectivity():
+    """Check if internet connection is available. Returns True if connected, False otherwise."""
+    try:
+        requests.get("http://8.8.8.8", timeout=3)
+        return True
+    except Exception:
+        return False
+
 def get_theme_colors(selection = "LightTheme"):
     if not os.path.exists(light_theme_path) and not os.path.exists(dark_theme_path):
         download_default_themes()
     if os.name == "posix":
         if not os.path.exists(base_path):
             subprocess.Popen(["mkdir", "-p", base_path])
-    with open(os.path.join(base_path, f"{selection}.json"), "r") as file:
+    
+    theme_file_path = os.path.join(base_path, f"{selection}.json")
+    if not os.path.exists(theme_file_path):
+        # Check if user has internet connectivity
+        has_internet = check_internet_connectivity()
+        
+        if has_internet:
+            print(f"\033[1;36mINFO:\033[0m Theme file not found: {theme_file_path}")
+            print("\033[1;36mINFO:\033[0m Attempting to download theme files...")
+            download_default_themes()
+            
+            # Check again after download attempt
+            if os.path.exists(theme_file_path):
+                with open(theme_file_path, "r") as file:
+                    json_data = json.load(file)
+                return json_data
+            else:
+                print(f"\033[1;31mERROR:\033[0m Failed to download theme file: {theme_file_path}")
+                print("\033[1;36mINFO:\033[0m Returning empty theme data. Theme customization will not be available.")
+                return {}
+        else:
+            print(f"\033[1;31mERROR:\033[0m Theme file not found: {theme_file_path}")
+            print("\033[1;36mINFO:\033[0m No internet connection available. Returning empty theme data.")
+            return {}
+    
+    with open(theme_file_path, "r") as file:
         json_data = json.load(file)
     return json_data
 
